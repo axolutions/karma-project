@@ -21,16 +21,16 @@ const KarmicMatrix: React.FC<KarmicMatrixProps> = ({
   karmicData,
   backgroundImage = "https://darkorange-goldfinch-896244.hostingersite.com/wp-content/uploads/2025/02/Design-sem-nome-1.png"
 }) => {
-  // Define positions of the 8 boxes on the matrix image - reposicionamento para o centro dos quadrados
+  // Define positions of the 8 boxes on the matrix image - ajustes extremos para posicionar corretamente
   const boxPositions = [
-    { top: '12%', left: '25%', translateX: '-50%', translateY: '-50%' },   // Position 1 - top left square (3)
-    { top: '12%', left: '75%', translateX: '-50%', translateY: '-50%' },   // Position 2 - top right square (1)
-    { top: '46%', left: '21%', translateX: '-50%', translateY: '-50%' },   // Position 3 - middle left square (9) - manter
-    { top: '47%', left: '72%', translateX: '-50%', translateY: '-50%' },   // Position 4 - middle right square (4) - manter
-    { top: '82%', left: '25%', translateX: '-50%', translateY: '-50%' },   // Position 5 - bottom left square (11)
-    { top: '74%', left: '48%', translateX: '-50%', translateY: '-50%' },   // Position 6 - bottom middle square (9) - manter
-    { top: '82%', left: '75%', translateX: '-50%', translateY: '-50%' },   // Position 7 - bottom right square (3)
-    { top: '20%', left: '47%', translateX: '-50%', translateY: '-50%' }    // Position 8 - top middle square (11) - manter
+    { top: '4%', left: '25%', translateX: '-50%', translateY: '-50%' },    // Position 1 - 3 da esquerda (subir bastante)
+    { top: '4%', left: '75%', translateX: '-50%', translateY: '-50%' },    // Position 2 - 1 da direita (subir bastante)
+    { top: '46%', left: '21%', translateX: '-50%', translateY: '-50%' },   // Position 3 - middle left square - manter
+    { top: '47%', left: '72%', translateX: '-50%', translateY: '-50%' },   // Position 4 - middle right square - manter
+    { top: '95%', left: '25%', translateX: '-50%', translateY: '-50%' },   // Position 5 - 11 da esquerda (descer bastante)
+    { top: '74%', left: '48%', translateX: '-50%', translateY: '-50%' },   // Position 6 - bottom middle square - manter
+    { top: '95%', left: '75%', translateX: '-50%', translateY: '-50%' },   // Position 7 - 3 da direita (descer bastante)
+    { top: '20%', left: '47%', translateX: '-50%', translateY: '-50%' }    // Position 8 - top middle square - manter
   ];
 
   // Map data to positions
