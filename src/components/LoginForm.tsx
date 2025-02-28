@@ -8,7 +8,11 @@ import { useNavigate } from 'react-router-dom';
 import { MoveRight, AlertCircle } from "lucide-react";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 
-const LoginForm: React.FC = () => {
+interface LoginFormProps {
+  onLoginSuccess?: () => void;
+}
+
+const LoginForm: React.FC<LoginFormProps> = ({ onLoginSuccess }) => {
   const [email, setEmail] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -73,8 +77,12 @@ const LoginForm: React.FC = () => {
           // User already has a matrix, redirect to results
           navigate('/matrix');
         } else {
-          // User needs to fill profile, redirect to profile page
-          window.location.reload();
+          // User needs to fill profile
+          if (onLoginSuccess) {
+            onLoginSuccess();
+          } else {
+            window.location.reload();
+          }
         }
       }, 1000);
     } else {

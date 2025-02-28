@@ -8,7 +8,11 @@ import { toast } from "@/components/ui/use-toast";
 import { saveUserData, getCurrentUser, getUserData } from '@/lib/auth';
 import { useNavigate } from 'react-router-dom';
 
-const ProfileForm: React.FC = () => {
+interface ProfileFormProps {
+  onProfileComplete?: () => void;
+}
+
+const ProfileForm: React.FC<ProfileFormProps> = ({ onProfileComplete }) => {
   const [name, setName] = useState('');
   const [birthDate, setBirthDate] = useState('');
   const [isValid, setIsValid] = useState(true);
@@ -27,6 +31,7 @@ const ProfileForm: React.FC = () => {
         const userData = getUserData(currentUser);
         if (userData && userData.karmicNumbers) {
           // Usuário já possui perfil, redirecionar para a matriz
+          console.log("ProfileForm: Perfil já existe, redirecionando...");
           setExistingProfile(true);
           setTimeout(() => {
             navigate('/matrix');
@@ -156,10 +161,14 @@ const ProfileForm: React.FC = () => {
       description: "Sua Matriz Kármica Pessoal 2025 foi gerada com sucesso.",
     });
     
-    // Redirect to matrix results
+    // Callback de conclusão do perfil ou redirecionamento
     setTimeout(() => {
       setIsSubmitting(false);
-      navigate('/matrix');
+      if (onProfileComplete) {
+        onProfileComplete();
+      } else {
+        navigate('/matrix');
+      }
     }, 1000);
   };
 

@@ -1,5 +1,5 @@
 
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
 import LoginForm from '@/components/LoginForm';
@@ -13,50 +13,55 @@ const Index = () => {
   const [loading, setLoading] = useState(true);
   const navigate = useNavigate();
   
-  useEffect(() => {
-    // Função para verificar o status do login
-    const checkLoginStatus = async () => {
+  // Função para verificar o status do login e redirecionar se necessário
+  const checkAndRedirect = async () => {
+    try {
       setLoading(true);
-      try {
-        // Verificar se o usuário está logado
-        const loggedIn = isLoggedIn();
-        setUserLoggedIn(loggedIn);
-        
-        if (loggedIn) {
-          // Verificar se o usuário já completou o perfil
-          const email = getCurrentUser();
-          if (email) {
-            const userData = getUserData(email);
-            
-            // Se tem dados de usuário com matriz kármica, redirecionar para /matrix
-            if (userData && userData.karmicNumbers) {
-              console.log("Usuário com matriz kármica detectado, redirecionando...");
-              setHasProfile(true);
-              navigate('/matrix');
-              return;
-            } else {
-              // Usuário logado mas sem perfil completo
-              console.log("Usuário logado sem perfil completo");
-              setHasProfile(false);
-            }
+      // Verificar se o usuário está logado
+      const loggedIn = isLoggedIn();
+      console.log("Status de login:", loggedIn);
+      
+      if (loggedIn) {
+        const email = getCurrentUser();
+        if (email) {
+          console.log("Email do usuário:", email);
+          const userData = getUserData(email);
+          
+          // Se o usuário tem matriz kármica, redirecionar para a página da matriz
+          if (userData && userData.karmicNumbers) {
+            console.log("Usuário com matriz kármica, redirecionando...");
+            setHasProfile(true);
+            navigate('/matrix');
+            return true; // Indica que foi redirecionado
+          } else {
+            console.log("Usuário logado mas sem perfil completo");
+            setUserLoggedIn(true);
+            setHasProfile(false);
           }
-        } else {
-          // Limpar estados se não estiver logado
-          console.log("Usuário não está logado");
-          setHasProfile(false);
         }
-      } catch (error) {
-        console.error("Erro ao verificar login:", error);
-        // Em caso de erro, fazer logout para garantir
-        logout();
+      } else {
+        console.log("Usuário não está logado");
         setUserLoggedIn(false);
         setHasProfile(false);
-      } finally {
-        setLoading(false);
       }
+      return false; // Não redirecionou
+    } catch (error) {
+      console.error("Erro ao verificar status:", error);
+      logout();
+      setUserLoggedIn(false);
+      setHasProfile(false);
+      return false;
+    } finally {
+      setLoading(false);
+    }
+  };
+  
+  useEffect(() => {
+    const initPage = async () => {
+      await checkAndRedirect();
     };
     
-    checkLoginStatus();
+    initPage();
   }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
   // Se estiver carregando, mostrar indicador
@@ -89,9 +94,9 @@ const Index = () => {
           </h2>
           
           {userLoggedIn && !hasProfile ? (
-            <ProfileForm />
+            <ProfileForm onProfileComplete={() => checkAndRedirect()} />
           ) : (
-            <LoginForm />
+            <LoginForm onLoginSuccess={() => checkAndRedirect()} />
           )}
           
           <div className="mt-6 pt-6 border-t border-karmic-200 text-center">
