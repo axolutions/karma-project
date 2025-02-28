@@ -21,28 +21,38 @@ const ProfileForm: React.FC = () => {
     // Verificar se o usuário já tem um perfil gerado
     const currentUser = getCurrentUser();
     if (currentUser) {
-      console.log("ProfileForm: Usuário atual:", currentUser);
       const userMaps = getAllUserDataByEmail(currentUser);
-      console.log("ProfileForm: Mapas encontrados:", userMaps);
-      
-      setExistingMaps(userMaps || []);
+      setExistingMaps(userMaps);
       
       // Se houver mapas existentes, preencher o nome com o do último mapa
-      if (userMaps && userMaps.length > 0) {
-        setName(userMaps[userMaps.length - 1].name || '');
+      if (userMaps.length > 0) {
+        setName(userMaps[userMaps.length - 1].name);
         
         // Verificar se o usuário pode criar um novo mapa
+        // Cada email só pode criar um mapa, a menos que seja adicionado novamente pelo admin
+        // Lógica: se o número de mapas for maior ou igual ao número de vezes que o email foi autorizado, 
+        // não pode criar mais mapas
         checkIfCanCreateNewMap(currentUser, userMaps.length);
       }
-    } else {
-      console.log("ProfileForm: Nenhum usuário logado");
     }
-  }, []);
+  }, [navigate]);
   
   const checkIfCanCreateNewMap = (email: string, mapCount: number) => {
     // Aqui verificamos se o usuário pode criar um novo mapa
+    // Cada vez que um email é adicionado à lista de autorizados, ele ganha direito a um novo mapa
+    
+    // Em uma implementação real, essa lógica seria mais complexa e poderia envolver:
+    // 1. Verificar compras na Yampi
+    // 2. Verificar um contador de créditos no backend
+    // 3. Verificar um plano de assinatura
+    
+    // Por enquanto, usamos uma regra simples: 
+    // Se o email está na lista de autorizados, mas já usou seu crédito (criou um mapa),
+    // então não pode criar mais
+    
     if (mapCount > 0 && isAuthorizedEmail(email)) {
       // Simples verificação: se já tem mapas, não pode criar mais
+      // Esta lógica será substituída pela verificação real de compras ou créditos
       setCanCreateNewMap(false);
     } else {
       setCanCreateNewMap(true);
@@ -100,9 +110,8 @@ const ProfileForm: React.FC = () => {
     }
   };
 
-  const handleSubmit = async (e: React.FormEvent) => {
+  const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    console.log("ProfileForm: Iniciando envio do formulário");
     
     // Se não pode criar novo mapa, mostrar mensagem e não prosseguir
     if (existingMaps.length > 0 && !canCreateNewMap) {
@@ -114,11 +123,8 @@ const ProfileForm: React.FC = () => {
       return;
     }
     
-    // Marcar como enviando para desativar o botão
     setIsSubmitting(true);
-    console.log("ProfileForm: Formulário em processamento");
     
-    // Validar nome
     if (!name.trim()) {
       toast({
         title: "Nome obrigatório",
@@ -129,7 +135,6 @@ const ProfileForm: React.FC = () => {
       return;
     }
     
-    // Validar data
     if (!birthDate || !validateDate(birthDate)) {
       toast({
         title: "Data inválida",
@@ -153,50 +158,31 @@ const ProfileForm: React.FC = () => {
       return;
     }
     
-    try {
-      console.log("ProfileForm: Calculando números kármicos para data:", birthDate);
-      // Calculate karmic numbers
-      const karmicNumbers = calculateAllKarmicNumbers(birthDate);
-      console.log("ProfileForm: Números kármicos calculados:", karmicNumbers);
-      
-      // Save user data
-      console.log("ProfileForm: Salvando dados do usuário");
-      const newMapId = saveUserData({
-        email,
-        name,
-        birthDate,
-        karmicNumbers
-      });
-      
-      console.log("ProfileForm: Mapa criado com ID:", newMapId);
-      
-      // Definir o ID do mapa atual para visualização
-      setCurrentMatrixId(newMapId);
-      
-      toast({
-        title: "Mapa criado com sucesso",
-        description: "Sua Matriz Kármica Pessoal 2025 foi gerada com sucesso.",
-      });
-      
-      // Dar tempo para o toast ser exibido antes de redirecionar
-      console.log("ProfileForm: Redirecionando para matriz em 1 segundo...");
-      setTimeout(() => {
-        console.log("ProfileForm: Redirecionando agora!");
-        setIsSubmitting(false);
-        navigate('/matrix');
-      }, 1000);
-    } catch (error) {
-      console.error("ProfileForm: Erro ao gerar mapa:", error);
-      toast({
-        title: "Erro ao criar mapa",
-        description: "Ocorreu um erro ao processar seus dados. Por favor, tente novamente.",
-        variant: "destructive"
-      });
+    // Calculate karmic numbers
+    const karmicNumbers = calculateAllKarmicNumbers(birthDate);
+    
+    // Save user data
+    const newMapId = saveUserData({
+      email,
+      name,
+      birthDate,
+      karmicNumbers
+    });
+    
+    // Definir o ID do mapa atual para visualização
+    setCurrentMatrixId(newMapId);
+    
+    toast({
+      title: "Mapa criado com sucesso",
+      description: "Sua Matriz Kármica Pessoal 2025 foi gerada com sucesso.",
+    });
+    
+    // Redirect to matrix results
+    setTimeout(() => {
       setIsSubmitting(false);
-    }
+      navigate('/matrix');
+    }, 1000);
   };
-  
-  console.log("ProfileForm: Renderizando com isSubmitting =", isSubmitting);
 
   return (
     <form onSubmit={handleSubmit} className="space-y-4 max-w-md mx-auto">
@@ -242,9 +228,8 @@ const ProfileForm: React.FC = () => {
           </p>
           <ul className="text-xs space-y-1 text-karmic-600">
             {existingMaps.map((map, index) => (
-              <li key={map?.id || index}>
-                • {map?.name || 'Nome indisponível'} - {map?.birthDate || 'Data indisponível'} 
-                {map?.createdAt ? ` (criado em: ${new Date(map.createdAt).toLocaleDateString()})` : ''}
+              <li key={map.id || index}>
+                • {map.name} - {map.birthDate} (criado em: {new Date(map.createdAt).toLocaleDateString()})
               </li>
             ))}
           </ul>
