@@ -5,24 +5,19 @@ import { getCurrentUser, getUserData, logout } from '@/lib/auth';
 import { useNavigate } from 'react-router-dom';
 import KarmicMatrix from '@/components/KarmicMatrix';
 import MatrixInterpretations from '@/components/MatrixInterpretations';
-import { LogOut, RefreshCw, Mail } from 'lucide-react';
+import { Printer, LogOut, RefreshCw, Download, FileDown } from 'lucide-react';
 import { toast } from "@/components/ui/use-toast";
 import { motion } from 'framer-motion';
 import html2canvas from 'html2canvas';
 import jsPDF from 'jspdf';
-import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
 
 const MatrixResult = () => {
   const [userData, setUserData] = useState<any>(null);
   const [refreshing, setRefreshing] = useState(false);
+  const [isPrinting, setIsPrinting] = useState(false);
+  const [isDownloading, setIsDownloading] = useState(false);
   const [loading, setLoading] = useState(true);
-  const [isSending, setIsSending] = useState(false);
-  const [email, setEmail] = useState('');
-  const [dialogOpen, setDialogOpen] = useState(false);
   const contentRef = useRef<HTMLDivElement>(null);
-  const matrixRef = useRef<HTMLDivElement>(null);
   const navigate = useNavigate();
   
   useEffect(() => {
@@ -56,7 +51,6 @@ const MatrixResult = () => {
         // Pequeno delay para garantir que tudo seja carregado corretamente
         setTimeout(() => {
           setUserData(data);
-          setEmail(data.email || '');
           setLoading(false);
         }, 300);
       } catch (error) {
@@ -73,136 +67,174 @@ const MatrixResult = () => {
     loadUserData();
   }, [navigate]);
   
-  const handleSendEmail = async () => {
-    if (!email || !email.trim()) {
-      toast({
-        title: "Email obrigatório",
-        description: "Por favor, insira um email válido para enviar o PDF.",
-        variant: "destructive"
-      });
-      return;
+  // Detecta quando a impressão é concluída ou cancelada
+  useEffect(() => {
+    if (isPrinting) {
+      // Adicionar evento para quando o modal de impressão for fechado
+      const handleAfterPrint = () => {
+        setIsPrinting(false);
+        console.log("Impressão concluída ou cancelada");
+      };
+      
+      window.addEventListener('afterprint', handleAfterPrint);
+      
+      // Também definimos um timeout para garantir que o estado de impressão não fique preso
+      const safetyTimeout = setTimeout(() => {
+        setIsPrinting(false);
+      }, 10000); // 10 segundos de timeout de segurança
+      
+      return () => {
+        window.removeEventListener('afterprint', handleAfterPrint);
+        clearTimeout(safetyTimeout);
+      };
     }
-    
-    if (!contentRef.current || !matrixRef.current) {
-      toast({
-        title: "Erro ao gerar PDF",
-        description: "Não foi possível gerar o PDF. Por favor, tente novamente.",
-        variant: "destructive"
-      });
-      return;
-    }
-    
-    setIsSending(true);
-    setDialogOpen(false);
+  }, [isPrinting]);
+  
+  const handlePrint = () => {
+    setIsPrinting(true);
     
     toast({
-      title: "Preparando envio",
-      description: "Gerando PDF para envio por email..."
+      title: "Preparando impressão",
+      description: "Preparando sua Matriz Kármica para impressão..."
+    });
+    
+    // Garantir que todos os estilos e imagens sejam carregados antes de imprimir
+    setTimeout(() => {
+      try {
+        // Adiciona a classe específica para modo de impressão
+        document.body.classList.add('printing-mode');
+        
+        // Usar o método de impressão nativo do navegador
+        window.print();
+        
+        // Remove a classe após um tempo
+        setTimeout(() => {
+          document.body.classList.remove('printing-mode');
+        }, 1000);
+        
+        // Em alguns navegadores, o evento afterprint pode não ser disparado
+        // Então definimos um timeout de segurança
+        setTimeout(() => {
+          if (isPrinting) {
+            setIsPrinting(false);
+          }
+        }, 5000);
+      } catch (error) {
+        console.error("Erro ao imprimir:", error);
+        setIsPrinting(false);
+        toast({
+          title: "Erro ao imprimir",
+          description: "Houve um problema ao gerar o PDF. Tente novamente.",
+          variant: "destructive"
+        });
+      }
+    }, 500); // Aumentado o delay para garantir carregamento completo
+  };
+  
+  // Função alternativa para quem tem problemas com a impressão direta
+  const handleExportPDF = () => {
+    if (isPrinting) return; // Evita múltiplos cliques
+    
+    setIsPrinting(true);
+    
+    toast({
+      title: "Exportando PDF",
+      description: "Use a opção 'Salvar como PDF' na janela de impressão que irá abrir."
+    });
+    
+    // Preparação mais completa para exportação PDF
+    setTimeout(() => {
+      try {
+        // Adiciona a classe específica para modo de impressão
+        document.body.classList.add('printing-mode');
+        
+        // Em navegadores modernos, isso deve abrir diretamente a opção de salvar como PDF
+        window.print();
+        
+        // Remove a classe após um tempo
+        setTimeout(() => {
+          document.body.classList.remove('printing-mode');
+        }, 1000);
+        
+        // Definimos múltiplos timeouts em diferentes momentos para garantir que o estado seja resetado
+        setTimeout(() => {
+          if (isPrinting) setIsPrinting(false);
+        }, 3000);
+        
+        setTimeout(() => {
+          if (isPrinting) {
+            setIsPrinting(false);
+            toast({
+              title: "Processo concluído",
+              description: "Se você não viu a janela de impressão, tente novamente."
+            });
+          }
+        }, 8000);
+      } catch (error) {
+        console.error("Erro ao exportar PDF:", error);
+        setIsPrinting(false);
+        toast({
+          title: "Erro ao exportar",
+          description: "Houve um problema ao exportar o PDF. Tente imprimir normalmente e escolha 'Salvar como PDF'.",
+          variant: "destructive"
+        });
+      }
+    }, 800); // Delay maior para garantir que tudo esteja carregado
+  };
+  
+  // Nova função para download direto de PDF
+  const handleDirectDownload = async () => {
+    if (isDownloading || !contentRef.current) return;
+    
+    setIsDownloading(true);
+    
+    toast({
+      title: "Gerando PDF",
+      description: "Preparando o download do seu PDF, aguarde um momento..."
     });
     
     try {
-      // Captura a matriz kármica
-      const matrixCanvas = await html2canvas(matrixRef.current, {
-        scale: 2,
+      // Adiciona classe para melhorar a aparência no PDF
+      document.body.classList.add('printing-mode');
+      
+      // Captura o elemento com html2canvas
+      const canvas = await html2canvas(contentRef.current, {
+        scale: 2, // Melhor qualidade
         useCORS: true,
+        logging: false,
         allowTaint: true,
         backgroundColor: '#ffffff'
       });
       
-      // Captura o conteúdo completo
-      const contentCanvas = await html2canvas(contentRef.current, {
-        scale: 2,
-        useCORS: true,
-        allowTaint: true,
-        backgroundColor: '#ffffff'
-      });
-      
-      // Criar novo documento PDF
+      // Cria um novo documento PDF
       const pdf = new jsPDF('p', 'mm', 'a4');
-      const pageWidth = pdf.internal.pageSize.getWidth();
-      const pageHeight = pdf.internal.pageSize.getHeight();
+      const imgData = canvas.toDataURL('image/png');
       
-      // Adiciona cabeçalho
-      pdf.setFont("helvetica", "bold");
-      pdf.setFontSize(16);
-      pdf.text("Matriz Kármica Pessoal 2025", pageWidth / 2, 15, { align: "center" });
+      // Calcula as dimensões para ajustar à página
+      const imgWidth = 210; // A4 width in mm (210mm)
+      const imgHeight = (canvas.height * imgWidth) / canvas.width;
       
-      // Adiciona nome e data de nascimento
-      pdf.setFont("helvetica", "normal");
-      pdf.setFontSize(12);
-      pdf.text(`Nome: ${userData?.name || "Visitante"}`, 15, 25);
-      pdf.text(`Data de Nascimento: ${userData?.birthDate || "Não informada"}`, 15, 32);
+      // Adiciona a imagem ao PDF
+      pdf.addImage(imgData, 'PNG', 0, 0, imgWidth, imgHeight);
       
-      // Adiciona a imagem da matriz
-      const matrixImgData = matrixCanvas.toDataURL('image/png');
-      const matrixImgWidth = pageWidth - 30; // Margens de 15mm de cada lado
-      const matrixImgHeight = (matrixCanvas.height * matrixImgWidth) / matrixCanvas.width;
-      pdf.addImage(matrixImgData, 'PNG', 15, 40, matrixImgWidth, matrixImgHeight);
+      // Baixa o PDF com nome personalizado
+      const userName = userData?.name || 'Visitante';
+      pdf.save(`Matriz_Karmica_${userName}_${new Date().toISOString().slice(0, 10)}.pdf`);
       
-      // Adiciona o conteúdo completo em novas páginas
-      const contentImgData = contentCanvas.toDataURL('image/png');
-      const contentImgWidth = pageWidth - 20; // Margens de 10mm de cada lado
-      const contentImgHeight = (contentCanvas.height * contentImgWidth) / contentCanvas.width;
-      
-      // Calcula quantas páginas serão necessárias
-      const contentPageCount = Math.ceil(contentImgHeight / (pageHeight - 20));
-      
-      // Adiciona o conteúdo em várias páginas, se necessário
-      for (let i = 0; i < contentPageCount; i++) {
-        // Somente adiciona nova página se não for a primeira parte
-        if (i > 0) {
-          pdf.addPage();
-        } else {
-          // Se for a primeira parte, adiciona um espaço após a matriz
-          pdf.addPage();
-        }
-        
-        // Altura da parte atual da imagem
-        const sourceHeight = contentCanvas.height / contentPageCount;
-        const destHeight = contentImgHeight / contentPageCount;
-        
-        pdf.addImage(
-          contentImgData, 'PNG',
-          10, 10,
-          contentImgWidth, destHeight,
-          null, null,
-          0, i * sourceHeight, contentCanvas.width, sourceHeight
-        );
-      }
-      
-      // Converte o PDF para base64
-      const pdfData = pdf.output('datauristring');
-      
-      // Simula o envio de email (na vida real, isso seria um endpoint backend)
-      console.log("Enviando PDF para email:", email);
-      console.log("Dados do PDF:", pdfData.substring(0, 100) + "...");
-      
-      // Simulação de envio bem-sucedido (na implementação real, você usaria um endpoint de API)
-      setTimeout(() => {
-        toast({
-          title: "Email enviado com sucesso!",
-          description: `O PDF da Matriz Kármica foi enviado para ${email}`
-        });
-        setIsSending(false);
-      }, 2000);
-      
-      // Na implementação real, você faria algo como:
-      // const response = await fetch('/api/send-pdf', {
-      //   method: 'POST',
-      //   headers: { 'Content-Type': 'application/json' },
-      //   body: JSON.stringify({ email, pdfData })
-      // });
-      //
-      // if (!response.ok) throw new Error('Falha ao enviar email');
-      
-    } catch (error) {
-      console.error("Erro ao gerar e enviar PDF:", error);
       toast({
-        title: "Erro ao enviar email",
-        description: "Houve um problema ao gerar ou enviar o PDF. Por favor, tente novamente.",
+        title: "Download concluído",
+        description: "Seu PDF foi gerado com sucesso!"
+      });
+    } catch (error) {
+      console.error("Erro ao gerar PDF:", error);
+      toast({
+        title: "Erro ao gerar PDF",
+        description: "Houve um problema ao gerar seu PDF. Por favor, tente novamente.",
         variant: "destructive"
       });
-      setIsSending(false);
+    } finally {
+      document.body.classList.remove('printing-mode');
+      setIsDownloading(false);
     }
   };
   
@@ -263,42 +295,32 @@ const MatrixResult = () => {
               Atualizar
             </Button>
             
-            <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
-              <DialogTrigger asChild>
-                <Button 
-                  className="karmic-button flex items-center"
-                  disabled={isSending}
-                >
-                  <Mail className={`mr-2 h-4 w-4 ${isSending ? 'animate-spin' : ''}`} />
-                  {isSending ? 'Enviando...' : 'Enviar por Email'}
-                </Button>
-              </DialogTrigger>
-              <DialogContent>
-                <DialogHeader>
-                  <DialogTitle>Enviar Matriz Kármica por Email</DialogTitle>
-                  <DialogDescription>
-                    Insira o email para onde deseja receber o PDF da sua Matriz Kármica.
-                  </DialogDescription>
-                </DialogHeader>
-                <div className="grid gap-4 py-4">
-                  <div className="grid grid-cols-4 items-center gap-4">
-                    <Label htmlFor="email" className="text-right">Email</Label>
-                    <Input 
-                      id="email" 
-                      value={email} 
-                      onChange={(e) => setEmail(e.target.value)} 
-                      placeholder="seu@email.com" 
-                      className="col-span-3" 
-                    />
-                  </div>
-                </div>
-                <DialogFooter>
-                  <Button onClick={handleSendEmail} className="karmic-button">
-                    Enviar
-                  </Button>
-                </DialogFooter>
-              </DialogContent>
-            </Dialog>
+            <Button 
+              onClick={handleDirectDownload}
+              className="karmic-button flex items-center"
+              disabled={isDownloading}
+            >
+              <FileDown className={`mr-2 h-4 w-4 ${isDownloading ? 'animate-spin' : ''}`} />
+              {isDownloading ? 'Baixando...' : 'Baixar PDF'}
+            </Button>
+            
+            <Button 
+              onClick={handleExportPDF}
+              className="karmic-button flex items-center"
+              disabled={isPrinting}
+            >
+              <Download className={`mr-2 h-4 w-4 ${isPrinting ? 'animate-spin' : ''}`} />
+              {isPrinting ? 'Preparando PDF...' : 'Exportar PDF'}
+            </Button>
+            
+            <Button 
+              onClick={handlePrint}
+              className="karmic-button flex items-center"
+              disabled={isPrinting}
+            >
+              <Printer className={`mr-2 h-4 w-4 ${isPrinting ? 'animate-spin' : ''}`} />
+              {isPrinting ? 'Gerando PDF...' : 'Imprimir'}
+            </Button>
             
             <Button 
               onClick={handleLogout}
@@ -325,9 +347,7 @@ const MatrixResult = () => {
               Data de Nascimento: <span className="font-medium">{userData?.birthDate || "Não informada"}</span>
             </p>
             
-            <div ref={matrixRef}>
-              <KarmicMatrix karmicData={userData?.karmicNumbers} />
-            </div>
+            <KarmicMatrix karmicData={userData?.karmicNumbers} />
           </motion.div>
           
           <MatrixInterpretations karmicData={userData?.karmicNumbers} />
