@@ -202,7 +202,7 @@ const MatrixResult = () => {
         
         <MatrixInterpretations karmicData={userData?.karmicNumbers} />
         
-        {/* Comentário invisível para forçar uma alteração no arquivo - v1 */}
+        {/* Versão atualizada 1.1 - Botão de ferramentas de diagnóstico removido */}
       </div>
     </div>
   );

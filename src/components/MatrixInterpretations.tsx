@@ -2,7 +2,7 @@
 import React, { useState, useEffect } from 'react';
 import { getInterpretation, getCategoryDisplayName, exportInterpretations, getAllInterpretations } from '@/lib/interpretations';
 import { motion, AnimatePresence } from 'framer-motion';
-import { ChevronDown, ChevronUp, AlertCircle, Database, RefreshCw } from 'lucide-react';
+import { ChevronDown, ChevronUp, AlertCircle, RefreshCw } from 'lucide-react';
 import { toast } from "@/components/ui/use-toast";
 import { Button } from "@/components/ui/button";
 
@@ -24,7 +24,6 @@ const MatrixInterpretations: React.FC<MatrixInterpretationsProps> = ({ karmicDat
   const [isLoaded, setIsLoaded] = useState(false);
   const [interpretationsData, setInterpretationsData] = useState<Record<string, any>>({});
   const [loadError, setLoadError] = useState(false);
-  const [isRecoveryMode, setIsRecoveryMode] = useState(false);
   const [rawStorageData, setRawStorageData] = useState<string>("");
 
   // Function to force reload interpretations
@@ -152,10 +151,6 @@ const MatrixInterpretations: React.FC<MatrixInterpretationsProps> = ({ karmicDat
       }
       return newSet;
     });
-  };
-
-  const toggleRecoveryMode = () => {
-    setIsRecoveryMode(!isRecoveryMode);
   };
 
   // Se karmicData for undefined, exibimos uma mensagem
@@ -293,63 +288,6 @@ const MatrixInterpretations: React.FC<MatrixInterpretationsProps> = ({ karmicDat
     );
   }
 
-  // Exibir área de diagnóstico/recuperação
-  if (isRecoveryMode) {
-    return (
-      <div className="max-w-4xl mx-auto mt-8">
-        <div className="karmic-card p-6">
-          <div className="flex justify-between items-center mb-4">
-            <h2 className="text-xl font-serif font-medium text-karmic-800">
-              Modo de Recuperação de Dados
-            </h2>
-            <Button 
-              variant="outline" 
-              onClick={toggleRecoveryMode}
-              className="text-karmic-600"
-            >
-              Voltar às Interpretações
-            </Button>
-          </div>
-          
-          <div className="mb-4">
-            <h3 className="font-medium mb-2">Diagnóstico de Armazenamento</h3>
-            <div className="bg-gray-50 p-4 rounded-md">
-              <p>Interpretações carregadas: {Object.keys(interpretationsData).length}</p>
-              <p>Estado de erro: {loadError ? "Sim" : "Não"}</p>
-            </div>
-          </div>
-          
-          <div className="mb-4">
-            <h3 className="font-medium mb-2">Dados Brutos do LocalStorage</h3>
-            <div className="bg-gray-50 p-4 rounded-md max-h-60 overflow-auto text-xs">
-              <pre>{rawStorageData || "Nenhum dado encontrado no localStorage"}</pre>
-            </div>
-          </div>
-          
-          <div className="mb-4">
-            <h3 className="font-medium mb-2">Interpretações Disponíveis</h3>
-            <div className="bg-gray-50 p-4 rounded-md max-h-60 overflow-auto text-xs">
-              <pre>{
-                Object.keys(interpretationsData).length > 0 
-                  ? JSON.stringify(Object.keys(interpretationsData), null, 2) 
-                  : "Nenhuma interpretação encontrada"
-              }</pre>
-            </div>
-          </div>
-          
-          <div className="flex justify-center mt-4">
-            <Button 
-              onClick={forceReloadInterpretations}
-              className="bg-karmic-600 hover:bg-karmic-700 text-white"
-            >
-              <RefreshCw className="h-4 w-4 mr-2" /> Recarregar Interpretações
-            </Button>
-          </div>
-        </div>
-      </div>
-    );
-  }
-
   return (
     <div className="max-w-4xl mx-auto mt-8">
       <h2 className="text-2xl md:text-3xl font-serif font-medium text-karmic-800 mb-6 text-center">
@@ -374,14 +312,6 @@ const MatrixInterpretations: React.FC<MatrixInterpretationsProps> = ({ karmicDat
                   className="h-8 text-xs border-amber-400 text-amber-700 hover:bg-amber-100"
                 >
                   <RefreshCw className="h-3.5 w-3.5 mr-1.5" /> Tentar Novamente
-                </Button>
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={toggleRecoveryMode}
-                  className="h-8 text-xs border-amber-400 text-amber-700 hover:bg-amber-100"
-                >
-                  <Database className="h-3.5 w-3.5 mr-1.5" /> Diagnóstico
                 </Button>
               </div>
             </div>
@@ -471,15 +401,8 @@ const MatrixInterpretations: React.FC<MatrixInterpretationsProps> = ({ karmicDat
         })}
       </div>
       
-      <div className="flex justify-center mt-8">
-        <Button
-          variant="outline"
-          onClick={toggleRecoveryMode}
-          className="text-karmic-600"
-        >
-          <Database className="h-4 w-4 mr-2" /> Ferramentas de Diagnóstico
-        </Button>
-      </div>
+      {/* Adicionando um pequeno comentário para garantir que o arquivo seja alterado */}
+      {/* Versão atualizada sem ferramentas de diagnóstico - 1.0 */}
     </div>
   );
 };
