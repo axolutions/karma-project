@@ -1,5 +1,5 @@
 
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { getInterpretation, renderHTML } from '@/lib/interpretations';
 import { motion } from 'framer-motion';
 
@@ -21,16 +21,29 @@ const KarmicMatrix: React.FC<KarmicMatrixProps> = ({
   karmicData,
   backgroundImage = "https://darkorange-goldfinch-896244.hostingersite.com/wp-content/uploads/2025/02/Design-sem-nome-1.png"
 }) => {
-  // Define positions of the 8 boxes on the matrix image - ajustes extremos para posicionar corretamente
+  // Positions configuradas como percentuais da imagem
+  // As posições são: [top, left] para cada ponto do selo kármico
+  const positionConfig = {
+    topLeft: [15, 25],        // 3 da esquerda (topo)
+    topRight: [15, 75],       // 1 da direita (topo)
+    middleLeft: [46, 21],     // meio esquerda (inalterado)
+    middleRight: [47, 72],    // meio direita (inalterado)
+    bottomLeft: [85, 25],     // 11 da esquerda (baixo)
+    bottomMiddle: [74, 48],   // meio inferior (inalterado)
+    bottomRight: [85, 75],    // 3 da direita (baixo)
+    topMiddle: [20, 47]       // meio superior (inalterado)
+  };
+
+  // Converte a configuração para o formato usado nos elementos
   const boxPositions = [
-    { top: '4%', left: '25%', translateX: '-50%', translateY: '-50%' },    // Position 1 - 3 da esquerda (subir bastante)
-    { top: '4%', left: '75%', translateX: '-50%', translateY: '-50%' },    // Position 2 - 1 da direita (subir bastante)
-    { top: '46%', left: '21%', translateX: '-50%', translateY: '-50%' },   // Position 3 - middle left square - manter
-    { top: '47%', left: '72%', translateX: '-50%', translateY: '-50%' },   // Position 4 - middle right square - manter
-    { top: '95%', left: '25%', translateX: '-50%', translateY: '-50%' },   // Position 5 - 11 da esquerda (descer bastante)
-    { top: '74%', left: '48%', translateX: '-50%', translateY: '-50%' },   // Position 6 - bottom middle square - manter
-    { top: '95%', left: '75%', translateX: '-50%', translateY: '-50%' },   // Position 7 - 3 da direita (descer bastante)
-    { top: '20%', left: '47%', translateX: '-50%', translateY: '-50%' }    // Position 8 - top middle square - manter
+    { top: `${positionConfig.topLeft[0]}%`, left: `${positionConfig.topLeft[1]}%`, translateX: '-50%', translateY: '-50%' },       // 3 da esquerda
+    { top: `${positionConfig.topRight[0]}%`, left: `${positionConfig.topRight[1]}%`, translateX: '-50%', translateY: '-50%' },     // 1 da direita
+    { top: `${positionConfig.middleLeft[0]}%`, left: `${positionConfig.middleLeft[1]}%`, translateX: '-50%', translateY: '-50%' }, // meio esquerda
+    { top: `${positionConfig.middleRight[0]}%`, left: `${positionConfig.middleRight[1]}%`, translateX: '-50%', translateY: '-50%' }, // meio direita
+    { top: `${positionConfig.bottomLeft[0]}%`, left: `${positionConfig.bottomLeft[1]}%`, translateX: '-50%', translateY: '-50%' },  // 11 da esquerda
+    { top: `${positionConfig.bottomMiddle[0]}%`, left: `${positionConfig.bottomMiddle[1]}%`, translateX: '-50%', translateY: '-50%' }, // meio inferior
+    { top: `${positionConfig.bottomRight[0]}%`, left: `${positionConfig.bottomRight[1]}%`, translateX: '-50%', translateY: '-50%' }, // 3 da direita
+    { top: `${positionConfig.topMiddle[0]}%`, left: `${positionConfig.topMiddle[1]}%`, translateX: '-50%', translateY: '-50%' }    // meio superior
   ];
 
   // Map data to positions
@@ -85,6 +98,9 @@ const KarmicMatrix: React.FC<KarmicMatrixProps> = ({
     }
   ];
 
+  // Tamanho dos círculos ajustado para garantir que caibam nos quadrados
+  const circleSize = "w-14 h-14"; // Tamanho ligeiramente menor
+
   return (
     <div className="relative max-w-4xl mx-auto">
       {/* Background matrix image */}
@@ -109,7 +125,7 @@ const KarmicMatrix: React.FC<KarmicMatrixProps> = ({
           }}
         >
           <div className="flex items-center justify-center">
-            <span className="bg-white bg-opacity-80 rounded-full w-16 h-16 flex items-center justify-center text-3xl font-serif font-bold text-karmic-800 shadow-lg">
+            <span className={`bg-white bg-opacity-80 rounded-full ${circleSize} flex items-center justify-center text-2xl font-serif font-bold text-karmic-800 shadow-lg`}>
               {item.value}
             </span>
           </div>
