@@ -8,6 +8,8 @@ import MatrixInterpretations from '@/components/MatrixInterpretations';
 import { LogOut, RefreshCw, Mail } from 'lucide-react';
 import { toast } from "@/components/ui/use-toast";
 import { motion } from 'framer-motion';
+import { supabaseClient } from '@/lib/supabase';
+import html2canvas from 'html2canvas';
 
 const MatrixResult = () => {
   const [userData, setUserData] = useState<any>(null);
@@ -63,7 +65,7 @@ const MatrixResult = () => {
     loadUserData();
   }, [navigate]);
   
-  const handleSendEmail = () => {
+  const handleSendEmail = async () => {
     if (!userData || !userData.email) {
       toast({
         title: "Email não disponível",
@@ -75,18 +77,65 @@ const MatrixResult = () => {
     
     setSending(true);
     
-    // Simular o envio de email
-    setTimeout(() => {
-      setSending(false);
+    try {
+      // Capturar a matriz como imagem
+      const matrixElement = document.querySelector('.karmic-matrix-container');
+      if (!matrixElement) {
+        throw new Error("Não foi possível encontrar a matriz para enviar");
+      }
+      
+      const canvas = await html2canvas(matrixElement as HTMLElement, {
+        scale: 2, // Melhor qualidade
+        backgroundColor: "#ffffff",
+        logging: false,
+      });
+      
+      const matrixImageData = canvas.toDataURL('image/png');
+      
+      // Preparar os dados da interpretação
+      const interpretationsElement = document.querySelector('.matrix-interpretations');
+      let interpretationsText = '';
+      
+      if (interpretationsElement) {
+        const titles = interpretationsElement.querySelectorAll('h3');
+        const contents = interpretationsElement.querySelectorAll('p');
+        
+        titles.forEach((title, index) => {
+          if (contents[index]) {
+            interpretationsText += `${title.textContent}\n${contents[index].textContent}\n\n`;
+          }
+        });
+      }
+      
+      // Chamar função do Supabase para enviar o email
+      const { data, error } = await supabaseClient.functions.invoke('send-matrix-email', {
+        body: {
+          to: userData.email,
+          name: userData.name || "Cliente",
+          birthDate: userData.birthDate,
+          matrixImage: matrixImageData,
+          interpretations: interpretationsText
+        }
+      });
+      
+      if (error) {
+        throw error;
+      }
+      
       toast({
         title: "Email enviado",
         description: `Sua Matriz Kármica foi enviada para ${userData.email}`,
       });
-    }, 2000);
-    
-    // Aqui você implementaria a lógica real de envio de email
-    // Isso geralmente seria feito através de uma API no backend
-    console.log("Enviando matriz por email para:", userData.email);
+    } catch (error) {
+      console.error("Erro ao enviar email:", error);
+      toast({
+        title: "Erro ao enviar email",
+        description: "Não foi possível enviar o email. Por favor, tente novamente mais tarde.",
+        variant: "destructive"
+      });
+    } finally {
+      setSending(false);
+    }
   };
   
   const handleLogout = () => {
@@ -179,10 +228,14 @@ const MatrixResult = () => {
             Data de Nascimento: <span className="font-medium">{userData?.birthDate || "Não informada"}</span>
           </p>
           
-          <KarmicMatrix karmicData={userData?.karmicNumbers} />
+          <div className="karmic-matrix-container">
+            <KarmicMatrix karmicData={userData?.karmicNumbers} />
+          </div>
         </motion.div>
         
-        <MatrixInterpretations karmicData={userData?.karmicNumbers} />
+        <div className="matrix-interpretations">
+          <MatrixInterpretations karmicData={userData?.karmicNumbers} />
+        </div>
       </div>
     </div>
   );
