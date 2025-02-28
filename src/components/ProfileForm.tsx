@@ -21,7 +21,10 @@ const ProfileForm: React.FC = () => {
     // Verificar se o usuário já tem um perfil gerado
     const currentUser = getCurrentUser();
     if (currentUser) {
+      console.log("ProfileForm: Usuário atual:", currentUser);
       const userMaps = getAllUserDataByEmail(currentUser);
+      console.log("ProfileForm: Mapas encontrados:", userMaps);
+      
       setExistingMaps(userMaps || []);
       
       // Se houver mapas existentes, preencher o nome com o do último mapa
@@ -31,8 +34,10 @@ const ProfileForm: React.FC = () => {
         // Verificar se o usuário pode criar um novo mapa
         checkIfCanCreateNewMap(currentUser, userMaps.length);
       }
+    } else {
+      console.log("ProfileForm: Nenhum usuário logado");
     }
-  }, [navigate]);
+  }, []);
   
   const checkIfCanCreateNewMap = (email: string, mapCount: number) => {
     // Aqui verificamos se o usuário pode criar um novo mapa
@@ -95,8 +100,9 @@ const ProfileForm: React.FC = () => {
     }
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    console.log("ProfileForm: Iniciando envio do formulário");
     
     // Se não pode criar novo mapa, mostrar mensagem e não prosseguir
     if (existingMaps.length > 0 && !canCreateNewMap) {
@@ -108,8 +114,11 @@ const ProfileForm: React.FC = () => {
       return;
     }
     
+    // Marcar como enviando para desativar o botão
     setIsSubmitting(true);
+    console.log("ProfileForm: Formulário em processamento");
     
+    // Validar nome
     if (!name.trim()) {
       toast({
         title: "Nome obrigatório",
@@ -120,6 +129,7 @@ const ProfileForm: React.FC = () => {
       return;
     }
     
+    // Validar data
     if (!birthDate || !validateDate(birthDate)) {
       toast({
         title: "Data inválida",
@@ -144,17 +154,21 @@ const ProfileForm: React.FC = () => {
     }
     
     try {
+      console.log("ProfileForm: Calculando números kármicos para data:", birthDate);
       // Calculate karmic numbers
       const karmicNumbers = calculateAllKarmicNumbers(birthDate);
-      console.log("Números kármicos calculados:", karmicNumbers);
+      console.log("ProfileForm: Números kármicos calculados:", karmicNumbers);
       
       // Save user data
+      console.log("ProfileForm: Salvando dados do usuário");
       const newMapId = saveUserData({
         email,
         name,
         birthDate,
         karmicNumbers
       });
+      
+      console.log("ProfileForm: Mapa criado com ID:", newMapId);
       
       // Definir o ID do mapa atual para visualização
       setCurrentMatrixId(newMapId);
@@ -164,13 +178,15 @@ const ProfileForm: React.FC = () => {
         description: "Sua Matriz Kármica Pessoal 2025 foi gerada com sucesso.",
       });
       
-      // Redirect to matrix results
+      // Dar tempo para o toast ser exibido antes de redirecionar
+      console.log("ProfileForm: Redirecionando para matriz em 1 segundo...");
       setTimeout(() => {
+        console.log("ProfileForm: Redirecionando agora!");
         setIsSubmitting(false);
         navigate('/matrix');
       }, 1000);
     } catch (error) {
-      console.error("Erro ao gerar mapa:", error);
+      console.error("ProfileForm: Erro ao gerar mapa:", error);
       toast({
         title: "Erro ao criar mapa",
         description: "Ocorreu um erro ao processar seus dados. Por favor, tente novamente.",
@@ -179,6 +195,8 @@ const ProfileForm: React.FC = () => {
       setIsSubmitting(false);
     }
   };
+  
+  console.log("ProfileForm: Renderizando com isSubmitting =", isSubmitting);
 
   return (
     <form onSubmit={handleSubmit} className="space-y-4 max-w-md mx-auto">
@@ -224,8 +242,9 @@ const ProfileForm: React.FC = () => {
           </p>
           <ul className="text-xs space-y-1 text-karmic-600">
             {existingMaps.map((map, index) => (
-              <li key={map.id || index}>
-                • {map.name} - {map.birthDate} (criado em: {new Date(map.createdAt).toLocaleDateString()})
+              <li key={map?.id || index}>
+                • {map?.name || 'Nome indisponível'} - {map?.birthDate || 'Data indisponível'} 
+                {map?.createdAt ? ` (criado em: ${new Date(map.createdAt).toLocaleDateString()})` : ''}
               </li>
             ))}
           </ul>

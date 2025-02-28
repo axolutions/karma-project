@@ -4,67 +4,63 @@ import { motion } from 'framer-motion';
 
 interface KarmicMatrixProps {
   karmicData: {
-    karmicSeal: number;
-    destinyCall: number;
-    karmaPortal: number;
-    karmicInheritance: number;
-    karmicReprogramming: number;
-    cycleProphecy: number;
-    spiritualMark: number;
-    manifestationEnigma: number;
+    karmicSeal?: number;
+    destinyCall?: number;
+    karmaPortal?: number;
+    karmicInheritance?: number;
+    karmicReprogramming?: number;
+    cycleProphecy?: number;
+    spiritualMark?: number;
+    manifestationEnigma?: number;
   };
   backgroundImage?: string;
 }
 
 const KarmicMatrix: React.FC<KarmicMatrixProps> = ({ 
-  karmicData,
+  karmicData = {},
   backgroundImage = "https://darkorange-goldfinch-896244.hostingersite.com/wp-content/uploads/2025/02/Design-sem-nome-1.png"
 }) => {
   const [imageLoaded, setImageLoaded] = useState(false);
   const [imgSrc, setImgSrc] = useState(backgroundImage);
   
-  // Verificar se temos dados kármicos válidos e criar dados padrão se necessário
-  if (!karmicData || typeof karmicData !== 'object') {
-    console.error("Dados kármicos inválidos ou ausentes:", karmicData);
-    karmicData = {
-      karmicSeal: 0,
-      destinyCall: 0,
-      karmaPortal: 0,
-      karmicInheritance: 0,
-      karmicReprogramming: 0,
-      cycleProphecy: 0,
-      spiritualMark: 0,
-      manifestationEnigma: 0
-    };
-  }
+  console.log("KarmicMatrix: Renderizando com dados:", karmicData);
   
-  // Garantir que todos os campos existam
+  // Criar dados kármicos seguros (garantindo valores padrão para campos ausentes)
   const safeKarmicData = {
-    karmicSeal: karmicData.karmicSeal || 0,
-    destinyCall: karmicData.destinyCall || 0,
-    karmaPortal: karmicData.karmaPortal || 0,
-    karmicInheritance: karmicData.karmicInheritance || 0,
-    karmicReprogramming: karmicData.karmicReprogramming || 0,
-    cycleProphecy: karmicData.cycleProphecy || 0,
-    spiritualMark: karmicData.spiritualMark || 0,
-    manifestationEnigma: karmicData.manifestationEnigma || 0
+    karmicSeal: karmicData?.karmicSeal || 0,
+    destinyCall: karmicData?.destinyCall || 0,
+    karmaPortal: karmicData?.karmaPortal || 0,
+    karmicInheritance: karmicData?.karmicInheritance || 0,
+    karmicReprogramming: karmicData?.karmicReprogramming || 0,
+    cycleProphecy: karmicData?.cycleProphecy || 0,
+    spiritualMark: karmicData?.spiritualMark || 0,
+    manifestationEnigma: karmicData?.manifestationEnigma || 0
   };
   
-  // Pré-carrega a imagem para garantir que ela esteja disponível para impressão
+  // Pré-carrega a imagem para garantir que ela esteja disponível
   useEffect(() => {
-    console.log("Carregando imagem da matriz:", backgroundImage);
+    console.log("KarmicMatrix: Carregando imagem:", backgroundImage);
     const img = new Image();
     img.onload = () => {
-      console.log("Imagem carregada com sucesso");
+      console.log("KarmicMatrix: Imagem carregada com sucesso");
       setImageLoaded(true);
     };
     img.onerror = () => {
-      // Fallback para uma imagem local se a externa falhar
-      console.error("Erro ao carregar a imagem da matriz. Usando fallback.");
+      console.error("KarmicMatrix: Erro ao carregar imagem. Usando fallback.");
       setImgSrc("/placeholder.svg");
-      setImageLoaded(true); // Mesmo com erro, ainda tentamos mostrar algo
+      setImageLoaded(true);
     };
     img.src = backgroundImage;
+    
+    // Iniciar como carregado após um timeout para caso a imagem não carregue
+    const timeout = setTimeout(() => {
+      if (!imageLoaded) {
+        console.log("KarmicMatrix: Timeout de carregamento de imagem atingido");
+        setImageLoaded(true);
+      }
+    }, 3000);
+    
+    return () => clearTimeout(timeout);
   }, [backgroundImage]);
   
   // Vamos listar explicitamente as posições para cada número específico
@@ -91,10 +87,6 @@ const KarmicMatrix: React.FC<KarmicMatrixProps> = ({
     { key: 'manifestationEnigma', value: safeKarmicData.manifestationEnigma, title: "Enigma da Manifestação 2025" }
   ];
 
-  // Verifica se a imagem está carregada antes de renderizar
-  console.log("Estado de carregamento da imagem:", imageLoaded);
-  console.log("Dados kármicos sendo exibidos:", safeKarmicData);
-
   return (
     <div className="relative max-w-4xl mx-auto">
       {/* Background matrix image */}
@@ -103,16 +95,17 @@ const KarmicMatrix: React.FC<KarmicMatrixProps> = ({
         alt="Matriz Kármica 2025" 
         className="w-full h-auto"
         onLoad={() => {
-          console.log("Imagem carregada via onLoad");
+          console.log("KarmicMatrix: Imagem carregada via onLoad");
           setImageLoaded(true);
         }}
         style={{ 
           border: '1px solid #EAE6E1',
-          borderRadius: '8px'
+          borderRadius: '8px',
+          minHeight: '300px' // Altura mínima para evitar colapso enquanto carrega
         }}
       />
       
-      {/* Renderiza os números mesmo se a imagem ainda não tiver sido carregada */}
+      {/* Sempre renderizar os números, mesmo se a imagem não estiver carregada completamente */}
       {numbersToDisplay.map((item, index) => (
         <motion.div
           key={item.key}
