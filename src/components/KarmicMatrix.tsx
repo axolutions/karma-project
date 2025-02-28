@@ -75,8 +75,8 @@ const KarmicMatrix: React.FC<KarmicMatrixProps> = ({
         className="w-full h-auto relative rounded-lg overflow-hidden"
         style={{ 
           minHeight: "400px",
-          backgroundColor: 'transparent',
-          border: '1px solid #EAE6E1',
+          backgroundColor: '#F7F0E6', // Beige background to match the image
+          border: '1px solid #E6D7C3',
           borderRadius: '8px',
         }}
       >
@@ -154,7 +154,7 @@ const KarmicMatrix: React.FC<KarmicMatrixProps> = ({
           }}
         >
           <div className="flex items-center justify-center">
-            <span className="bg-white bg-opacity-80 rounded-full w-10 h-10 flex items-center justify-center text-lg font-serif font-bold text-karmic-800 shadow-lg print:shadow-none print:border print:border-karmic-300">
+            <span className="bg-white bg-opacity-90 rounded-full w-10 h-10 flex items-center justify-center text-lg font-serif font-bold text-karmic-800 shadow-sm print:shadow-none print:border print:border-karmic-300">
               {item.value}
             </span>
           </div>
