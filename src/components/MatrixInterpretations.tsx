@@ -1,5 +1,4 @@
 
-
 import React, { useState, useEffect } from 'react';
 import { ChevronDown, ChevronUp, RefreshCw } from "lucide-react";
 import {
@@ -117,10 +116,13 @@ const MatrixInterpretations: React.FC<MatrixInterpretationsProps> = ({ karmicDat
       for (const key of keys) {
         const number = karmicData[key];
         const interpretation = await getInterpretation(key, number);
-        // Fix: Extract the content from Interpretation object
-        allInterpretations[key] = typeof interpretation === 'string' 
-          ? interpretation 
-          : interpretation.content || "Interpretação não disponível no momento.";
+        if (typeof interpretation === 'string') {
+          allInterpretations[key] = interpretation;
+        } else if (interpretation && typeof interpretation === 'object' && 'content' in interpretation) {
+          allInterpretations[key] = interpretation.content || "Interpretação não disponível no momento.";
+        } else {
+          allInterpretations[key] = "Interpretação não disponível no momento.";
+        }
       }
       
       setInterpretations(allInterpretations);
