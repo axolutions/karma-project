@@ -19,7 +19,7 @@ interface KarmicMatrixProps {
 
 const KarmicMatrix: React.FC<KarmicMatrixProps> = ({ 
   karmicData,
-  backgroundImage = "https://darkorange-goldfinch-896244.hostingersite.com/wp-content/uploads/2025/02/Design-sem-nome-1.png"
+  backgroundImage = "/lovable-uploads/ce9f1d87-d6ab-4456-a798-1f4cec565e32.png"
 }) => {
   const [imageLoaded, setImageLoaded] = useState(false);
   const [imgSrc, setImgSrc] = useState(backgroundImage);
