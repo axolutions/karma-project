@@ -1,4 +1,3 @@
-
 import React, { useEffect, useState } from 'react';
 import { Button } from "@/components/ui/button";
 import { getCurrentUser, getUserData, logout } from '@/lib/auth';
@@ -70,73 +69,37 @@ const MatrixResult = () => {
   const handleDownloadMatrix = async () => {
     try {
       setSending(true);
-      toast({
-        title: "Preparando download",
-        description: "Gerando imagem da sua matriz...",
-      });
-      
-      // Função para pré-carregar a imagem da matriz
-      const preloadImage = (src: string): Promise<HTMLImageElement> => {
-        return new Promise<HTMLImageElement>((resolve, reject) => {
-          const img = new Image();
-          img.crossOrigin = "anonymous";
-          img.onload = () => resolve(img);
-          img.onerror = () => reject(new Error("Erro ao carregar imagem"));
-          img.src = src;
-        });
-      };
-      
-      // Pré-carregar a imagem antes de capturar
-      try {
-        const imgUrl = "https://darkorange-goldfinch-896244.hostingersite.com/wp-content/uploads/2025/02/Design-sem-nome-1.png";
-        await preloadImage(imgUrl);
-        console.log("✓ Imagem pré-carregada com sucesso!");
-      } catch (error) {
-        console.warn("Aviso: Falha ao pré-carregar imagem, continuando com a captura...", error);
-      }
-      
-      // Garantir que a imagem esteja carregada antes de capturar
-      await new Promise(resolve => setTimeout(resolve, 3000));
       
       // Capturar apenas a matriz como imagem
-      const matrixElement = document.querySelector('.karmic-matrix-wrapper');
+      const matrixElement = document.querySelector('.karmic-matrix-container');
       if (!matrixElement) {
         throw new Error("Não foi possível encontrar a matriz para baixar");
       }
       
-      // Preparar configurações para melhor qualidade
+      // Garantir que a imagem seja totalmente carregada antes de capturar
+      await new Promise(resolve => setTimeout(resolve, 1500));
+      
+      // Opções específicas para preservar cores e transparência
       const canvas = await html2canvas(matrixElement as HTMLElement, {
         scale: 3, // Alta qualidade
-        backgroundColor: null, // Transparente para preservar cores
-        logging: true, // Habilitar logs para depuração
-        useCORS: true, // Importante para imagens externas
-        allowTaint: true, // Permite imagens de outros domínios
-        imageTimeout: 10000, // Aumentar timeout para carregamento de imagens
-        onclone: (clonedDoc) => {
-          // Garantir que a imagem esteja visível no clone
-          const clonedMatrix = clonedDoc.querySelector('.karmic-matrix-wrapper');
-          if (clonedMatrix) {
-            // Remover mensagens de erro ou spinners no clone
-            const errorMessages = clonedMatrix.querySelectorAll('.print\\:hidden, .download-hidden');
-            errorMessages.forEach(el => (el as HTMLElement).style.display = 'none');
-            
-            // Garantir que a imagem da matriz esteja visível
-            const matrixImage = clonedMatrix.querySelector('img');
-            if (matrixImage) {
-              (matrixImage as HTMLElement).style.opacity = '1';
-              (matrixImage as HTMLElement).style.visibility = 'visible';
-              
-              // Forçar o carregamento da imagem específica no clone
-              if (!(matrixImage as HTMLImageElement).complete) {
-                (matrixImage as HTMLImageElement).src = "https://darkorange-goldfinch-896244.hostingersite.com/wp-content/uploads/2025/02/Design-sem-nome-1.png";
-              }
-            }
+        backgroundColor: null, // Sem fundo para preservar transparência
+        logging: false,
+        useCORS: true,
+        allowTaint: true,
+        imageTimeout: 0,
+        removeContainer: false,
+        onclone: (document, clone) => {
+          // Procurar a imagem no clone do documento e garantir que esteja visível
+          const img = clone.querySelector('.karmic-matrix-container img');
+          if (img) {
+            (img as HTMLElement).style.opacity = '1';
           }
+          return Promise.resolve();
         }
       });
       
-      // Criar link para download da imagem
-      const imgData = canvas.toDataURL('image/png');
+      // Criar um link de download para a imagem com máxima qualidade
+      const imgData = canvas.toDataURL('image/png', 1.0);
       const link = document.createElement('a');
       link.href = imgData;
       link.download = `Matriz-Karmica-${userData?.name || 'Pessoal'}.png`;
@@ -160,7 +123,7 @@ const MatrixResult = () => {
     }
   };
   
-  // Função para baixar apenas as interpretações como PDF
+  // Nova função para baixar apenas as interpretações como PDF
   const handleDownloadInterpretations = async () => {
     try {
       setSending(true);
@@ -352,7 +315,7 @@ const MatrixResult = () => {
           <h2 className="text-xl md:text-2xl font-serif font-medium text-karmic-800 mb-2">
             Sua Matriz Kármica
           </h2>
-          <p className="text-karmic-600 mb-6 print:mb-3 download-hidden">
+          <p className="text-karmic-600 mb-6 print:mb-3">
             Data de Nascimento: <span className="font-medium">{userData?.birthDate || "Não informada"}</span>
           </p>
           

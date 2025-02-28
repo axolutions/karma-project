@@ -43,12 +43,7 @@ const KarmicMatrix: React.FC<KarmicMatrixProps> = ({
       setHasError(true);
     };
     
-    img.crossOrigin = "anonymous"; // Permitir carregamento cross-origin
     img.src = backgroundImage;
-    
-    // Adicionar imagem na página para pré-carregamento
-    img.style.display = 'none';
-    document.body.appendChild(img);
     
     // Fallback se a imagem não carregar em 5 segundos
     const timeout = setTimeout(() => {
@@ -58,11 +53,8 @@ const KarmicMatrix: React.FC<KarmicMatrixProps> = ({
       }
     }, 5000);
     
-    return () => {
-      clearTimeout(timeout);
-      document.body.removeChild(img);
-    };
-  }, [backgroundImage, imageLoaded]);
+    return () => clearTimeout(timeout);
+  }, [backgroundImage]);
   
   // Posições para cada número específico
   const numberPositions = {
@@ -90,29 +82,25 @@ const KarmicMatrix: React.FC<KarmicMatrixProps> = ({
         <img 
           src={hasError ? fallbackImage : backgroundImage} 
           alt="Matriz Kármica 2025"
-          className="w-full h-auto object-contain"
-          style={{ maxHeight: '100%', opacity: imageLoaded || hasError ? 1 : 0.5 }}
-          onLoad={() => {
-            console.log("✓ Imagem da matriz exibida com sucesso");
-            setImageLoaded(true);
-          }}
+          className={`w-full h-auto object-contain ${!imageLoaded && !hasError ? 'opacity-0' : 'opacity-100'}`}
+          style={{ maxHeight: '600px' }}
+          onLoad={() => setImageLoaded(true)}
           onError={() => {
             console.error("✗ Erro ao exibir imagem da matriz");
             setHasError(true);
           }}
-          crossOrigin="anonymous" // Importante para o html2canvas capturar a imagem
         />
         
         {/* Spinner durante carregamento */}
         {!imageLoaded && !hasError && (
-          <div className="absolute inset-0 flex items-center justify-center download-hidden">
+          <div className="absolute inset-0 flex items-center justify-center">
             <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-karmic-800"></div>
           </div>
         )}
         
-        {/* Mensagem de erro se a imagem falhar - NÃO SERÁ MOSTRADA NO PNG */}
+        {/* Mensagem de erro se a imagem falhar */}
         {hasError && (
-          <div className="absolute inset-0 flex flex-col items-center justify-center bg-amber-50 bg-opacity-80 print:hidden download-hidden">
+          <div className="absolute inset-0 flex flex-col items-center justify-center bg-amber-50 bg-opacity-80">
             <p className="text-karmic-800 font-medium mb-2">Imagem indisponível</p>
             <p className="text-karmic-600 text-sm">Usando modelo temporário</p>
           </div>
@@ -124,9 +112,9 @@ const KarmicMatrix: React.FC<KarmicMatrixProps> = ({
   // Se karmicData for undefined, mostramos apenas a imagem de fundo
   if (!karmicData) {
     return (
-      <div className="relative max-w-4xl mx-auto karmic-matrix-wrapper">
+      <div className="relative max-w-4xl mx-auto">
         {renderMatrixBackground()}
-        <div className="text-center mt-4 text-karmic-600 download-hidden">
+        <div className="text-center mt-4 text-karmic-600">
           Dados da matriz não disponíveis. Por favor, verifique seu perfil.
         </div>
       </div>
@@ -146,7 +134,7 @@ const KarmicMatrix: React.FC<KarmicMatrixProps> = ({
   ];
 
   return (
-    <div className="relative max-w-4xl mx-auto karmic-matrix-wrapper">
+    <div className="relative max-w-4xl mx-auto">
       {/* Background matrix image */}
       {renderMatrixBackground()}
       
