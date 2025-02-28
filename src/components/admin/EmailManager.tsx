@@ -6,32 +6,20 @@ import { toast } from "@/components/ui/use-toast";
 import { 
   getAllAuthorizedEmails, 
   addAuthorizedEmail, 
-  removeAuthorizedEmail,
-  getAllUserDataByEmail
+  removeAuthorizedEmail 
 } from '@/lib/auth';
-import { X, Plus, Map } from 'lucide-react';
+import { X, Plus } from 'lucide-react';
 
 const EmailManager: React.FC = () => {
   const [emails, setEmails] = useState<string[]>([]);
   const [newEmail, setNewEmail] = useState('');
-  const [emailStats, setEmailStats] = useState<Record<string, number>>({});
   
   useEffect(() => {
     refreshEmails();
   }, []);
   
   const refreshEmails = () => {
-    const authorizedEmails = getAllAuthorizedEmails();
-    setEmails(authorizedEmails);
-    
-    // Calcular estatísticas - quantos mapas cada email possui
-    const stats: Record<string, number> = {};
-    authorizedEmails.forEach(email => {
-      const userMaps = getAllUserDataByEmail(email);
-      stats[email] = userMaps.length;
-    });
-    
-    setEmailStats(stats);
+    setEmails(getAllAuthorizedEmails());
   };
   
   const handleAddEmail = () => {
@@ -53,30 +41,6 @@ const EmailManager: React.FC = () => {
       return;
     }
     
-    // Verificar se o email já existe na lista
-    const emailExists = emails.includes(newEmail.toLowerCase());
-    
-    // Se o email já existe, perguntar se deseja conceder um novo acesso
-    if (emailExists) {
-      const existingMaps = getAllUserDataByEmail(newEmail.toLowerCase());
-      
-      if (existingMaps.length > 0) {
-        const confirmAdd = confirm(
-          `O email ${newEmail} já está na lista e possui ${existingMaps.length} mapa(s) criado(s). ` +
-          `Adicioná-lo novamente concederá permissão para criar um novo mapa. Deseja continuar?`
-        );
-        
-        if (!confirmAdd) {
-          return;
-        }
-        
-        // Se confirmou, remova primeiro para depois adicionar novamente
-        // Isso simula a renovação do acesso
-        removeAuthorizedEmail(newEmail);
-      }
-    }
-    
-    // Adicionar o email à lista de autorizados
     const success = addAuthorizedEmail(newEmail);
     
     if (success) {
@@ -87,25 +51,15 @@ const EmailManager: React.FC = () => {
       setNewEmail('');
       refreshEmails();
     } else {
-      // Este caso só ocorrerá se houver algum problema na função addAuthorizedEmail
       toast({
-        title: "Erro ao adicionar email",
-        description: `Não foi possível adicionar ${newEmail} à lista.`,
+        title: "Email já existe",
+        description: `O email ${newEmail} já está na lista.`,
         variant: "destructive"
       });
     }
   };
   
   const handleRemoveEmail = (email: string) => {
-    // Verificar se o email possui mapas criados
-    const mapsCount = emailStats[email] || 0;
-    
-    if (mapsCount > 0) {
-      if (!confirm(`Este email possui ${mapsCount} mapas criados. Remover este email impedirá o acesso a esses mapas. Deseja continuar?`)) {
-        return;
-      }
-    }
-    
     const success = removeAuthorizedEmail(email);
     
     if (success) {
@@ -164,15 +118,7 @@ const EmailManager: React.FC = () => {
                 key={email} 
                 className="flex justify-between items-center p-3 bg-karmic-100 rounded-md"
               >
-                <div className="flex items-center">
-                  <span>{email}</span>
-                  {emailStats[email] > 0 && (
-                    <div className="ml-3 flex items-center text-xs bg-karmic-200 text-karmic-700 px-2 py-1 rounded-full">
-                      <Map className="h-3 w-3 mr-1" />
-                      {emailStats[email]} {emailStats[email] === 1 ? 'mapa' : 'mapas'}
-                    </div>
-                  )}
-                </div>
+                <span>{email}</span>
                 <Button 
                   size="sm" 
                   variant="ghost" 
@@ -185,16 +131,6 @@ const EmailManager: React.FC = () => {
             ))}
           </ul>
         )}
-      </div>
-      
-      <div className="mt-4 p-3 bg-karmic-50 border border-karmic-200 rounded-md">
-        <h4 className="text-sm font-medium text-karmic-700 mb-2">Observações sobre emails</h4>
-        <ul className="text-xs space-y-1 text-karmic-600 list-disc pl-4">
-          <li>Cada email adicionado dá direito a criar um mapa kármico</li>
-          <li>Para conceder acesso a um novo mapa, adicione o mesmo email novamente</li>
-          <li>Quando um email é adicionado novamente, ele recebe permissão para criar um novo mapa</li>
-          <li>Remover um email impedirá que o usuário acesse todos os mapas criados com esse email</li>
-        </ul>
       </div>
     </div>
   );

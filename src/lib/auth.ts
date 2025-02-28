@@ -18,10 +18,9 @@ interface UserData {
   birthDate: string;
   karmicNumbers: any;
   createdAt: Date;
-  id?: string; // ID único para cada registro
 }
 
-const userDatabase: Record<string, UserData[]> = {}; // Mudamos para um array de UserData por email
+const userDatabase: Record<string, UserData> = {};
 
 export function isAuthorizedEmail(email: string): boolean {
   return authorizedEmails.includes(email.toLowerCase());
@@ -57,34 +56,17 @@ export function getAllAuthorizedEmails(): string[] {
   return [...authorizedEmails];
 }
 
-// Função para gerar um ID único baseado em timestamp e número aleatório
-function generateUniqueId(): string {
-  return `${Date.now()}-${Math.random().toString(36).substring(2, 9)}`;
-}
-
-export function saveUserData(userData: Omit<UserData, 'createdAt' | 'id'>): string {
-  const email = userData.email.toLowerCase();
-  const newRecord = {
+export function saveUserData(userData: Omit<UserData, 'createdAt'>): void {
+  userDatabase[userData.email.toLowerCase()] = {
     ...userData,
-    id: generateUniqueId(),
     createdAt: new Date()
   };
   
-  // Inicializar o array para este email se não existir
-  if (!userDatabase[email]) {
-    userDatabase[email] = [];
-  }
-  
-  // Adicionar o novo registro ao array
-  userDatabase[email].push(newRecord);
-  
   // Save to localStorage for persistence between sessions
   localStorage.setItem('karmicUserData', JSON.stringify(userDatabase));
-  
-  return newRecord.id; // Retornar o ID para referência futura
 }
 
-export function getUserData(email: string, id?: string): UserData | null {
+export function getUserData(email: string): UserData | null {
   // Check if we need to load from localStorage
   if (Object.keys(userDatabase).length === 0) {
     const savedData = localStorage.getItem('karmicUserData');
@@ -98,37 +80,7 @@ export function getUserData(email: string, id?: string): UserData | null {
     }
   }
   
-  const userRecords = userDatabase[email.toLowerCase()];
-  
-  if (!userRecords || userRecords.length === 0) {
-    return null;
-  }
-  
-  // Se um ID específico for fornecido, retornar esse registro específico
-  if (id) {
-    const specificRecord = userRecords.find(record => record.id === id);
-    return specificRecord || null;
-  }
-  
-  // Caso contrário, retornar o registro mais recente
-  return userRecords[userRecords.length - 1];
-}
-
-export function getAllUserDataByEmail(email: string): UserData[] {
-  // Check if we need to load from localStorage
-  if (Object.keys(userDatabase).length === 0) {
-    const savedData = localStorage.getItem('karmicUserData');
-    if (savedData) {
-      try {
-        const parsed = JSON.parse(savedData);
-        Object.assign(userDatabase, parsed);
-      } catch (error) {
-        console.error("Error parsing saved user data:", error);
-      }
-    }
-  }
-  
-  return userDatabase[email.toLowerCase()] || [];
+  return userDatabase[email.toLowerCase()] || null;
 }
 
 export function loadDatabaseFromStorage(): void {
@@ -147,10 +99,7 @@ export function loadDatabaseFromStorage(): void {
   const savedUserData = localStorage.getItem('karmicUserData');
   if (savedUserData) {
     try {
-      const parsed = JSON.parse(savedUserData);
-      Object.keys(parsed).forEach(email => {
-        userDatabase[email] = parsed[email];
-      });
+      Object.assign(userDatabase, JSON.parse(savedUserData));
     } catch (error) {
       console.error("Error parsing saved user data:", error);
     }
@@ -182,17 +131,8 @@ export function getCurrentUser(): string | null {
 
 export function logout(): void {
   sessionStorage.removeItem('karmicCurrentUser');
-  sessionStorage.removeItem('karmicCurrentMatrixId');
 }
 
 export function isLoggedIn(): boolean {
   return getCurrentUser() !== null;
-}
-
-export function setCurrentMatrixId(id: string): void {
-  sessionStorage.setItem('karmicCurrentMatrixId', id);
-}
-
-export function getCurrentMatrixId(): string | null {
-  return sessionStorage.getItem('karmicCurrentMatrixId');
 }

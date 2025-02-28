@@ -1,54 +1,29 @@
 
 import React, { useEffect, useState } from 'react';
 import { Button } from "@/components/ui/button";
-import { 
-  getCurrentUser, 
-  getUserData, 
-  getAllUserDataByEmail, 
-  getCurrentMatrixId, 
-  setCurrentMatrixId, 
-  logout,
-  isAuthorizedEmail
-} from '@/lib/auth';
+import { getCurrentUser, getUserData, logout } from '@/lib/auth';
 import { useNavigate } from 'react-router-dom';
 import KarmicMatrix from '@/components/KarmicMatrix';
 import MatrixInterpretations from '@/components/MatrixInterpretations';
-import { Printer, LogOut, RefreshCw, ChevronDown, Plus, ShoppingCart } from 'lucide-react';
+import { Printer, LogOut, RefreshCw } from 'lucide-react';
 import { toast } from "@/components/ui/use-toast";
 import { motion } from 'framer-motion';
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuLabel,
-  DropdownMenuSeparator,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
 
 const MatrixResult = () => {
   const [userData, setUserData] = useState<any>(null);
-  const [userMaps, setUserMaps] = useState<any[]>([]);
   const [refreshing, setRefreshing] = useState(false);
   const [isPrinting, setIsPrinting] = useState(false);
-  const [canCreateNewMap, setCanCreateNewMap] = useState(false);
   const navigate = useNavigate();
   
   useEffect(() => {
-    loadUserData();
-  }, [navigate]);
-  
-  const loadUserData = () => {
     const email = getCurrentUser();
     if (!email) {
       navigate('/');
       return;
     }
     
-    // Obter todos os mapas do usuário
-    const allMaps = getAllUserDataByEmail(email);
-    
-    // Verificar se temos mapas válidos
-    if (!allMaps || allMaps.length === 0) {
+    const data = getUserData(email);
+    if (!data) {
       toast({
         title: "Perfil não encontrado",
         description: "Por favor, complete seu perfil primeiro.",
@@ -58,67 +33,8 @@ const MatrixResult = () => {
       return;
     }
     
-    // Filtrar mapas inválidos (sem id ou dados corrompidos)
-    const validMaps = allMaps.filter(map => map && map.id && map.karmicNumbers);
-    
-    if (validMaps.length === 0) {
-      toast({
-        title: "Dados corrompidos",
-        description: "Os dados do seu perfil parecem estar corrompidos. Por favor, crie um novo perfil.",
-        variant: "destructive"
-      });
-      navigate('/');
-      return;
-    }
-    
-    setUserMaps(validMaps);
-    
-    // Verificar se o usuário pode criar novos mapas
-    checkIfCanCreateNewMap(email, validMaps.length);
-    
-    // Tentar obter o mapa específico definido na sessão
-    const currentMatrixId = getCurrentMatrixId();
-    let currentData = null;
-    
-    if (currentMatrixId) {
-      currentData = getUserData(email, currentMatrixId);
-    }
-    
-    // Se não encontrar o mapa específico, usar o mais recente
-    if (!currentData || !currentData.id || !currentData.karmicNumbers) {
-      currentData = validMaps[validMaps.length - 1];
-      if (currentData && currentData.id) {
-        setCurrentMatrixId(currentData.id);
-      }
-    }
-    
-    // Verificação final para garantir que temos dados válidos
-    if (!currentData || !currentData.karmicNumbers) {
-      toast({
-        title: "Erro ao carregar dados",
-        description: "Não foi possível carregar os dados da matriz kármica. Por favor, crie um novo perfil.",
-        variant: "destructive"
-      });
-      navigate('/');
-      return;
-    }
-    
-    setUserData(currentData);
-  };
-  
-  const checkIfCanCreateNewMap = (email: string, mapCount: number) => {
-    // Aqui verificamos se o usuário pode criar um novo mapa
-    // Cada vez que um email é adicionado à lista de autorizados, ele ganha direito a um novo mapa
-    
-    // Verificar se o email está na lista de autorizados e se já usou seu crédito
-    if (mapCount > 0 && isAuthorizedEmail(email)) {
-      // Simples verificação: se já tem mapas, não pode criar mais
-      // Esta lógica será substituída pela verificação real de compras ou créditos
-      setCanCreateNewMap(false);
-    } else {
-      setCanCreateNewMap(true);
-    }
-  };
+    setUserData(data);
+  }, [navigate]);
   
   // Detecta quando a impressão é concluída ou cancelada
   useEffect(() => {
@@ -186,68 +102,15 @@ const MatrixResult = () => {
     }, 500);
   };
   
-  const handleSwitchMap = (mapId: string) => {
-    const email = getCurrentUser();
-    if (!email) return;
-    
-    const selectedMap = getUserData(email, mapId);
-    if (selectedMap && selectedMap.id && selectedMap.karmicNumbers) {
-      setCurrentMatrixId(mapId);
-      setUserData(selectedMap);
-      
-      toast({
-        title: "Mapa alterado",
-        description: `Visualizando mapa de ${selectedMap.name} (${selectedMap.birthDate}).`
-      });
-    } else {
-      toast({
-        title: "Erro ao carregar mapa",
-        description: "Não foi possível carregar o mapa selecionado.",
-        variant: "destructive"
-      });
-    }
-  };
-  
-  const handleCreateNewMap = () => {
-    if (!canCreateNewMap) {
-      toast({
-        title: "Limite atingido",
-        description: "Você já atingiu o limite de mapas que pode criar. Adquira um novo acesso para criar mais mapas.",
-        variant: "destructive"
-      });
-      return;
-    }
-    
-    navigate('/');
-    
-    // Pequeno delay para exibir a toast
-    setTimeout(() => {
-      toast({
-        title: "Criar novo mapa",
-        description: "Preencha os dados para gerar um novo mapa kármico."
-      });
-    }, 300);
-  };
-  
-  if (!userData || !userData.karmicNumbers) {
+  if (!userData) {
     return (
       <div className="min-h-screen flex items-center justify-center">
         <div className="text-center">
-          <p className="text-karmic-700">Carregando dados da matriz kármica...</p>
-          <Button 
-            onClick={() => navigate('/')}
-            variant="link" 
-            className="mt-4 text-karmic-500"
-          >
-            Voltar para a página inicial
-          </Button>
+          <p className="text-karmic-700">Carregando...</p>
         </div>
       </div>
     );
   }
-  
-  // Formatar data de criação
-  const createdDate = userData.createdAt ? new Date(userData.createdAt).toLocaleDateString() : '';
   
   return (
     <div className="min-h-screen bg-gradient-to-b from-karmic-100 to-white py-12 print:bg-white print:py-0">
@@ -259,59 +122,10 @@ const MatrixResult = () => {
             </h1>
             <p className="text-karmic-600">
               Olá, <span className="font-medium">{userData.name}</span>
-              {userMaps.length > 1 && (
-                <span className="text-xs ml-2 text-karmic-500">
-                  (Você possui {userMaps.length} mapas kármicos)
-                </span>
-              )}
             </p>
           </div>
           
           <div className="flex space-x-3">
-            {userMaps.length > 1 && (
-              <DropdownMenu>
-                <DropdownMenuTrigger asChild>
-                  <Button variant="outline" className="karmic-button-outline">
-                    Meus Mapas <ChevronDown className="ml-2 h-4 w-4" />
-                  </Button>
-                </DropdownMenuTrigger>
-                <DropdownMenuContent align="end" className="w-64">
-                  <DropdownMenuLabel>Selecione um mapa</DropdownMenuLabel>
-                  <DropdownMenuSeparator />
-                  {userMaps.map((map) => (
-                    map && map.id ? (
-                      <DropdownMenuItem 
-                        key={map.id} 
-                        onClick={() => handleSwitchMap(map.id)}
-                        className={map.id === userData.id ? "bg-karmic-100 font-medium" : ""}
-                      >
-                        {map.name} - {map.birthDate}
-                        <span className="text-xs ml-2 text-karmic-500">
-                          ({map.createdAt ? new Date(map.createdAt).toLocaleDateString() : 'Data desconhecida'})
-                        </span>
-                      </DropdownMenuItem>
-                    ) : null
-                  ))}
-                  <DropdownMenuSeparator />
-                  <DropdownMenuItem 
-                    onClick={handleCreateNewMap} 
-                    className={canCreateNewMap ? "text-karmic-700" : "text-gray-400 cursor-not-allowed"}
-                    disabled={!canCreateNewMap}
-                  >
-                    {!canCreateNewMap ? (
-                      <>
-                        <ShoppingCart className="mr-2 h-4 w-4" /> Adquira novo acesso
-                      </>
-                    ) : (
-                      <>
-                        <Plus className="mr-2 h-4 w-4" /> Criar novo mapa
-                      </>
-                    )}
-                  </DropdownMenuItem>
-                </DropdownMenuContent>
-              </DropdownMenu>
-            )}
-            
             <Button 
               onClick={handleRefresh}
               variant="outline"
@@ -351,14 +165,9 @@ const MatrixResult = () => {
           <h2 className="text-xl md:text-2xl font-serif font-medium text-karmic-800 mb-2">
             Sua Matriz Kármica
           </h2>
-          <p className="text-karmic-600 mb-2 print:mb-1">
+          <p className="text-karmic-600 mb-6 print:mb-3">
             Data de Nascimento: <span className="font-medium">{userData.birthDate}</span>
           </p>
-          {createdDate && (
-            <p className="text-karmic-500 text-xs mb-6 print:mb-3">
-              Matriz gerada em: {createdDate}
-            </p>
-          )}
           
           <KarmicMatrix karmicData={userData.karmicNumbers} />
         </motion.div>

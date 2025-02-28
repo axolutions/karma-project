@@ -2,7 +2,7 @@
 import React, { useState } from 'react';
 import { getInterpretation, getCategoryDisplayName } from '@/lib/interpretations';
 import { motion, AnimatePresence } from 'framer-motion';
-import { ChevronDown, ChevronUp, AlertTriangle } from 'lucide-react';
+import { ChevronDown, ChevronUp } from 'lucide-react';
 
 interface MatrixInterpretationsProps {
   karmicData: {
@@ -31,24 +31,6 @@ const MatrixInterpretations: React.FC<MatrixInterpretationsProps> = ({ karmicDat
       return newSet;
     });
   };
-
-  // Verificar se temos dados kármicos válidos
-  const hasValidData = karmicData && 
-    typeof karmicData === 'object' && 
-    Object.keys(karmicData).length > 0;
-  
-  // Se não tivermos dados válidos, exibir uma mensagem de erro
-  if (!hasValidData) {
-    console.error("Dados kármicos inválidos ou ausentes", karmicData);
-    return (
-      <div className="max-w-4xl mx-auto mt-8 p-8 bg-red-50 border border-red-200 rounded-md text-center">
-        <AlertTriangle className="h-8 w-8 mx-auto text-red-500 mb-4" />
-        <h2 className="text-xl font-medium text-red-600 mb-2">Erro ao carregar interpretações</h2>
-        <p className="text-red-500">Não foi possível carregar os dados das interpretações kármicas.</p>
-        <p className="text-sm text-red-400 mt-2">Tente atualizar a página ou entre em contato com o suporte.</p>
-      </div>
-    );
-  }
 
   const interpretationItems = [
     { key: 'karmicSeal', value: karmicData.karmicSeal },
