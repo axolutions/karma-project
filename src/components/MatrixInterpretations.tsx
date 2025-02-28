@@ -1,8 +1,9 @@
 
 import React, { useState, useEffect } from 'react';
-import { getInterpretation, getCategoryDisplayName } from '@/lib/interpretations';
+import { getInterpretation, getCategoryDisplayName, exportInterpretations } from '@/lib/interpretations';
 import { motion, AnimatePresence } from 'framer-motion';
-import { ChevronDown, ChevronUp } from 'lucide-react';
+import { ChevronDown, ChevronUp, AlertCircle } from 'lucide-react';
+import { toast } from "@/components/ui/use-toast";
 
 interface MatrixInterpretationsProps {
   karmicData: {
@@ -20,11 +21,40 @@ interface MatrixInterpretationsProps {
 const MatrixInterpretations: React.FC<MatrixInterpretationsProps> = ({ karmicData }) => {
   const [expandedSections, setExpandedSections] = useState<Set<string>>(new Set(['karmicSeal']));
   const [isLoaded, setIsLoaded] = useState(false);
+  const [interpretationsData, setInterpretationsData] = useState<Record<string, any>>({});
+  const [loadError, setLoadError] = useState(false);
 
   useEffect(() => {
+    // Carregar interpretações logo no início
+    const loadAllInterpretations = () => {
+      try {
+        console.log("Carregando todas as interpretações disponíveis");
+        // Extrair todas as interpretações disponíveis para diagnóstico
+        const allData = exportInterpretations();
+        console.log("Dados de interpretações disponíveis:", allData);
+        setInterpretationsData(allData);
+        
+        if (Object.keys(allData).length === 0) {
+          console.warn("Nenhuma interpretação encontrada no armazenamento");
+          setLoadError(true);
+          toast({
+            title: "Aviso sobre interpretações",
+            description: "Não foi possível carregar as interpretações. Usando conteúdo padrão.",
+            variant: "destructive"
+          });
+        }
+      } catch (error) {
+        console.error("Erro ao carregar interpretações:", error);
+        setLoadError(true);
+      } finally {
+        // Mesmo com erro, continuamos para mostrar ao menos os defaults
+        setIsLoaded(true);
+      }
+    };
+
     // Pequeno delay para garantir que as interpretações sejam carregadas
     const timer = setTimeout(() => {
-      setIsLoaded(true);
+      loadAllInterpretations();
     }, 500);
     
     return () => clearTimeout(timer);
@@ -155,6 +185,50 @@ const MatrixInterpretations: React.FC<MatrixInterpretationsProps> = ({ karmicDat
     return processedHTML;
   };
 
+  // Renderizar conteúdo de exemplo para casos onde a interpretação original não existe
+  const getFallbackContent = (category: string, number: number) => {
+    const categoryDisplayName = getCategoryDisplayName(category);
+    let fallbackContent = '';
+    
+    // Conteúdo básico baseado na categoria
+    switch(category) {
+      case 'karmicSeal':
+        fallbackContent = `<p>Seu <strong>Selo Kármico ${number}</strong> em 2025 indica um período de crescimento significativo. Este número representa sua essência vital e propósito primordial.</p>
+        <h3>Significado Profundo</h3>
+        <p>O número ${number} traz a energia de [qualidade principal], convidando você a desenvolver maior [virtude relacionada] enquanto trabalha seus desafios pessoais.</p>`;
+        break;
+      case 'destinyCall':
+        fallbackContent = `<p>O <strong>Chamado do Destino ${number}</strong> em sua matriz para 2025 revela sua vocação profunda e propósito de vida. Este é um momento crucial para ouvir o que sua alma veio realizar.</p>`;
+        break;
+      case 'karmaPortal':
+        fallbackContent = `<p>O <strong>Portal do Karma ${number}</strong> em sua matriz revela as lições que sua alma está trabalhando em 2025. Este portal representa um ponto de transformação importante.</p>`;
+        break;
+      case 'karmicInheritance':
+        fallbackContent = `<p>Sua <strong>Herança Kármica ${number}</strong> representa os dons e talentos que você traz de vidas passadas. Em 2025, estes dons estarão especialmente ativos e disponíveis.</p>`;
+        break;
+      case 'karmicReprogramming':
+        fallbackContent = `<p>O <strong>Códex da Reprogramação ${number}</strong> indica padrões que precisam ser transformados em 2025. Este é um ano importante para liberar limitações antigas.</p>`;
+        break;
+      case 'cycleProphecy':
+        fallbackContent = `<p>A <strong>Profecia dos Ciclos ${number}</strong> revela as energias cíclicas que estarão influenciando sua vida em 2025. Prepare-se para um período de significativa evolução pessoal.</p>`;
+        break;
+      case 'spiritualMark':
+        fallbackContent = `<p>Sua <strong>Marca Espiritual ${number}</strong> indica a frequência vibratória de sua alma em 2025. Esta energia o guiará em sua expansão de consciência ao longo do ano.</p>`;
+        break;
+      case 'manifestationEnigma':
+        fallbackContent = `<p>O <strong>Enigma da Manifestação ${number}</strong> em sua matriz para 2025 revela como você tende a materializar suas intenções e desejos. Esta energia o ajudará a manifestar o que realmente importa.</p>`;
+        break;
+      default:
+        fallbackContent = `<p>Esta interpretação ainda está sendo preparada. Por favor, consulte novamente em breve para obter insights sobre o ${categoryDisplayName} ${number}.</p>`;
+    }
+    
+    // Adicionar afirmação genérica
+    fallbackContent += `<h3>Afirmação Kármica</h3>
+    <p>Eu abraço plenamente a energia do número ${number} em minha vida, permitindo que ela me guie para meu mais alto potencial em 2025.</p>`;
+    
+    return fallbackContent;
+  };
+
   if (!isLoaded) {
     return (
       <div className="max-w-4xl mx-auto mt-8 text-center">
@@ -176,9 +250,42 @@ const MatrixInterpretations: React.FC<MatrixInterpretationsProps> = ({ karmicDat
         Interpretações da Sua Matriz Kármica
       </h2>
       
+      {loadError && (
+        <div className="bg-amber-50 border-l-4 border-amber-400 p-4 mb-6 rounded-md">
+          <div className="flex">
+            <div className="flex-shrink-0">
+              <AlertCircle className="h-5 w-5 text-amber-400" />
+            </div>
+            <div className="ml-3">
+              <p className="text-sm text-amber-700">
+                <strong>Algumas interpretações podem estar usando conteúdo padrão.</strong> Os dados completos não puderam ser carregados neste momento.
+              </p>
+            </div>
+          </div>
+        </div>
+      )}
+      
       <div className="space-y-4">
         {interpretationItems.map((item, index) => {
-          const interpretation = getInterpretation(item.key, item.value);
+          // Tenta obter a interpretação, com tratamento de erro
+          let interpretation = { title: '', content: '' };
+          try {
+            interpretation = getInterpretation(item.key, item.value);
+            
+            // Verificar se temos apenas o conteúdo padrão (indica que não existe interpretação personalizada)
+            const isDefaultContent = interpretation.content.includes("Interpretação não disponível");
+            
+            // Se for conteúdo padrão, usar o fallback
+            if (isDefaultContent) {
+              interpretation.title = `${getCategoryDisplayName(item.key)} ${item.value}`;
+              interpretation.content = getFallbackContent(item.key, item.value);
+            }
+          } catch (error) {
+            console.error(`Erro ao obter interpretação para ${item.key}-${item.value}:`, error);
+            interpretation.title = `${getCategoryDisplayName(item.key)} ${item.value}`;
+            interpretation.content = getFallbackContent(item.key, item.value);
+          }
+          
           const isExpanded = expandedSections.has(item.key);
           const processedContent = processContent(interpretation.content);
           
