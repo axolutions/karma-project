@@ -1,6 +1,5 @@
 
 import React, { useState, useEffect } from 'react';
-import { motion } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
 import LoginForm from '@/components/LoginForm';
 import ProfileForm from '@/components/ProfileForm';
@@ -10,60 +9,50 @@ import { getCurrentUser, isLoggedIn, getUserData } from '@/lib/auth';
 const Index = () => {
   const [userLoggedIn, setUserLoggedIn] = useState(false);
   const [hasProfile, setHasProfile] = useState(false);
-  const [isLoading, setIsLoading] = useState(true);
   const navigate = useNavigate();
   
   useEffect(() => {
-    try {
-      console.log("Index: Iniciando verificação de login");
-      // Check if user is logged in
-      const loggedIn = isLoggedIn();
-      setUserLoggedIn(loggedIn);
-      console.log("Index: Usuário logado?", loggedIn);
-      
-      if (loggedIn) {
-        // Check if user has created profile
-        const email = getCurrentUser();
-        console.log("Index: Email do usuário atual:", email);
-        
-        if (email) {
-          console.log("Index: Obtendo dados do usuário");
-          const userData = getUserData(email);
-          console.log("Index: Dados do usuário:", userData);
-          
-          if (userData && userData.id) {
-            console.log("Index: Usuário já tem perfil, redirecionando para matriz");
-            setHasProfile(true);
-            // Redirect to matrix page
-            navigate('/matrix');
-          } else {
-            console.log("Index: Usuário logado, mas sem perfil");
-            setHasProfile(false);
-          }
+    // Verificação simplificada de login
+    const loggedIn = isLoggedIn();
+    setUserLoggedIn(loggedIn);
+    console.log("Index: Usuário logado?", loggedIn);
+    
+    // Se estiver logado, verificar perfil
+    if (loggedIn) {
+      const email = getCurrentUser();
+      if (email) {
+        const userData = getUserData(email);
+        if (userData && userData.karmicNumbers) {
+          setHasProfile(true);
+          navigate('/matrix');
         }
       }
-      
-      setIsLoading(false);
-    } catch (error) {
-      console.error("Index: Erro ao verificar login:", error);
-      setIsLoading(false);
     }
   }, [navigate]);
-
-  // Se estiver carregando, mostrar indicador
-  if (isLoading) {
-    return (
-      <div className="min-h-screen flex items-center justify-center bg-gradient-to-b from-karmic-100 to-white">
-        <p className="text-karmic-800">Carregando...</p>
-      </div>
-    );
-  }
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-karmic-100 to-white py-12">
       <div className="container max-w-5xl mx-auto px-4">
-        <IntroSection />
+        {/* Seção de introdução */}
+        <div className="max-w-3xl mx-auto text-center mb-16 px-4">
+          <span className="inline-block px-4 py-1 mb-4 text-xs font-medium text-karmic-700 bg-karmic-100 rounded-full">
+            EXPLORADOR DA MATRIZ KÁRMICA
+          </span>
+          
+          <h1 className="text-4xl md:text-5xl lg:text-6xl font-serif font-medium text-karmic-800 mb-6">
+            Descubra sua jornada espiritual através dos números
+          </h1>
+          
+          <p className="text-lg text-karmic-600 mb-8">
+            A matriz kármica revela os padrões energéticos que influenciam sua vida atual, baseados em 
+            experiências de vidas passadas e potenciais futuros. Descubra os quatro elementos principais 
+            que moldam sua jornada espiritual.
+          </p>
+          
+          <div className="border-b border-karmic-200 w-24 mx-auto mb-8" />
+        </div>
         
+        {/* Formulário de login ou perfil */}
         <div
           className="max-w-md mx-auto bg-white rounded-xl p-8 shadow-sm border border-karmic-200"
         >
