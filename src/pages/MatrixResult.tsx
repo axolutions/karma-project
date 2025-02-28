@@ -82,12 +82,10 @@ const MatrixResult = () => {
       
       const canvas = await html2canvas(matrixElement as HTMLElement, {
         scale: 2, // Melhor qualidade
-        backgroundColor: null, // Transparente para preservar as cores originais
-        logging: false, // Desabilita logs para evitar poluição do console
+        backgroundColor: "#ffffff",
+        logging: true, // Habilita logs para depuração
         useCORS: true, // Importante para imagens de outros domínios
-        allowTaint: true, // Permite imagens de outros domínios
-        imageTimeout: 0, // Sem timeout para imagens
-        removeContainer: false // Não remove o container temporário
+        allowTaint: true // Permite imagens de outros domínios
       });
       
       // Criar um link de download para a imagem
