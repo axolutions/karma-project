@@ -36,7 +36,7 @@ const MatrixResult = () => {
   useEffect(() => {
     console.log("MatrixResult - Iniciando carregamento de dados");
     loadUserData();
-  }, [navigate]);
+  }, []);
   
   const loadUserData = () => {
     try {
@@ -71,8 +71,10 @@ const MatrixResult = () => {
         return;
       }
       
-      // Filtrar mapas inválidos (sem id ou dados corrompidos)
-      const validMaps = Array.isArray(allMaps) ? allMaps.filter(map => map && map.id) : [];
+      // Garantir que allMaps seja um array válido
+      const validMaps = Array.isArray(allMaps) ? 
+        allMaps.filter(map => map && typeof map === 'object') : [];
+      
       console.log("Mapas válidos:", validMaps);
       
       if (validMaps.length === 0) {
@@ -111,18 +113,6 @@ const MatrixResult = () => {
         }
       }
       
-      // Verificação final para garantir que temos dados válidos
-      if (!currentData || !currentData.id) {
-        console.log("Falha ao carregar dados válidos");
-        toast({
-          title: "Erro ao carregar dados",
-          description: "Não foi possível carregar os dados da matriz kármica. Por favor, crie um novo perfil.",
-          variant: "destructive"
-        });
-        navigate('/');
-        return;
-      }
-      
       // Garantir que temos números kármicos, mesmo que vazios
       if (!currentData.karmicNumbers) {
         console.log("Números kármicos ausentes, criando objeto vazio");
@@ -153,12 +143,8 @@ const MatrixResult = () => {
   
   const checkIfCanCreateNewMap = (email: string, mapCount: number) => {
     // Aqui verificamos se o usuário pode criar um novo mapa
-    // Cada vez que um email é adicionado à lista de autorizados, ele ganha direito a um novo mapa
-    
-    // Verificar se o email está na lista de autorizados e se já usou seu crédito
     if (mapCount > 0 && isAuthorizedEmail(email)) {
       // Simples verificação: se já tem mapas, não pode criar mais
-      // Esta lógica será substituída pela verificação real de compras ou créditos
       setCanCreateNewMap(false);
     } else {
       setCanCreateNewMap(true);
@@ -299,6 +285,9 @@ const MatrixResult = () => {
   // Formatar data de criação
   const createdDate = userData.createdAt ? new Date(userData.createdAt).toLocaleDateString() : '';
   
+  // Garantir que temos números kármicos para mostrar
+  const karmicNumbers = userData.karmicNumbers || {};
+  
   return (
     <div className="min-h-screen bg-gradient-to-b from-karmic-100 to-white py-12 print:bg-white print:py-0">
       <div className="container max-w-4xl mx-auto px-4">
@@ -328,10 +317,10 @@ const MatrixResult = () => {
                 <DropdownMenuContent align="end" className="w-64">
                   <DropdownMenuLabel>Selecione um mapa</DropdownMenuLabel>
                   <DropdownMenuSeparator />
-                  {userMaps.map((map) => (
+                  {userMaps.map((map, index) => (
                     map && map.id ? (
                       <DropdownMenuItem 
-                        key={map.id} 
+                        key={map.id || index} 
                         onClick={() => handleSwitchMap(map.id)}
                         className={map.id === userData.id ? "bg-karmic-100 font-medium" : ""}
                       >
@@ -410,10 +399,10 @@ const MatrixResult = () => {
             </p>
           )}
           
-          <KarmicMatrix karmicData={userData.karmicNumbers || {}} />
+          <KarmicMatrix karmicData={karmicNumbers} />
         </motion.div>
         
-        <MatrixInterpretations karmicData={userData.karmicNumbers || {}} />
+        <MatrixInterpretations karmicData={karmicNumbers} />
       </div>
     </div>
   );

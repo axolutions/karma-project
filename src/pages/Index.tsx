@@ -16,12 +16,14 @@ const Index = () => {
     // Check if user is logged in
     const loggedIn = isLoggedIn();
     setUserLoggedIn(loggedIn);
+    console.log("Index: Usuário logado?", loggedIn);
     
     if (loggedIn) {
       // Check if user has created profile
       const email = getCurrentUser();
       if (email) {
         const userData = getUserData(email);
+        console.log("Index: Dados do usuário:", userData);
         if (userData && userData.id) {
           console.log("Usuário já tem perfil, redirecionando para matriz");
           setHasProfile(true);
