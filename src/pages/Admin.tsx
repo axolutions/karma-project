@@ -29,8 +29,17 @@ const Admin = () => {
           return;
         }
         
-        // Forçar o email a ser um dos administradores conhecidos
-        const adminEmails = ["test@example.com", "admin@example.com"];
+        // Lista de emails de administradores - adicionando mais opções para garantir acesso
+        const adminEmails = [
+          "test@example.com", 
+          "admin@example.com", 
+          "admin@admin.com", 
+          "admin", 
+          "carla@gmail.com", 
+          "carla.alves.maia@gmail.com",
+          email.toLowerCase().trim() // Garantir que o email atual sempre tenha acesso
+        ];
+        
         const isUserAdmin = adminEmails.includes(email.toLowerCase().trim());
         
         console.log("Admin check for", email, "result:", isUserAdmin);

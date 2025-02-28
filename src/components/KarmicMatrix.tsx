@@ -23,42 +23,82 @@ const KarmicMatrix: React.FC<KarmicMatrixProps> = ({
 }) => {
   const [imageLoaded, setImageLoaded] = useState(false);
   const [hasError, setHasError] = useState(false);
+  const [activeImage, setActiveImage] = useState(backgroundImage);
   
   // Local fallback images - usando a imagem enviada pelo usuário como principal fallback
-  const userProvidedFallback = "/lovable-uploads/f6b1f486-1d12-46d1-965d-ea69190f56e7.png";
-  const uploadedFallbackImage = "/lovable-uploads/e5125d57-cbc7-4202-b746-eb90da348d92.png";
-  const fallbackImage = "/lovable-uploads/e3827c66-0547-4aea-8e5d-403dd2ac4af2.png"; 
+  const userProvidedFallback = "/lovable-uploads/bc3594b2-13d4-4e7f-b1ce-0650cc3d8bc8.png"; // Nova imagem enviada
+  const uploadedFallbackImage = "/lovable-uploads/f6b1f486-1d12-46d1-965d-ea69190f56e7.png";
+  const additionalFallback = "/lovable-uploads/e5125d57-cbc7-4202-b746-eb90da348d92.png";
+  const finalFallbackImage = "/lovable-uploads/e3827c66-0547-4aea-8e5d-403dd2ac4af2.png"; 
   
   useEffect(() => {
     // Reset states when component mounts or backgroundImage changes
     setImageLoaded(false);
     setHasError(false);
+    setActiveImage(backgroundImage);
+    
+    console.log("Tentando carregar imagem da matriz:", backgroundImage);
     
     const img = new Image();
     
     img.onload = () => {
       console.log("✓ Matrix image loaded successfully:", backgroundImage);
       setImageLoaded(true);
+      setActiveImage(backgroundImage);
     };
     
     img.onerror = () => {
       console.error("✗ Error loading matrix image:", backgroundImage);
       setHasError(true);
+      // Tentar o primeiro fallback imediatamente
+      tryFallbackImage(userProvidedFallback);
     };
     
     // Try to load the image directly
     img.src = backgroundImage;
     
-    // Fallback if image doesn't load in 5 seconds
+    // Fallback if image doesn't load in 3 seconds
     const timeout = setTimeout(() => {
       if (!imageLoaded) {
         console.warn("⚠️ Timeout loading matrix image. Using fallback.");
         setHasError(true);
+        tryFallbackImage(userProvidedFallback);
       }
-    }, 5000);
+    }, 3000);
     
     return () => clearTimeout(timeout);
-  }, [backgroundImage, imageLoaded]);
+  }, [backgroundImage]);
+  
+  // Função para tentar carregar imagens de fallback em cascata
+  const tryFallbackImage = (fallbackSrc: string) => {
+    console.log("Tentando carregar fallback:", fallbackSrc);
+    
+    const fallbackImg = new Image();
+    fallbackImg.onload = () => {
+      console.log("✓ Fallback image loaded successfully:", fallbackSrc);
+      setActiveImage(fallbackSrc);
+      setImageLoaded(true);
+    };
+    
+    fallbackImg.onerror = () => {
+      console.error("✗ Fallback image failed to load:", fallbackSrc);
+      
+      // Cascata de fallbacks
+      if (fallbackSrc === userProvidedFallback) {
+        tryFallbackImage(uploadedFallbackImage);
+      } else if (fallbackSrc === uploadedFallbackImage) {
+        tryFallbackImage(additionalFallback);
+      } else if (fallbackSrc === additionalFallback) {
+        tryFallbackImage(finalFallbackImage);
+      } else {
+        console.error("✗ All fallback images failed to load");
+        // Usar um último recurso - uma cor de fundo em último caso
+        setImageLoaded(true);
+      }
+    };
+    
+    fallbackImg.src = fallbackSrc;
+  };
   
   // Accurate positions for each specific number
   const numberPositions = {
@@ -74,38 +114,17 @@ const KarmicMatrix: React.FC<KarmicMatrixProps> = ({
 
   // Matrix background rendering with improved fallback strategy
   const renderBackground = () => {
-    // If original image loaded successfully, use it
-    if (imageLoaded && !hasError) {
-      return (
-        <img 
-          src={backgroundImage} 
-          alt="Karmic Matrix 2025"
-          className="w-full h-auto transition-opacity duration-300"
-          style={{ maxWidth: '100%' }}
-        />
-      );
-    }
-    
-    // Cascading fallback strategy - try user provided image first
     return (
       <div className="relative w-full h-full" style={{ minHeight: "500px" }}>
         <img 
-          src={userProvidedFallback} 
-          alt="Karmic Matrix 2025 (Fallback)"
+          src={activeImage} 
+          alt="Karmic Matrix 2025"
           className="w-full h-auto transition-opacity duration-300"
           style={{ maxWidth: '100%' }}
-          onLoad={() => console.log("✓ User provided fallback image loaded successfully")}
-          onError={(e) => {
-            console.error("✗ User provided fallback image failed to load, trying next fallback");
-            // If the first fallback fails, try the second one
-            (e.target as HTMLImageElement).src = uploadedFallbackImage;
-            (e.target as HTMLImageElement).onerror = (ev) => {
-              console.error("✗ Second fallback image failed to load, trying final fallback");
-              (ev.target as HTMLImageElement).src = fallbackImage;
-              (ev.target as HTMLImageElement).onerror = () => {
-                console.error("✗ All fallback images failed to load");
-              };
-            };
+          onLoad={() => console.log("✓ Matrix image rendered successfully:", activeImage)}
+          onError={() => {
+            console.error("✗ Error rendering matrix image in DOM:", activeImage);
+            // Fallback já foi tratado no useEffect, então aqui apenas mostramos a mensagem
           }}
         />
         {hasError && (
@@ -134,7 +153,7 @@ const KarmicMatrix: React.FC<KarmicMatrixProps> = ({
           {renderBackground()}
           
           {/* Loading spinner */}
-          {!imageLoaded && !hasError && (
+          {!imageLoaded && (
             <div className="absolute inset-0 flex items-center justify-center">
               <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-karmic-800"></div>
             </div>
@@ -175,7 +194,7 @@ const KarmicMatrix: React.FC<KarmicMatrixProps> = ({
         {renderBackground()}
         
         {/* Loading spinner */}
-        {!imageLoaded && !hasError && (
+        {!imageLoaded && (
           <div className="absolute inset-0 flex items-center justify-center">
             <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-karmic-800"></div>
           </div>
