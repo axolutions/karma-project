@@ -12,7 +12,7 @@ import { supabaseClient, isInOfflineMode } from '@/lib/supabase';
 import html2canvas from 'html2canvas';
 
 // Constante para controlar se devemos usar o modo de fallback para email
-const USE_EMAIL_FALLBACK = true;
+const USE_EMAIL_FALLBACK = false; // Alterado para false para tentar usar o método principal primeiro
 
 const MatrixResult = () => {
   const [userData, setUserData] = useState<any>(null);
@@ -68,7 +68,7 @@ const MatrixResult = () => {
     loadUserData();
   }, [navigate]);
   
-  // Função para gerar e baixar um arquivo PDF ou imagem PNG da matriz
+  // Função para gerar e baixar um arquivo PNG da matriz
   const handleDownloadMatrix = async () => {
     try {
       setSending(true);
@@ -110,6 +110,99 @@ const MatrixResult = () => {
     }
   };
   
+  // Função para capturar toda a página como PNG
+  const captureFullPage = async () => {
+    try {
+      // Seleciona o contêiner principal que contém a matriz e as interpretações
+      const fullPageElement = document.querySelector('.container');
+      if (!fullPageElement) {
+        throw new Error("Não foi possível encontrar o conteúdo da página");
+      }
+      
+      // Usa html2canvas para capturar todo o conteúdo
+      const canvas = await html2canvas(fullPageElement as HTMLElement, {
+        scale: 1.5, // Qualidade balanceada
+        backgroundColor: "#ffffff",
+        logging: false,
+        useCORS: true, // Permite carregar imagens cross-origin
+        allowTaint: true, // Permite incluir imagens potencialmente não seguras
+        scrollY: -window.scrollY, // Corrige o scroll
+        windowHeight: document.documentElement.offsetHeight
+      });
+      
+      return canvas.toDataURL('image/png');
+    } catch (error) {
+      console.error("Erro ao capturar página:", error);
+      throw error;
+    }
+  };
+  
+  // Função para capturar apenas a matriz
+  const captureMatrixOnly = async () => {
+    try {
+      const matrixElement = document.querySelector('.karmic-matrix-container');
+      if (!matrixElement) {
+        throw new Error("Não foi possível encontrar a matriz para enviar");
+      }
+      
+      const canvas = await html2canvas(matrixElement as HTMLElement, {
+        scale: 2, // Melhor qualidade
+        backgroundColor: "#ffffff",
+        logging: false,
+        useCORS: true, // Permite carregar imagens cross-origin
+        allowTaint: true // Permite incluir imagens potencialmente não seguras
+      });
+      
+      return canvas.toDataURL('image/png');
+    } catch (error) {
+      console.error("Erro ao capturar matriz:", error);
+      throw error;
+    }
+  };
+  
+  // Função para extrair o texto das interpretações
+  const extractInterpretationsText = () => {
+    try {
+      const interpretationsElement = document.querySelector('.matrix-interpretations');
+      let interpretationsText = '';
+      
+      if (interpretationsElement) {
+        const sections = interpretationsElement.querySelectorAll('.karmic-card');
+        
+        sections.forEach(section => {
+          const title = section.querySelector('h3')?.textContent || '';
+          const number = section.querySelector('.karmic-number')?.textContent || '';
+          const content = section.querySelector('.karmic-content');
+          
+          interpretationsText += `\n==== ${title} ${number} ====\n\n`;
+          
+          if (content) {
+            // Extrair todos os parágrafos
+            const paragraphs = content.querySelectorAll('p');
+            paragraphs.forEach(p => {
+              interpretationsText += `${p.textContent}\n\n`;
+            });
+            
+            // Extrair listas
+            const lists = content.querySelectorAll('ul');
+            lists.forEach(ul => {
+              const items = ul.querySelectorAll('li');
+              items.forEach(li => {
+                interpretationsText += `• ${li.textContent}\n`;
+              });
+              interpretationsText += '\n';
+            });
+          }
+        });
+      }
+      
+      return interpretationsText;
+    } catch (error) {
+      console.error("Erro ao extrair interpretações:", error);
+      return "Não foi possível extrair as interpretações completas.";
+    }
+  };
+  
   const handleSendEmail = async () => {
     if (!userData || !userData.email) {
       toast({
@@ -123,36 +216,20 @@ const MatrixResult = () => {
     setSending(true);
     
     try {
-      // Capturar a matriz como imagem
-      const matrixElement = document.querySelector('.karmic-matrix-container');
-      if (!matrixElement) {
-        throw new Error("Não foi possível encontrar a matriz para enviar");
+      // Capturar a matriz e as interpretações
+      const matrixImageData = await captureMatrixOnly();
+      const interpretationsText = extractInterpretationsText();
+      
+      // Tenta também capturar a página completa como backup
+      let fullPageImage = '';
+      try {
+        fullPageImage = await captureFullPage();
+      } catch (fullPageError) {
+        console.error("Erro ao capturar página completa:", fullPageError);
+        // Continua mesmo se falhar
       }
       
-      const canvas = await html2canvas(matrixElement as HTMLElement, {
-        scale: 2, // Melhor qualidade
-        backgroundColor: "#ffffff",
-        logging: false,
-      });
-      
-      const matrixImageData = canvas.toDataURL('image/png');
-      
-      // Preparar os dados da interpretação
-      const interpretationsElement = document.querySelector('.matrix-interpretations');
-      let interpretationsText = '';
-      
-      if (interpretationsElement) {
-        const titles = interpretationsElement.querySelectorAll('h3');
-        const contents = interpretationsElement.querySelectorAll('p');
-        
-        titles.forEach((title, index) => {
-          if (contents[index]) {
-            interpretationsText += `${title.textContent}\n${contents[index].textContent}\n\n`;
-          }
-        });
-      }
-      
-      // Verificar se estamos em modo offline ou se o uso de fallback está ativado
+      // Verificar se estamos em modo offline ou se é para usar fallback
       if (isInOfflineMode() || USE_EMAIL_FALLBACK) {
         console.log("Usando método de fallback para envio de email");
         handleEmailFallback(userData.email, matrixImageData);
@@ -166,6 +243,7 @@ const MatrixResult = () => {
           name: userData.name || "Cliente",
           birthDate: userData.birthDate,
           matrixImage: matrixImageData,
+          fullPageImage: fullPageImage, // Enviando a imagem da página completa como alternativa
           interpretations: interpretationsText
         }
       });
