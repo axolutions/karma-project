@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { ChevronDown, ChevronUp, RefreshCw } from "lucide-react";
 import {
@@ -51,12 +50,13 @@ const InterpretationCard: React.FC<InterpretationItemProps> = ({
   
   // Função para processar emojis no texto
   const processContent = (content: string) => {
+    // Preservar emojis e formatação HTML
     return content;
   };
 
   // Corrigir o HTML que vem da interpretação
   const sanitizeHtml = (html: string) => {
-    // Remover quebras de linha extras e espaços
+    // Remover quebras de linha extras e espaços, mas preservar formatação
     return html.replace(/\n\s*\n/g, '\n').trim();
   };
   

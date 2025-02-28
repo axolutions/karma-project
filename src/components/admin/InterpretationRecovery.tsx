@@ -13,9 +13,17 @@ import {
   FileText, 
   Save,
   CheckCircle2,
-  List
+  List,
+  Search,
+  AlertTriangle,
+  Download
 } from 'lucide-react';
 import { isInOfflineMode, attemptReconnect } from '@/lib/supabase';
+import { 
+  performFullRecovery, 
+  getAllStoredInterpretations, 
+  createBackupFile 
+} from '@/lib/recovery';
 
 const InterpretationRecovery = () => {
   const [interpretations, setInterpretations] = useState<any[]>([]);
@@ -23,10 +31,37 @@ const InterpretationRecovery = () => {
   const [categoryStats, setCategoryStats] = useState<Record<string, number>>({});
   const [isExpanded, setIsExpanded] = useState(false);
   const categories = getAllCategories();
+  const [recoveryPerformed, setRecoveryPerformed] = useState(false);
+  const [totalFound, setTotalFound] = useState(0);
   
   useEffect(() => {
     refreshInterpretations();
+    
+    // Executar diagnóstico ao carregar a página
+    runDiagnostic();
   }, []);
+  
+  const runDiagnostic = async () => {
+    setIsLoading(true);
+    try {
+      const results = await performFullRecovery();
+      
+      // Após recuperação, atualizar a lista de interpretações
+      refreshInterpretations();
+      
+      setRecoveryPerformed(true);
+      setTotalFound(results.recovered.length || results.localStorage.length);
+    } catch (error) {
+      console.error("Erro durante diagnóstico:", error);
+      toast({
+        title: "Erro no diagnóstico",
+        description: "Ocorreu um erro ao tentar recuperar as interpretações.",
+        variant: "destructive"
+      });
+    } finally {
+      setIsLoading(false);
+    }
+  };
   
   const refreshInterpretations = () => {
     setIsLoading(true);
@@ -109,40 +144,7 @@ const InterpretationRecovery = () => {
   };
   
   const handleExportAll = () => {
-    try {
-      const data = exportInterpretations();
-      
-      if (Object.keys(data).length === 0) {
-        toast({
-          title: "Nada para exportar",
-          description: "Não há interpretações para exportar.",
-          variant: "destructive"
-        });
-        return;
-      }
-      
-      const dataStr = JSON.stringify(data, null, 2);
-      const dataUri = `data:application/json;charset=utf-8,${encodeURIComponent(dataStr)}`;
-      
-      const exportName = `interpretacoes-karmicas-backup-${new Date().toISOString().split('T')[0]}.json`;
-      
-      const linkElement = document.createElement('a');
-      linkElement.setAttribute('href', dataUri);
-      linkElement.setAttribute('download', exportName);
-      linkElement.click();
-      
-      toast({
-        title: "Backup concluído",
-        description: `${Object.keys(data).length} interpretações exportadas com sucesso como backup.`
-      });
-    } catch (error) {
-      console.error("Erro ao exportar backup:", error);
-      toast({
-        title: "Erro no backup",
-        description: "Não foi possível exportar as interpretações para backup.",
-        variant: "destructive"
-      });
-    }
+    createBackupFile();
   };
   
   const getTotalInterpretations = (): number => {
@@ -197,8 +199,93 @@ const InterpretationRecovery = () => {
             <Save className="h-4 w-4 mr-1" /> 
             Reconectar
           </Button>
+          
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={runDiagnostic}
+            disabled={isLoading}
+            className="text-purple-600 border-purple-300 hover:bg-purple-50"
+          >
+            <Search className="h-4 w-4 mr-1" /> 
+            Recuperar Dados
+          </Button>
+          
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => {
+              // Download para backup adicional usando o antigo método
+              try {
+                const data = exportInterpretations();
+                
+                if (Object.keys(data).length === 0) {
+                  toast({
+                    title: "Nada para exportar",
+                    description: "Não há interpretações para exportar.",
+                    variant: "destructive"
+                  });
+                  return;
+                }
+                
+                const dataStr = JSON.stringify(data, null, 2);
+                const dataUri = `data:application/json;charset=utf-8,${encodeURIComponent(dataStr)}`;
+                
+                const exportName = `interpretacoes-karmicas-backup-extra-${new Date().toISOString().split('T')[0]}.json`;
+                
+                const linkElement = document.createElement('a');
+                linkElement.setAttribute('href', dataUri);
+                linkElement.setAttribute('download', exportName);
+                linkElement.click();
+                
+                toast({
+                  title: "Backup extra concluído",
+                  description: `${Object.keys(data).length} interpretações exportadas com sucesso como backup.`
+                });
+              } catch (error) {
+                console.error("Erro ao exportar backup:", error);
+                toast({
+                  title: "Erro no backup",
+                  description: "Não foi possível exportar as interpretações para backup.",
+                  variant: "destructive"
+                });
+              }
+            }}
+            className="text-indigo-600 border-indigo-300 hover:bg-indigo-50"
+          >
+            <Download className="h-4 w-4 mr-1" /> 
+            Backup Extra
+          </Button>
         </div>
       </div>
+      
+      {recoveryPerformed && (
+        <div className="bg-green-50 border border-green-200 rounded-md p-4 mb-4">
+          <div className="flex items-start">
+            <div className="flex-shrink-0">
+              {totalFound > 0 ? (
+                <CheckCircle2 className="h-5 w-5 text-green-500" />
+              ) : (
+                <AlertTriangle className="h-5 w-5 text-amber-500" />
+              )}
+            </div>
+            <div className="ml-3">
+              <h3 className="text-sm font-medium text-green-800">
+                {totalFound > 0 
+                  ? `Recuperação concluída! ${totalFound} interpretações encontradas.` 
+                  : 'Verificação concluída sem encontrar dados adicionais.'}
+              </h3>
+              <div className="mt-2 text-sm text-green-700">
+                <p>
+                  {totalFound > 0 
+                    ? 'Os textos foram recuperados com sucesso e estão disponíveis no sistema. Recomendamos fazer um backup para garantir que esses dados não sejam perdidos novamente.' 
+                    : 'Não encontramos interpretações adicionais para recuperar. Se você tiver um arquivo de backup, use a opção de importação para restaurar seus dados.'}
+                </p>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
       
       <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
         {categories.map(category => (
