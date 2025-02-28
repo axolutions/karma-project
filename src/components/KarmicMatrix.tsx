@@ -24,12 +24,12 @@ const KarmicMatrix: React.FC<KarmicMatrixProps> = ({
   const [hasError, setHasError] = useState(false);
   const [activeImage, setActiveImage] = useState(backgroundImage);
   
-  // Improved fallback images - added your latest matrix image as primary fallback
-  const primaryFallback = "/lovable-uploads/73450eb9-6651-45f0-95cb-2b75735fdfa6.png"; // New matrix image
-  const secondaryFallback = "/lovable-uploads/bc3594b2-13d4-4e7f-b1ce-0650cc3d8bc8.png"; 
-  const thirdFallback = "/lovable-uploads/f6b1f486-1d12-46d1-965d-ea69190f56e7.png";
-  const fourthFallback = "/lovable-uploads/e5125d57-cbc7-4202-b746-eb90da348d92.png";
-  const finalFallback = "/lovable-uploads/e3827c66-0547-4aea-8e5d-403dd2ac4af2.png"; 
+  // Improved fallback images - using uploaded image
+  const primaryFallback = "/lovable-uploads/fcd17fc3-1fa4-426b-88ab-40b4e53b77c3.png"; 
+  const secondaryFallback = "/lovable-uploads/73450eb9-6651-45f0-95cb-2b75735fdfa6.png";
+  const thirdFallback = "/lovable-uploads/bc3594b2-13d4-4e7f-b1ce-0650cc3d8bc8.png"; 
+  const fourthFallback = "/lovable-uploads/f6b1f486-1d12-46d1-965d-ea69190f56e7.png";
+  const finalFallback = "/lovable-uploads/e5125d57-cbc7-4202-b746-eb90da348d92.png";
   
   // Check if image URL is valid
   const isValidURL = (url: string): boolean => {
@@ -40,54 +40,76 @@ const KarmicMatrix: React.FC<KarmicMatrixProps> = ({
     );
   };
   
-  // Enhanced image loading function with multiple fallbacks
+  // Enhanced image loading function with improved error handling
   useEffect(() => {
     let isMounted = true;
-    setImageLoaded(false);
-    setHasError(false);
+    let loadTimeoutId: number | null = null;
     
-    // Start with provided background or use the fixed URL
-    const initialImage = isValidURL(backgroundImage) 
-      ? backgroundImage 
-      : "https://darkorange-goldfinch-896244.hostingersite.com/wp-content/uploads/2025/02/Design-sem-nome-1.png";
-    
-    setActiveImage(initialImage);
-    console.log("Tentando carregar imagem da matriz:", initialImage);
-    
-    const img = new Image();
-    
-    img.onload = () => {
-      if (isMounted) {
-        console.log("✓ Matrix image loaded successfully:", initialImage);
-        setImageLoaded(true);
-        setActiveImage(initialImage);
+    const loadImage = async () => {
+      setImageLoaded(false);
+      setHasError(false);
+      
+      // Start with provided background or use the fixed URL
+      const initialImage = isValidURL(backgroundImage) 
+        ? backgroundImage 
+        : "https://darkorange-goldfinch-896244.hostingersite.com/wp-content/uploads/2025/02/Design-sem-nome-1.png";
+      
+      console.log("Tentando carregar imagem da matriz:", initialImage);
+      setActiveImage(initialImage);
+      
+      try {
+        // Create image and set up event handlers
+        const img = new Image();
+        
+        // Set up promise to handle image loading
+        const imageLoadPromise = new Promise<void>((resolve, reject) => {
+          img.onload = () => resolve();
+          img.onerror = () => reject(new Error(`Failed to load image: ${initialImage}`));
+          
+          // Set image source to trigger loading
+          img.src = initialImage;
+        });
+        
+        // Race between image loading and timeout
+        const timeoutPromise = new Promise<void>((_, reject) => {
+          loadTimeoutId = window.setTimeout(() => {
+            reject(new Error("Image load timeout"));
+          }, 5000); // Increased timeout for slower connections
+        });
+        
+        // Wait for either image to load or timeout
+        await Promise.race([imageLoadPromise, timeoutPromise]);
+        
+        // If we get here, the image loaded successfully
+        if (isMounted) {
+          console.log("✓ Matrix image loaded successfully:", initialImage);
+          setImageLoaded(true);
+          setActiveImage(initialImage);
+          setHasError(false);
+        }
+      } catch (error) {
+        console.error("✗ Error loading matrix image:", error);
+        
+        if (isMounted) {
+          setHasError(true);
+          // Try fallback cascade
+          tryFallbackImage(primaryFallback);
+        }
+      } finally {
+        if (loadTimeoutId) {
+          clearTimeout(loadTimeoutId);
+          loadTimeoutId = null;
+        }
       }
     };
     
-    img.onerror = () => {
-      if (isMounted) {
-        console.error("✗ Error loading matrix image:", initialImage);
-        setHasError(true);
-        // Try first fallback immediately
-        tryFallbackImage(primaryFallback);
-      }
-    };
-    
-    // Try to load the image
-    img.src = initialImage;
-    
-    // Fallback if image doesn't load in 2.5 seconds (reduced timeout)
-    const timeout = setTimeout(() => {
-      if (isMounted && !imageLoaded) {
-        console.warn("⚠️ Timeout loading matrix image. Using fallback.");
-        setHasError(true);
-        tryFallbackImage(primaryFallback);
-      }
-    }, 2500);
+    loadImage();
     
     return () => {
       isMounted = false;
-      clearTimeout(timeout);
+      if (loadTimeoutId) {
+        clearTimeout(loadTimeoutId);
+      }
     };
   }, [backgroundImage]);
   
@@ -138,7 +160,7 @@ const KarmicMatrix: React.FC<KarmicMatrixProps> = ({
     manifestationEnigma: { top: "20%", left: "50%" }
   };
 
-  // Optimized matrix background rendering
+  // Optimized matrix background rendering with direct onLoad and onError
   const renderBackground = () => {
     return (
       <div className="relative w-full h-full" style={{ minHeight: "500px" }}>
@@ -148,16 +170,21 @@ const KarmicMatrix: React.FC<KarmicMatrixProps> = ({
             alt="Matriz Kármica 2025"
             className="w-full h-auto transition-opacity duration-300"
             style={{ maxWidth: '100%' }}
-            onLoad={() => console.log("✓ Matrix image rendered successfully:", activeImage)}
+            onLoad={() => {
+              console.log("✓ Matrix image rendered successfully:", activeImage);
+              setImageLoaded(true);
+            }}
             onError={(e) => {
               console.error("✗ Error rendering matrix image in DOM:", activeImage);
               // If DOM rendering fails, try using background-image instead
               const target = e.currentTarget;
               target.style.display = 'none';
-              target.parentElement!.style.backgroundImage = `url(${primaryFallback})`;
-              target.parentElement!.style.backgroundSize = 'contain';
-              target.parentElement!.style.backgroundPosition = 'center';
-              target.parentElement!.style.backgroundRepeat = 'no-repeat';
+              if (target.parentElement) {
+                target.parentElement.style.backgroundImage = `url(${primaryFallback})`;
+                target.parentElement.style.backgroundSize = 'contain';
+                target.parentElement.style.backgroundPosition = 'center';
+                target.parentElement.style.backgroundRepeat = 'no-repeat';
+              }
             }}
           />
         ) : (
