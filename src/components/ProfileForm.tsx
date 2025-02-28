@@ -2,10 +2,10 @@
 import React, { useState, useEffect } from 'react';
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import { MoveRight } from "lucide-react";
+import { MoveRight, ShoppingCart } from "lucide-react";
 import { calculateAllKarmicNumbers } from '@/lib/calculations';
 import { toast } from "@/components/ui/use-toast";
-import { saveUserData, getCurrentUser, getAllUserDataByEmail, setCurrentMatrixId } from '@/lib/auth';
+import { saveUserData, getCurrentUser, getAllUserDataByEmail, setCurrentMatrixId, isAuthorizedEmail } from '@/lib/auth';
 import { useNavigate } from 'react-router-dom';
 
 const ProfileForm: React.FC = () => {
@@ -14,6 +14,7 @@ const ProfileForm: React.FC = () => {
   const [isValid, setIsValid] = useState(true);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [existingMaps, setExistingMaps] = useState<any[]>([]);
+  const [canCreateNewMap, setCanCreateNewMap] = useState(true);
   const navigate = useNavigate();
   
   useEffect(() => {
@@ -26,9 +27,37 @@ const ProfileForm: React.FC = () => {
       // Se houver mapas existentes, preencher o nome com o do último mapa
       if (userMaps.length > 0) {
         setName(userMaps[userMaps.length - 1].name);
+        
+        // Verificar se o usuário pode criar um novo mapa
+        // Cada email só pode criar um mapa, a menos que seja adicionado novamente pelo admin
+        // Lógica: se o número de mapas for maior ou igual ao número de vezes que o email foi autorizado, 
+        // não pode criar mais mapas
+        checkIfCanCreateNewMap(currentUser, userMaps.length);
       }
     }
   }, [navigate]);
+  
+  const checkIfCanCreateNewMap = (email: string, mapCount: number) => {
+    // Aqui verificamos se o usuário pode criar um novo mapa
+    // Cada vez que um email é adicionado à lista de autorizados, ele ganha direito a um novo mapa
+    
+    // Em uma implementação real, essa lógica seria mais complexa e poderia envolver:
+    // 1. Verificar compras na Yampi
+    // 2. Verificar um contador de créditos no backend
+    // 3. Verificar um plano de assinatura
+    
+    // Por enquanto, usamos uma regra simples: 
+    // Se o email está na lista de autorizados, mas já usou seu crédito (criou um mapa),
+    // então não pode criar mais
+    
+    if (mapCount > 0 && isAuthorizedEmail(email)) {
+      // Simples verificação: se já tem mapas, não pode criar mais
+      // Esta lógica será substituída pela verificação real de compras ou créditos
+      setCanCreateNewMap(false);
+    } else {
+      setCanCreateNewMap(true);
+    }
+  };
   
   const formatDate = (value: string) => {
     // Filter out non-numeric characters except /
@@ -83,6 +112,17 @@ const ProfileForm: React.FC = () => {
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
+    
+    // Se não pode criar novo mapa, mostrar mensagem e não prosseguir
+    if (existingMaps.length > 0 && !canCreateNewMap) {
+      toast({
+        title: "Limite atingido",
+        description: "Você já atingiu o limite de mapas que pode criar. Adquira um novo acesso para criar mais mapas.",
+        variant: "destructive"
+      });
+      return;
+    }
+    
     setIsSubmitting(true);
     
     if (!name.trim()) {
@@ -193,20 +233,42 @@ const ProfileForm: React.FC = () => {
               </li>
             ))}
           </ul>
-          <p className="text-xs text-karmic-700 mt-2 italic">
-            Ao criar um novo mapa, você manterá acesso a todos os anteriores.
-          </p>
+          
+          {!canCreateNewMap && (
+            <div className="mt-3 p-2 bg-amber-50 border border-amber-200 rounded-md text-amber-700 text-xs">
+              <p className="font-medium flex items-center">
+                <ShoppingCart className="h-3 w-3 mr-1" />
+                Você atingiu o limite de mapas que pode criar.
+              </p>
+              <p className="mt-1">
+                Para criar um novo mapa, você precisa adquirir um novo acesso ou entrar em contato com o administrador.
+              </p>
+            </div>
+          )}
         </div>
       )}
       
       <Button 
         type="submit" 
         className="karmic-button w-full group"
-        disabled={isSubmitting}
+        disabled={isSubmitting || (existingMaps.length > 0 && !canCreateNewMap)}
       >
         {isSubmitting ? 'Processando...' : existingMaps.length > 0 ? 'Gerar Novo Mapa Kármico 2025' : 'Gerar Minha Matriz Kármica 2025'}
         <MoveRight className="ml-2 h-4 w-4 transition-transform group-hover:translate-x-1" />
       </Button>
+      
+      {existingMaps.length > 0 && !canCreateNewMap && (
+        <div className="text-center">
+          <Button 
+            type="button" 
+            variant="link" 
+            onClick={() => navigate('/matrix')}
+            className="text-karmic-600 hover:text-karmic-800"
+          >
+            Voltar para meu mapa atual
+          </Button>
+        </div>
+      )}
     </form>
   );
 };

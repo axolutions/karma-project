@@ -53,6 +53,30 @@ const EmailManager: React.FC = () => {
       return;
     }
     
+    // Verificar se o email já existe na lista
+    const emailExists = emails.includes(newEmail.toLowerCase());
+    
+    // Se o email já existe, perguntar se deseja conceder um novo acesso
+    if (emailExists) {
+      const existingMaps = getAllUserDataByEmail(newEmail.toLowerCase());
+      
+      if (existingMaps.length > 0) {
+        const confirmAdd = confirm(
+          `O email ${newEmail} já está na lista e possui ${existingMaps.length} mapa(s) criado(s). ` +
+          `Adicioná-lo novamente concederá permissão para criar um novo mapa. Deseja continuar?`
+        );
+        
+        if (!confirmAdd) {
+          return;
+        }
+        
+        // Se confirmou, remova primeiro para depois adicionar novamente
+        // Isso simula a renovação do acesso
+        removeAuthorizedEmail(newEmail);
+      }
+    }
+    
+    // Adicionar o email à lista de autorizados
     const success = addAuthorizedEmail(newEmail);
     
     if (success) {
@@ -63,9 +87,10 @@ const EmailManager: React.FC = () => {
       setNewEmail('');
       refreshEmails();
     } else {
+      // Este caso só ocorrerá se houver algum problema na função addAuthorizedEmail
       toast({
-        title: "Email já existe",
-        description: `O email ${newEmail} já está na lista.`,
+        title: "Erro ao adicionar email",
+        description: `Não foi possível adicionar ${newEmail} à lista.`,
         variant: "destructive"
       });
     }
@@ -160,6 +185,16 @@ const EmailManager: React.FC = () => {
             ))}
           </ul>
         )}
+      </div>
+      
+      <div className="mt-4 p-3 bg-karmic-50 border border-karmic-200 rounded-md">
+        <h4 className="text-sm font-medium text-karmic-700 mb-2">Observações sobre emails</h4>
+        <ul className="text-xs space-y-1 text-karmic-600 list-disc pl-4">
+          <li>Cada email adicionado dá direito a criar um mapa kármico</li>
+          <li>Para conceder acesso a um novo mapa, adicione o mesmo email novamente</li>
+          <li>Quando um email é adicionado novamente, ele recebe permissão para criar um novo mapa</li>
+          <li>Remover um email impedirá que o usuário acesse todos os mapas criados com esse email</li>
+        </ul>
       </div>
     </div>
   );

@@ -7,12 +7,13 @@ import {
   getAllUserDataByEmail, 
   getCurrentMatrixId, 
   setCurrentMatrixId, 
-  logout 
+  logout,
+  isAuthorizedEmail
 } from '@/lib/auth';
 import { useNavigate } from 'react-router-dom';
 import KarmicMatrix from '@/components/KarmicMatrix';
 import MatrixInterpretations from '@/components/MatrixInterpretations';
-import { Printer, LogOut, RefreshCw, ChevronDown, Plus } from 'lucide-react';
+import { Printer, LogOut, RefreshCw, ChevronDown, Plus, ShoppingCart } from 'lucide-react';
 import { toast } from "@/components/ui/use-toast";
 import { motion } from 'framer-motion';
 import {
@@ -29,6 +30,7 @@ const MatrixResult = () => {
   const [userMaps, setUserMaps] = useState<any[]>([]);
   const [refreshing, setRefreshing] = useState(false);
   const [isPrinting, setIsPrinting] = useState(false);
+  const [canCreateNewMap, setCanCreateNewMap] = useState(false);
   const navigate = useNavigate();
   
   useEffect(() => {
@@ -56,6 +58,11 @@ const MatrixResult = () => {
       return;
     }
     
+    // Verificar se o usuário pode criar novos mapas
+    // Em uma implementação real, isso seria baseado em compras ou créditos
+    // Por enquanto, se já tem mapas criados, não pode criar mais
+    checkIfCanCreateNewMap(email, allMaps.length);
+    
     // Tentar obter o mapa específico definido na sessão
     const currentMatrixId = getCurrentMatrixId();
     let currentData;
@@ -73,6 +80,20 @@ const MatrixResult = () => {
     }
     
     setUserData(currentData);
+  };
+  
+  const checkIfCanCreateNewMap = (email: string, mapCount: number) => {
+    // Aqui verificamos se o usuário pode criar um novo mapa
+    // Cada vez que um email é adicionado à lista de autorizados, ele ganha direito a um novo mapa
+    
+    // Verificar se o email está na lista de autorizados e se já usou seu crédito
+    if (mapCount > 0 && isAuthorizedEmail(email)) {
+      // Simples verificação: se já tem mapas, não pode criar mais
+      // Esta lógica será substituída pela verificação real de compras ou créditos
+      setCanCreateNewMap(false);
+    } else {
+      setCanCreateNewMap(true);
+    }
   };
   
   // Detecta quando a impressão é concluída ou cancelada
@@ -158,6 +179,15 @@ const MatrixResult = () => {
   };
   
   const handleCreateNewMap = () => {
+    if (!canCreateNewMap) {
+      toast({
+        title: "Limite atingido",
+        description: "Você já atingiu o limite de mapas que pode criar. Adquira um novo acesso para criar mais mapas.",
+        variant: "destructive"
+      });
+      return;
+    }
+    
     navigate('/');
     
     // Pequeno delay para exibir a toast
@@ -224,8 +254,20 @@ const MatrixResult = () => {
                     </DropdownMenuItem>
                   ))}
                   <DropdownMenuSeparator />
-                  <DropdownMenuItem onClick={handleCreateNewMap} className="text-karmic-700">
-                    <Plus className="mr-2 h-4 w-4" /> Criar novo mapa
+                  <DropdownMenuItem 
+                    onClick={handleCreateNewMap} 
+                    className={canCreateNewMap ? "text-karmic-700" : "text-gray-400 cursor-not-allowed"}
+                    disabled={!canCreateNewMap}
+                  >
+                    {!canCreateNewMap ? (
+                      <>
+                        <ShoppingCart className="mr-2 h-4 w-4" /> Adquira novo acesso
+                      </>
+                    ) : (
+                      <>
+                        <Plus className="mr-2 h-4 w-4" /> Criar novo mapa
+                      </>
+                    )}
                   </DropdownMenuItem>
                 </DropdownMenuContent>
               </DropdownMenu>
