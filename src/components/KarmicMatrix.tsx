@@ -24,8 +24,8 @@ const KarmicMatrix: React.FC<KarmicMatrixProps> = ({
   const [imageLoaded, setImageLoaded] = useState(false);
   const [hasError, setHasError] = useState(false);
   
-  // Imagem local como fallback - usar a imagem enviada pelo usuário
-  const fallbackImage = "/lovable-uploads/25e6ff3a-9603-4df7-b372-23eb03e76218.png";
+  // Imagem local como fallback - usar a imagem do projeto
+  const fallbackImage = "/lovable-uploads/e3827c66-0547-4aea-8e5d-403dd2ac4af2.png"; 
   
   useEffect(() => {
     // Reset states when component mounts or backgroundImage changes
