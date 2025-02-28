@@ -75,8 +75,8 @@ const MatrixResult = () => {
         description: "Gerando imagem da sua matriz...",
       });
       
-      // Primeiro, vamos pré-carregar a imagem da matriz para garantir que ela esteja disponível
-      const preloadImage = (src: string) => {
+      // Função para pré-carregar a imagem da matriz
+      const preloadImage = (src: string): Promise<HTMLImageElement> => {
         return new Promise((resolve, reject) => {
           const img = new Image();
           img.crossOrigin = "anonymous";
