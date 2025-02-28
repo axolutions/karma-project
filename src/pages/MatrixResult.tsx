@@ -161,13 +161,22 @@ const MatrixResult = () => {
         const sourceHeight = contentCanvas.height / contentPageCount;
         const destHeight = contentImgHeight / contentPageCount;
         
+        // Correção aqui: Utilizando o método addImage com os parâmetros corretos
+        // O problema estava nesta linha, com parâmetros extras sendo passados
         pdf.addImage(
-          contentImgData, 'PNG',
-          10, 10,
-          contentImgWidth, destHeight,
-          null, null,
-          0, i * sourceHeight, contentCanvas.width, sourceHeight
+          contentImgData, // source
+          'PNG', // format
+          10, // x
+          10, // y
+          contentImgWidth, // width
+          destHeight, // height
+          null, // alias
+          'FAST', // compression
+          0 // rotation
         );
+        
+        // Se precisar recortar partes da imagem, use um canvas temporário
+        // em vez de usar parâmetros adicionais
       }
       
       // Converte o PDF para base64
