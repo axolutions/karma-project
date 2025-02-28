@@ -23,22 +23,35 @@ const KarmicMatrix: React.FC<KarmicMatrixProps> = ({
 }) => {
   const [imageLoaded, setImageLoaded] = useState(false);
   const [imgSrc, setImgSrc] = useState(backgroundImage);
+  const [hasError, setHasError] = useState(false);
   
   // Pré-carrega a imagem para garantir que ela esteja disponível para impressão
   useEffect(() => {
     const img = new Image();
     img.onload = () => {
       setImageLoaded(true);
-      console.log("Imagem da matriz carregada com sucesso!");
+      setHasError(false);
+      console.log("Imagem da matriz carregada com sucesso!", img.src);
     };
     img.onerror = (error) => {
-      // Fallback para uma imagem local se a externa falhar
       console.error("Erro ao carregar a imagem da matriz:", error);
-      // Usar um fallback de cor marrom se a imagem falhar
+      setHasError(true);
+      // Tentar uma imagem local como fallback
       setImgSrc("/placeholder.svg");
     };
-    img.crossOrigin = "anonymous"; // Importante para conseguir capturar a imagem em canvas
+    img.crossOrigin = "anonymous";
     img.src = backgroundImage;
+    
+    // Se a imagem não carregar em 5 segundos, usar o fallback
+    const timeout = setTimeout(() => {
+      if (!imageLoaded) {
+        console.warn("Timeout ao carregar imagem da matriz, usando fallback");
+        setHasError(true);
+        setImgSrc("/placeholder.svg");
+      }
+    }, 5000);
+    
+    return () => clearTimeout(timeout);
   }, [backgroundImage]);
   
   // Vamos listar explicitamente as posições para cada número específico
@@ -68,22 +81,54 @@ const KarmicMatrix: React.FC<KarmicMatrixProps> = ({
     manifestationEnigma: { top: "20%", left: "47%" }
   };
 
+  const renderMatrixBackground = () => {
+    return (
+      <div 
+        className="w-full h-auto relative rounded-lg overflow-hidden"
+        style={{ 
+          minHeight: "400px",
+          backgroundColor: hasError ? '#8B4513' : 'transparent',
+          border: '1px solid #EAE6E1',
+          borderRadius: '8px',
+        }}
+      >
+        {!hasError && (
+          <img 
+            src={imgSrc} 
+            alt="Matriz Kármica 2025"
+            crossOrigin="anonymous"
+            className="w-full h-auto"
+            onLoad={() => setImageLoaded(true)}
+            onError={() => {
+              setHasError(true);
+              setImgSrc("/placeholder.svg");
+            }}
+            style={{ 
+              display: imageLoaded ? 'block' : 'none'
+            }}
+          />
+        )}
+        
+        {!imageLoaded && !hasError && (
+          <div className="absolute inset-0 flex items-center justify-center">
+            <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-karmic-800"></div>
+          </div>
+        )}
+        
+        {hasError && (
+          <div className="absolute inset-0 flex items-center justify-center text-white">
+            <p>Imagem da matriz indisponível</p>
+          </div>
+        )}
+      </div>
+    );
+  };
+
   // Se karmicData for undefined, mostramos apenas a imagem de fundo
   if (!karmicData) {
     return (
       <div className="relative max-w-4xl mx-auto">
-        <img 
-          src={imgSrc} 
-          alt="Matriz Kármica 2025"
-          crossOrigin="anonymous"
-          className="w-full h-auto"
-          onLoad={() => setImageLoaded(true)}
-          style={{ 
-            border: '1px solid #EAE6E1',
-            borderRadius: '8px',
-            backgroundColor: '#8B4513' // Cor marrom como fallback
-          }}
-        />
+        {renderMatrixBackground()}
         <div className="text-center mt-4 text-karmic-600">
           Dados da matriz não disponíveis. Por favor, verifique seu perfil.
         </div>
@@ -106,21 +151,10 @@ const KarmicMatrix: React.FC<KarmicMatrixProps> = ({
   return (
     <div className="relative max-w-4xl mx-auto">
       {/* Background matrix image */}
-      <img 
-        src={imgSrc} 
-        alt="Matriz Kármica 2025"
-        crossOrigin="anonymous"
-        className="w-full h-auto"
-        onLoad={() => setImageLoaded(true)}
-        style={{ 
-          border: '1px solid #EAE6E1',
-          borderRadius: '8px',
-          backgroundColor: '#8B4513' // Cor marrom como fallback
-        }}
-      />
+      {renderMatrixBackground()}
       
-      {/* Numbers overlay */}
-      {imageLoaded && numbersToDisplay.map((item, index) => (
+      {/* Numbers overlay - só mostra se a imagem carregou ou está usando fallback */}
+      {(imageLoaded || hasError) && numbersToDisplay.map((item, index) => (
         <motion.div
           key={item.key}
           initial={{ opacity: 0, scale: 0.8 }}
