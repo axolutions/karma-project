@@ -180,92 +180,6 @@ const MatrixInterpretations: React.FC<MatrixInterpretationsProps> = ({ karmicDat
     { key: 'manifestationEnigma', value: karmicData.manifestationEnigma }
   ];
 
-  // Função para formatar explicitamente o conteúdo de texto bruto
-  const formatRawContent = (text: string) => {
-    if (!text) return "";
-    
-    // Dividir em parágrafos
-    const paragraphs = text.split('\n\n');
-    return paragraphs.map(p => `<p>${p}</p>`).join('\n');
-  };
-
-  // Função mais robusta para processar o HTML
-  const processContent = (htmlContent: string) => {
-    // Se estiver vazio, retorna vazio
-    if (!htmlContent || htmlContent.trim() === '') return '';
-    
-    // Verifica se é um conteúdo sem formatação HTML
-    if (!htmlContent.includes('<') && !htmlContent.includes('>')) {
-      return formatRawContent(htmlContent);
-    }
-    
-    // Para conteúdos que já têm HTML
-    let processedHTML = htmlContent;
-    
-    // Garantir que todos os parágrafos tenham tag <p>
-    if (!processedHTML.includes('<p>')) {
-      processedHTML = formatRawContent(processedHTML);
-    }
-    
-    // Aplicar formatação de negrito a frases-chave
-    const commonKeyPhrases = [
-      "desenvolvido em 2025", "Selo Kármico", "Portal do Karma", 
-      "lições principais", "propósito de vida", "missão cármica",
-      "desafio essencial", "consciência espiritual", "potencial interior",
-      "auto-confiança", "autoconfiança", "sabedoria", "coragem", "crescimento",
-      "transformação"
-    ];
-    
-    // Aplicar negrito a frases-chave que não estão dentro de tags
-    commonKeyPhrases.forEach(phrase => {
-      // Regex que encontra a frase mas não se estiver dentro de tags HTML
-      const regex = new RegExp(`(?<![<>\\w])${phrase}(?![<>\\w])`, 'gi');
-      processedHTML = processedHTML.replace(regex, `<strong>${phrase}</strong>`);
-    });
-    
-    // Formatar subtítulos
-    processedHTML = processedHTML.replace(
-      /<h3>(.*?)<\/h3>/g,
-      '<h3 class="karmic-subtitle">$1</h3>'
-    );
-    
-    // Formatar afirmações
-    processedHTML = processedHTML.replace(
-      /<h3[^>]*>Afirmação[^<]*<\/h3>([\s\S]*?)(?=<h3|$)/g,
-      '<div class="affirmation-box"><h3 class="affirmation-title">Afirmação Kármica</h3>$1</div>'
-    );
-    
-    // Destacar palavras específicas de reforço
-    const emphasisWords = ["deve", "precisará", "essencial", "importante", "fundamental", "vital"];
-    emphasisWords.forEach(word => {
-      const regex = new RegExp(`\\b${word}\\b`, 'gi');
-      processedHTML = processedHTML.replace(regex, `<strong>${word}</strong>`);
-    });
-    
-    // Converter marcadores simples que não estejam em listas
-    processedHTML = processedHTML.replace(
-      /(?<!<li>)- (.*?)(?=<br|<\/p>|$)/g,
-      '<li>$1</li>'
-    );
-    
-    // Agrupar itens de lista soltos
-    let hasUngroupedItems = processedHTML.includes('<li>') && !processedHTML.includes('<ul>');
-    if (hasUngroupedItems) {
-      processedHTML = processedHTML.replace(
-        /(<li>.*?<\/li>\s*)+/g,
-        '<ul class="my-4 space-y-2">$&</ul>'
-      );
-    }
-    
-    // Adicionar espaçamento em tags p que não tenham classe ou estilo
-    processedHTML = processedHTML.replace(
-      /<p(?![^>]*class=)([^>]*)>/g, 
-      '<p class="my-4 leading-relaxed"$1>'
-    );
-    
-    return processedHTML;
-  };
-
   // Tentar recuperar e exibir a interpretação real, sem fallback
   const getRawInterpretation = (category: string, number: number) => {
     const id = `${category}-${number}`;
@@ -362,7 +276,6 @@ const MatrixInterpretations: React.FC<MatrixInterpretationsProps> = ({ karmicDat
           }
           
           const isExpanded = expandedSections.has(item.key);
-          const processedContent = processContent(interpretation.content);
           
           return (
             <motion.div
@@ -401,7 +314,7 @@ const MatrixInterpretations: React.FC<MatrixInterpretationsProps> = ({ karmicDat
                     <div className="karmic-content mt-4 pt-4 border-t border-karmic-200">
                       <div 
                         className="prose prose-karmic max-w-none"
-                        dangerouslySetInnerHTML={{ __html: processedContent }} 
+                        dangerouslySetInnerHTML={{ __html: interpretation.content }} 
                       />
                     </div>
                   </motion.div>
