@@ -13,10 +13,11 @@ const Index = () => {
   const [loading, setLoading] = useState(true);
   const navigate = useNavigate();
   
-  // Função para verificar o status do login e redirecionar se necessário
-  const checkAndRedirect = async () => {
+  // Função para verificar o status do login e determinar o estado de navegação
+  const checkUserStatus = async () => {
     try {
       setLoading(true);
+      
       // Verificar se o usuário está logado
       const loggedIn = isLoggedIn();
       console.log("Status de login:", loggedIn);
@@ -27,47 +28,59 @@ const Index = () => {
           console.log("Email do usuário:", email);
           const userData = getUserData(email);
           
-          // Se o usuário tem matriz kármica, redirecionar para a página da matriz
           if (userData && userData.karmicNumbers) {
+            // Usuário já tem matriz kármica completa
             console.log("Usuário com matriz kármica, redirecionando...");
+            setUserLoggedIn(true);
             setHasProfile(true);
             navigate('/matrix');
-            return true; // Indica que foi redirecionado
+            return;
           } else {
+            // Usuário está logado mas precisa completar o perfil
             console.log("Usuário logado mas sem perfil completo");
             setUserLoggedIn(true);
             setHasProfile(false);
           }
         }
       } else {
+        // Usuário não está logado, mostrar tela de login
         console.log("Usuário não está logado");
         setUserLoggedIn(false);
         setHasProfile(false);
       }
-      return false; // Não redirecionou
     } catch (error) {
       console.error("Erro ao verificar status:", error);
+      // Em caso de erro, fazer logout e reiniciar
       logout();
       setUserLoggedIn(false);
       setHasProfile(false);
-      return false;
     } finally {
       setLoading(false);
     }
   };
   
   useEffect(() => {
-    const initPage = async () => {
-      await checkAndRedirect();
-    };
-    
-    initPage();
+    // Verificar status do usuário quando o componente montar
+    checkUserStatus();
   }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
   // Função para fazer logout e voltar ao início
   const handleLogout = () => {
     logout();
-    window.location.reload();
+    setUserLoggedIn(false);
+    setHasProfile(false);
+    // Atualizar sem recarregar a página completa
+    checkUserStatus();
+  };
+
+  // Handler para quando o login for bem-sucedido
+  const handleLoginSuccess = () => {
+    checkUserStatus();
+  };
+  
+  // Handler para quando o perfil for completado
+  const handleProfileComplete = () => {
+    checkUserStatus();
   };
 
   // Se estiver carregando, mostrar indicador
@@ -114,7 +127,7 @@ const Index = () => {
           
           {userLoggedIn && !hasProfile ? (
             <>
-              <ProfileForm onProfileComplete={() => checkAndRedirect()} />
+              <ProfileForm onProfileComplete={handleProfileComplete} />
               <div className="mt-4 text-center">
                 <button 
                   onClick={handleLogout}
@@ -136,7 +149,7 @@ const Index = () => {
                 </button>
               </div>
             ) : (
-              <LoginForm onLoginSuccess={() => checkAndRedirect()} />
+              <LoginForm onLoginSuccess={handleLoginSuccess} />
             )
           )}
           

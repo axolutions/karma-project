@@ -68,24 +68,13 @@ const LoginForm: React.FC<LoginFormProps> = ({ onLoginSuccess }) => {
         description: "Bem-vindo ao Sistema de Matriz Kármica Pessoal 2025.",
       });
       
-      // Check if user has already completed profile
-      const userData = getUserData(trimmedEmail);
-      
+      // Dar tempo para o toast ser exibido
       setTimeout(() => {
         setIsSubmitting(false);
         
-        if (userData && userData.karmicNumbers) {
-          // Usuário já tem matriz, vamos para a página de matriz
-          console.log("Usuário tem matriz, redirecionando para /matrix");
-          navigate('/matrix');
-        } else {
-          // Usuário não tem matriz, exibir formulário de perfil
-          console.log("Usuário sem matriz, atualizando página para mostrar formulário de perfil");
-          if (onLoginSuccess) {
-            onLoginSuccess();
-          } else {
-            window.location.reload();
-          }
+        // Chamar o callback para atualizar o estado da página
+        if (onLoginSuccess) {
+          onLoginSuccess();
         }
       }, 1000);
     } else {

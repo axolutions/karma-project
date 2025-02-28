@@ -22,23 +22,15 @@ const ProfileForm: React.FC<ProfileFormProps> = ({ onProfileComplete }) => {
   
   useEffect(() => {
     // Verificar apenas uma vez se o usuário já tem perfil
-    let shouldCheckProfile = true;
-    
-    if (shouldCheckProfile) {
-      // Verificar se o usuário já tem um perfil gerado
-      const currentUser = getCurrentUser();
-      if (currentUser) {
-        const userData = getUserData(currentUser);
-        if (userData && userData.karmicNumbers) {
-          // Usuário já possui perfil, redirecionar para a matriz
-          console.log("ProfileForm: Perfil já existe, redirecionando...");
-          setExistingProfile(true);
-          setTimeout(() => {
-            navigate('/matrix');
-          }, 500);
-        }
+    const currentUser = getCurrentUser();
+    if (currentUser) {
+      const userData = getUserData(currentUser);
+      if (userData && userData.karmicNumbers) {
+        // Usuário já possui perfil, redirecionar para a matriz
+        console.log("ProfileForm: Perfil já existe, redirecionando...");
+        setExistingProfile(true);
+        navigate('/matrix');
       }
-      shouldCheckProfile = false;
     }
   }, []); // eslint-disable-line react-hooks/exhaustive-deps
   
@@ -99,17 +91,25 @@ const ProfileForm: React.FC<ProfileFormProps> = ({ onProfileComplete }) => {
     
     // Verificar novamente se o usuário já tem perfil (dupla checagem)
     const currentUser = getCurrentUser();
-    if (currentUser) {
-      const userData = getUserData(currentUser);
-      if (userData && userData.karmicNumbers) {
-        toast({
-          title: "Matriz já gerada",
-          description: "Você já possui uma Matriz Kármica. Redirecionando para visualização.",
-        });
-        setIsSubmitting(false);
-        navigate('/matrix');
-        return;
-      }
+    if (!currentUser) {
+      toast({
+        title: "Erro de sessão",
+        description: "Sua sessão expirou. Por favor, faça login novamente.",
+        variant: "destructive"
+      });
+      setIsSubmitting(false);
+      return;
+    }
+    
+    const userData = getUserData(currentUser);
+    if (userData && userData.karmicNumbers) {
+      toast({
+        title: "Matriz já gerada",
+        description: "Você já possui uma Matriz Kármica. Redirecionando para visualização.",
+      });
+      setIsSubmitting(false);
+      navigate('/matrix');
+      return;
     }
     
     if (!name.trim()) {
@@ -133,24 +133,12 @@ const ProfileForm: React.FC<ProfileFormProps> = ({ onProfileComplete }) => {
       return;
     }
     
-    // Get current user email
-    const email = getCurrentUser();
-    if (!email) {
-      toast({
-        title: "Erro de sessão",
-        description: "Sua sessão expirou. Por favor, faça login novamente.",
-        variant: "destructive"
-      });
-      setIsSubmitting(false);
-      return;
-    }
-    
     // Calculate karmic numbers
     const karmicNumbers = calculateAllKarmicNumbers(birthDate);
     
     // Save user data
     saveUserData({
-      email,
+      email: currentUser,
       name,
       birthDate,
       karmicNumbers
@@ -161,9 +149,11 @@ const ProfileForm: React.FC<ProfileFormProps> = ({ onProfileComplete }) => {
       description: "Sua Matriz Kármica Pessoal 2025 foi gerada com sucesso.",
     });
     
-    // Callback de conclusão do perfil ou redirecionamento
+    // Dar tempo para o toast ser exibido
     setTimeout(() => {
       setIsSubmitting(false);
+      
+      // Notificar o componente pai que o perfil foi completado
       if (onProfileComplete) {
         onProfileComplete();
       } else {
