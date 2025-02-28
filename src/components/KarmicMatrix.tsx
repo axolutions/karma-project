@@ -43,7 +43,6 @@ const KarmicMatrix: React.FC<KarmicMatrixProps> = ({
       setHasError(true);
     };
     
-    // Tentar carregar a imagem direta sem proxy CORS
     img.src = backgroundImage;
     
     // Fallback se a imagem não carregar em 5 segundos
@@ -83,7 +82,8 @@ const KarmicMatrix: React.FC<KarmicMatrixProps> = ({
         <img 
           src={hasError ? fallbackImage : backgroundImage} 
           alt="Matriz Kármica 2025"
-          className={`w-full h-auto ${!imageLoaded && !hasError ? 'opacity-50' : 'opacity-100'}`}
+          className="w-full h-auto object-contain"
+          style={{ maxHeight: '100%', opacity: imageLoaded || hasError ? 1 : 0.5 }}
           onLoad={() => setImageLoaded(true)}
           onError={() => {
             console.error("✗ Erro ao exibir imagem da matriz");
@@ -98,9 +98,9 @@ const KarmicMatrix: React.FC<KarmicMatrixProps> = ({
           </div>
         )}
         
-        {/* Mensagem de erro se a imagem falhar */}
+        {/* Mensagem de erro se a imagem falhar - NÃO SERÁ MOSTRADA NO PNG */}
         {hasError && (
-          <div className="absolute inset-0 flex flex-col items-center justify-center bg-amber-50 bg-opacity-80">
+          <div className="absolute inset-0 flex flex-col items-center justify-center bg-amber-50 bg-opacity-80 print:hidden">
             <p className="text-karmic-800 font-medium mb-2">Imagem indisponível</p>
             <p className="text-karmic-600 text-sm">Usando modelo temporário</p>
           </div>
@@ -134,7 +134,7 @@ const KarmicMatrix: React.FC<KarmicMatrixProps> = ({
   ];
 
   return (
-    <div className="relative max-w-4xl mx-auto">
+    <div className="relative max-w-4xl mx-auto karmic-matrix-wrapper">
       {/* Background matrix image */}
       {renderMatrixBackground()}
       

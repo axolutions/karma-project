@@ -70,25 +70,45 @@ const MatrixResult = () => {
   const handleDownloadMatrix = async () => {
     try {
       setSending(true);
+      toast({
+        title: "Preparando download",
+        description: "Gerando imagem da sua matriz...",
+      });
+      
+      // Garantir que a imagem esteja carregada antes de capturar
+      await new Promise(resolve => setTimeout(resolve, 2000));
       
       // Capturar apenas a matriz como imagem
-      const matrixElement = document.querySelector('.karmic-matrix-container');
+      const matrixElement = document.querySelector('.karmic-matrix-wrapper');
       if (!matrixElement) {
         throw new Error("Não foi possível encontrar a matriz para baixar");
       }
       
-      // Pequeno delay para garantir que a imagem carregue
-      await new Promise(resolve => setTimeout(resolve, 1000));
-      
+      // Preparar configurações para melhor qualidade
       const canvas = await html2canvas(matrixElement as HTMLElement, {
-        scale: 2, // Melhor qualidade
-        backgroundColor: "#ffffff",
-        logging: true, // Habilita logs para depuração
-        useCORS: true, // Importante para imagens de outros domínios
-        allowTaint: true // Permite imagens de outros domínios
+        scale: 3, // Alta qualidade
+        backgroundColor: null, // Transparente para preservar cores
+        logging: false,
+        useCORS: true, // Importante para imagens externas
+        allowTaint: true, // Permite imagens de outros domínios
+        onclone: (document) => {
+          // Garantir que a imagem esteja visível no clone
+          const clonedMatrix = document.querySelector('.karmic-matrix-wrapper');
+          if (clonedMatrix) {
+            // Remover mensagens de erro ou spinners no clone
+            const errorMessages = clonedMatrix.querySelectorAll('.print\\:hidden');
+            errorMessages.forEach(el => (el as HTMLElement).style.display = 'none');
+            
+            // Garantir que a imagem da matriz esteja visível
+            const matrixImage = clonedMatrix.querySelector('img');
+            if (matrixImage) {
+              (matrixImage as HTMLElement).style.opacity = '1';
+            }
+          }
+        }
       });
       
-      // Criar um link de download para a imagem
+      // Criar link para download da imagem
       const imgData = canvas.toDataURL('image/png');
       const link = document.createElement('a');
       link.href = imgData;
@@ -113,7 +133,7 @@ const MatrixResult = () => {
     }
   };
   
-  // Nova função para baixar apenas as interpretações como PDF
+  // Função para baixar apenas as interpretações como PDF
   const handleDownloadInterpretations = async () => {
     try {
       setSending(true);
