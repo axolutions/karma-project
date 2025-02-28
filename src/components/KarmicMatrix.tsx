@@ -36,22 +36,6 @@ const KarmicMatrix: React.FC<KarmicMatrixProps> = ({
       setImgSrc("/placeholder.svg");
     };
     img.src = backgroundImage;
-    
-    // Forçar o download da imagem no cache com fetch
-    fetch(backgroundImage)
-      .then(response => response.blob())
-      .then(blob => {
-        const objectURL = URL.createObjectURL(blob);
-        const tempImg = new Image();
-        tempImg.src = objectURL;
-        tempImg.onload = () => {
-          setImgSrc(objectURL);
-          setImageLoaded(true);
-        };
-      })
-      .catch(error => {
-        console.error("Erro ao fazer fetch da imagem:", error);
-      });
   }, [backgroundImage]);
   
   // Vamos listar explicitamente as posições para cada número específico
@@ -94,7 +78,6 @@ const KarmicMatrix: React.FC<KarmicMatrixProps> = ({
             border: '1px solid #EAE6E1',
             borderRadius: '8px'
           }}
-          crossOrigin="anonymous"
         />
         <div className="text-center mt-4 text-karmic-600">
           Dados da matriz não disponíveis. Por favor, verifique seu perfil.
@@ -116,7 +99,7 @@ const KarmicMatrix: React.FC<KarmicMatrixProps> = ({
   ];
 
   return (
-    <div className="relative max-w-4xl mx-auto karmic-matrix">
+    <div className="relative max-w-4xl mx-auto">
       {/* Background matrix image */}
       <img 
         src={imgSrc} 
@@ -128,7 +111,6 @@ const KarmicMatrix: React.FC<KarmicMatrixProps> = ({
           border: '1px solid #EAE6E1',
           borderRadius: '8px'
         }}
-        crossOrigin="anonymous"
       />
       
       {/* Numbers overlay */}
