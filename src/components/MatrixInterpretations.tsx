@@ -1,5 +1,5 @@
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { getInterpretation, getCategoryDisplayName } from '@/lib/interpretations';
 import { motion, AnimatePresence } from 'framer-motion';
 import { ChevronDown, ChevronUp } from 'lucide-react';
@@ -19,6 +19,16 @@ interface MatrixInterpretationsProps {
 
 const MatrixInterpretations: React.FC<MatrixInterpretationsProps> = ({ karmicData }) => {
   const [expandedSections, setExpandedSections] = useState<Set<string>>(new Set(['karmicSeal']));
+  const [isLoaded, setIsLoaded] = useState(false);
+
+  useEffect(() => {
+    // Pequeno delay para garantir que as interpretações sejam carregadas
+    const timer = setTimeout(() => {
+      setIsLoaded(true);
+    }, 500);
+    
+    return () => clearTimeout(timer);
+  }, []);
 
   const toggleSection = (category: string) => {
     setExpandedSections(prev => {
@@ -144,6 +154,21 @@ const MatrixInterpretations: React.FC<MatrixInterpretationsProps> = ({ karmicDat
     
     return processedHTML;
   };
+
+  if (!isLoaded) {
+    return (
+      <div className="max-w-4xl mx-auto mt-8 text-center">
+        <div className="animate-pulse karmic-card p-6">
+          <h2 className="text-xl font-serif font-medium text-karmic-800 mb-4">
+            Carregando interpretações...
+          </h2>
+          <div className="h-4 bg-karmic-200 rounded mb-3"></div>
+          <div className="h-4 bg-karmic-200 rounded mb-3 w-3/4"></div>
+          <div className="h-4 bg-karmic-200 rounded w-1/2"></div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="max-w-4xl mx-auto mt-8">
