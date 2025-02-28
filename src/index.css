@@ -132,4 +132,43 @@
     hover:bg-karmic-100 active:scale-[0.98] focus:outline-none focus:ring-2 
     focus:ring-karmic-500 focus:ring-offset-2;
   }
+  
+  /* Estilos específicos para interpretações kármicas */
+  .karmic-content p {
+    @apply mb-4 leading-relaxed;
+  }
+  
+  .karmic-content strong {
+    @apply text-karmic-800 font-medium;
+  }
+  
+  .karmic-subtitle {
+    @apply text-karmic-800 font-serif font-medium text-lg mb-3 mt-5 border-b border-karmic-200 pb-1;
+  }
+  
+  .affirmation-box {
+    @apply bg-karmic-100 border-l-4 border-karmic-600 p-4 my-5 rounded-r-md;
+  }
+  
+  .affirmation-title {
+    @apply text-karmic-800 font-serif font-medium text-lg mb-2;
+  }
+  
+  .affirmation-box p {
+    @apply italic text-karmic-700 font-medium;
+  }
+  
+  /* Personalização para cada número do selo kármico */
+  .karmic-content ul {
+    @apply pl-5 space-y-1 mb-4;
+  }
+  
+  .karmic-content ul li {
+    @apply list-disc list-outside text-karmic-700;
+  }
+  
+  .karmic-content h4 {
+    @apply text-karmic-700 font-medium mt-4 mb-2;
+  }
 }
+

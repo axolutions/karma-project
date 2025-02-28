@@ -11,7 +11,7 @@ import {
   getCategoryDisplayName,
   getAllCategories
 } from '@/lib/interpretations';
-import { Save, Trash } from 'lucide-react';
+import { Save, Trash, Bold, Italic, List, Type } from 'lucide-react';
 
 const InterpretationEditor: React.FC = () => {
   const [selectedCategory, setSelectedCategory] = useState("karmicSeal");
@@ -19,6 +19,7 @@ const InterpretationEditor: React.FC = () => {
   const [title, setTitle] = useState("");
   const [content, setContent] = useState("");
   const [isLoading, setIsLoading] = useState(false);
+  const [previewMode, setPreviewMode] = useState(false);
   
   const possibleNumbers = ["1", "2", "3", "4", "5", "6", "7", "8", "9", "11", "22", "33", "44"];
   const categories = getAllCategories();
@@ -76,6 +77,49 @@ const InterpretationEditor: React.FC = () => {
     }
   };
   
+  const insertTag = (openTag: string, closeTag: string) => {
+    const textarea = document.getElementById('content') as HTMLTextAreaElement;
+    if (!textarea) return;
+    
+    const start = textarea.selectionStart;
+    const end = textarea.selectionEnd;
+    const selectedText = content.substring(start, end);
+    const newText = content.substring(0, start) + openTag + selectedText + closeTag + content.substring(end);
+    
+    setContent(newText);
+    
+    // Set cursor position after formatting is applied
+    setTimeout(() => {
+      textarea.focus();
+      textarea.setSelectionRange(start + openTag.length, end + openTag.length);
+    }, 0);
+  };
+  
+  const insertTemplate = (template: string) => {
+    const newContent = content + "\n\n" + template;
+    setContent(newContent);
+  };
+  
+  // Helper para processar o HTML para visualização
+  const processContentForPreview = (rawHTML: string) => {
+    // Estiliza os parágrafos com <strong> para dar destaque a certas partes
+    let processedHTML = rawHTML;
+    
+    // Cria boxes para afirmações
+    processedHTML = processedHTML.replace(
+      /<h3>Afirmação.*?<\/h3>(.*?)(?=<h3>|$)/gs, 
+      '<div class="affirmation-box"><h3 class="affirmation-title">Afirmação Kármica</h3>$1</div>'
+    );
+    
+    // Destaca títulos secundários (h3)
+    processedHTML = processedHTML.replace(
+      /<h3>(.*?)<\/h3>/g,
+      '<h3 class="karmic-subtitle">$1</h3>'
+    );
+    
+    return processedHTML;
+  };
+  
   return (
     <div className="space-y-6">
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -126,21 +170,84 @@ const InterpretationEditor: React.FC = () => {
         />
       </div>
       
-      <div>
-        <label htmlFor="content" className="text-sm font-medium text-karmic-700 block mb-2">
-          Conteúdo da Interpretação (suporta HTML)
-        </label>
-        <Textarea
-          id="content"
-          placeholder="Insira o conteúdo da interpretação aqui..."
-          value={content}
-          onChange={(e) => setContent(e.target.value)}
-          className="min-h-[300px] font-mono text-sm"
-        />
-        <p className="text-xs text-karmic-500 mt-1">
-          Dica: Você pode usar tags HTML como &lt;h3&gt;, &lt;p&gt;, &lt;ul&gt;, &lt;li&gt; para formatar o texto.
-        </p>
+      <div className="flex items-center space-x-2 mb-2">
+        <Button
+          type="button"
+          size="sm"
+          variant="outline"
+          onClick={() => insertTag("<strong>", "</strong>")}
+          title="Negrito"
+        >
+          <Bold className="h-4 w-4" />
+        </Button>
+        <Button
+          type="button"
+          size="sm"
+          variant="outline"
+          onClick={() => insertTag("<em>", "</em>")}
+          title="Itálico"
+        >
+          <Italic className="h-4 w-4" />
+        </Button>
+        <Button
+          type="button"
+          size="sm"
+          variant="outline"
+          onClick={() => insertTag("<h3>", "</h3>")}
+          title="Subtítulo"
+        >
+          <Type className="h-4 w-4" />
+        </Button>
+        <Button
+          type="button"
+          size="sm"
+          variant="outline"
+          onClick={() => insertTemplate("<h3>Afirmação Kármica</h3>\n<p>Insira a afirmação aqui.</p>")}
+          title="Inserir afirmação"
+        >
+          Afirmação
+        </Button>
+        <Button
+          type="button"
+          size="sm"
+          variant="outline"
+          onClick={() => insertTemplate("<ul>\n  <li>Item 1</li>\n  <li>Item 2</li>\n  <li>Item 3</li>\n</ul>")}
+          title="Lista"
+        >
+          <List className="h-4 w-4" />
+        </Button>
+        <div className="flex-1"></div>
+        <Button
+          type="button"
+          size="sm"
+          variant={previewMode ? "default" : "outline"}
+          onClick={() => setPreviewMode(!previewMode)}
+        >
+          {previewMode ? "Editar" : "Visualizar"}
+        </Button>
       </div>
+      
+      {previewMode ? (
+        <div className="border border-karmic-300 rounded-md min-h-[300px] p-4 karmic-content overflow-auto">
+          <div dangerouslySetInnerHTML={{ __html: processContentForPreview(content) }} />
+        </div>
+      ) : (
+        <div>
+          <label htmlFor="content" className="text-sm font-medium text-karmic-700 block mb-2">
+            Conteúdo da Interpretação (suporta HTML)
+          </label>
+          <Textarea
+            id="content"
+            placeholder="Insira o conteúdo da interpretação aqui..."
+            value={content}
+            onChange={(e) => setContent(e.target.value)}
+            className="min-h-[300px] font-mono text-sm"
+          />
+          <p className="text-xs text-karmic-500 mt-1">
+            Dica: Você pode usar tags HTML como &lt;h3&gt;, &lt;p&gt;, &lt;ul&gt;, &lt;li&gt; para formatar o texto. Use os botões acima para formatar mais facilmente.
+          </p>
+        </div>
+      )}
       
       <div className="flex justify-between">
         <Button 

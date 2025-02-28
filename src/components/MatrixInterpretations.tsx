@@ -43,6 +43,26 @@ const MatrixInterpretations: React.FC<MatrixInterpretationsProps> = ({ karmicDat
     { key: 'manifestationEnigma', value: karmicData.manifestationEnigma }
   ];
 
+  // Função que processa o HTML para estilizar automaticamente
+  const processInterpretationHTML = (html: string) => {
+    // Estiliza os parágrafos com <strong> para dar destaque a certas partes
+    let processedHTML = html;
+    
+    // Cria boxes para afirmações
+    processedHTML = processedHTML.replace(
+      /<h3>Afirmação.*?<\/h3>(.*?)(?=<h3>|$)/gs, 
+      '<div class="affirmation-box"><h3 class="affirmation-title">Afirmação Kármica</h3>$1</div>'
+    );
+    
+    // Destaca títulos secundários (h3)
+    processedHTML = processedHTML.replace(
+      /<h3>(.*?)<\/h3>/g,
+      '<h3 class="karmic-subtitle">$1</h3>'
+    );
+    
+    return processedHTML;
+  };
+
   return (
     <div className="max-w-4xl mx-auto mt-8">
       <h2 className="text-2xl md:text-3xl font-serif font-medium text-karmic-800 mb-6 text-center">
@@ -53,6 +73,7 @@ const MatrixInterpretations: React.FC<MatrixInterpretationsProps> = ({ karmicDat
         {interpretationItems.map((item, index) => {
           const interpretation = getInterpretation(item.key, item.value);
           const isExpanded = expandedSections.has(item.key);
+          const processedContent = processInterpretationHTML(interpretation.content);
           
           return (
             <motion.div
@@ -88,7 +109,7 @@ const MatrixInterpretations: React.FC<MatrixInterpretationsProps> = ({ karmicDat
                   >
                     <div 
                       className="karmic-content mt-4 pt-4 border-t border-karmic-200" 
-                      dangerouslySetInnerHTML={renderHTML(interpretation.content)} 
+                      dangerouslySetInnerHTML={{ __html: processedContent }} 
                     />
                   </motion.div>
                 )}

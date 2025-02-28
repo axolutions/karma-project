@@ -127,5 +127,6 @@ export function getAllCategories(): string[] {
 
 // Helper function to render HTML content safely
 export function renderHTML(html: string) {
+  // Processar o HTML para adicionar classes e formatação automática
   return { __html: html };
 }
