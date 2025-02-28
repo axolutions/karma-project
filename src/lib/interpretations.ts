@@ -1,11 +1,13 @@
 
 import { toast } from "@/components/ui/use-toast";
+import { supabaseClient } from '@/lib/supabase';
 
 // Define types for interpretations
 export interface Interpretation {
   id: string; // e.g., "karmicSeal-1"
   title: string;
   content: string;
+  updated_at?: string;
 }
 
 // Default interpretation text used when none is found
@@ -13,43 +15,108 @@ const DEFAULT_INTERPRETATION = "Interpretação não disponível para este núme
 
 // Store all interpretations in a map
 let interpretations: Record<string, Interpretation> = {};
+let isInitialized = false;
 
 // Helper to generate interpretation ID
 export function generateInterpretationId(category: string, number: number): string {
   return `${category}-${number}`;
 }
 
+// Inicializar o sistema de interpretações
+export async function initInterpretations(): Promise<void> {
+  if (isInitialized) return;
+  
+  try {
+    // Primeiro tenta carregar do Supabase
+    await loadFromSupabase();
+    
+    // Se não tem dados no Supabase mas tem no localStorage, fazer migração
+    if (Object.keys(interpretations).length === 0) {
+      const localData = loadFromLocalStorage();
+      if (Object.keys(localData).length > 0) {
+        interpretations = localData;
+        await saveToSupabase(true);
+        toast({
+          title: "Migração concluída",
+          description: "Suas interpretações foram migradas do armazenamento local para a nuvem."
+        });
+      }
+    }
+    
+    isInitialized = true;
+    console.log(`Sistema de interpretações inicializado com ${Object.keys(interpretations).length} entradas.`);
+  } catch (error) {
+    console.error("Erro ao inicializar interpretações:", error);
+    
+    // Em caso de falha, tenta carregar do localStorage como fallback
+    const localData = loadFromLocalStorage();
+    if (Object.keys(localData).length > 0) {
+      interpretations = localData;
+      console.log(`Carregamento de fallback concluído com ${Object.keys(interpretations).length} interpretações do localStorage.`);
+    }
+    
+    isInitialized = true;
+  }
+}
+
 // Add or update an interpretation
-export function setInterpretation(category: string, number: number, title: string, content: string): void {
+export async function setInterpretation(category: string, number: number, title: string, content: string): Promise<boolean> {
   const id = generateInterpretationId(category, number);
   
-  interpretations[id] = {
+  // Preparar dados
+  const interpretationData: Interpretation = {
     id,
     title,
-    content
+    content,
+    updated_at: new Date().toISOString()
   };
   
-  // Log antes de salvar para debug
-  console.log(`Salvando interpretação: ${id} - ${title}`);
+  // Atualizar cache local
+  interpretations[id] = interpretationData;
   
-  // Save to localStorage with better error handling
   try {
-    saveInterpretations();
+    // Salvar no Supabase
+    const { error } = await supabaseClient
+      .from('interpretations')
+      .upsert(interpretationData, { onConflict: 'id' });
     
-    // Criar backup imediato após salvar
-    createBackup();
+    if (error) {
+      console.error("Erro ao salvar no Supabase:", error);
+      
+      // Fallback: salvar no localStorage se o Supabase falhar
+      saveToLocalStorage();
+      
+      toast({
+        title: "Salvamento na nuvem falhou",
+        description: "A interpretação foi salva apenas localmente. O aplicativo tentará sincronizá-la mais tarde.",
+        variant: "destructive"
+      });
+      
+      return false;
+    }
+    
+    // Também salvar no localStorage como backup
+    saveToLocalStorage();
     
     toast({
       title: "Interpretação Salva",
-      description: `A interpretação para ${getCategoryDisplayName(category)} número ${number} foi salva com sucesso.`
+      description: `A interpretação para ${getCategoryDisplayName(category)} número ${number} foi salva com sucesso na nuvem.`
     });
+    
+    return true;
   } catch (error) {
     console.error("Erro ao salvar interpretação:", error);
+    
+    // Fallback: salvar no localStorage
+    saveToLocalStorage();
+    
     toast({
-      title: "Erro ao salvar",
-      description: "Ocorreu um erro ao salvar a interpretação. Tente novamente.",
+      title: "Erro ao salvar na nuvem",
+      description: "A interpretação foi salva apenas localmente devido a um erro de conexão.",
       variant: "destructive"
     });
+    
+    return false;
   }
 }
 
@@ -75,274 +142,227 @@ export function getAllInterpretations(): Interpretation[] {
 }
 
 // Delete an interpretation
-export function deleteInterpretation(category: string, number: number): void {
+export async function deleteInterpretation(category: string, number: number): Promise<boolean> {
   const id = generateInterpretationId(category, number);
   
   if (interpretations[id]) {
+    // Remover do cache local
     delete interpretations[id];
-    saveInterpretations();
     
-    toast({
-      title: "Interpretação Removida",
-      description: `A interpretação para ${getCategoryDisplayName(category)} número ${number} foi removida.`
-    });
-  }
-}
-
-// Criar backup dos dados
-function createBackup(): void {
-  try {
-    if (Object.keys(interpretations).length === 0) {
-      return; // Não criar backup vazio
-    }
-    
-    // Salvar cada interpretação individualmente para evitar problemas com tamanho
-    Object.entries(interpretations).forEach(([id, interp]) => {
-      localStorage.setItem(`backup_${id}`, JSON.stringify(interp));
-    });
-    
-    // Salvar lista de IDs
-    localStorage.setItem('backup_interpretation_ids', JSON.stringify(Object.keys(interpretations)));
-    
-    // Timestamp do backup
-    localStorage.setItem('backup_timestamp', new Date().toISOString());
-    
-    console.log(`Backup criado com ${Object.keys(interpretations).length} interpretações`);
-  } catch (error) {
-    console.error("Erro ao criar backup:", error);
-  }
-}
-
-// Restaurar do backup
-export function restoreFromBackup(): boolean {
-  try {
-    // Verificar se existe backup
-    const idsJson = localStorage.getItem('backup_interpretation_ids');
-    if (!idsJson) {
-      console.log("Nenhum backup encontrado");
-      return false;
-    }
-    
-    const ids = JSON.parse(idsJson);
-    if (!Array.isArray(ids) || ids.length === 0) {
-      console.log("Backup vazio ou inválido");
-      return false;
-    }
-    
-    // Limpar interpretações atuais
-    interpretations = {};
-    
-    // Carregar cada interpretação do backup
-    let loadedCount = 0;
-    
-    ids.forEach(id => {
-      const interpJson = localStorage.getItem(`backup_${id}`);
-      if (interpJson) {
-        try {
-          const interp = JSON.parse(interpJson);
-          if (interp && interp.id && interp.title && interp.content) {
-            interpretations[id] = interp;
-            loadedCount++;
-          }
-        } catch (e) {
-          console.error(`Erro ao processar backup de ${id}:`, e);
-        }
-      }
-    });
-    
-    if (loadedCount > 0) {
-      console.log(`Restaurados ${loadedCount} de ${ids.length} interpretações do backup`);
+    try {
+      // Remover do Supabase
+      const { error } = await supabaseClient
+        .from('interpretations')
+        .delete()
+        .eq('id', id);
       
-      // Salvar as interpretações restauradas no armazenamento principal
-      saveInterpretations();
+      if (error) {
+        console.error("Erro ao excluir do Supabase:", error);
+        
+        // Atualizar localStorage mesmo que o Supabase falhe
+        saveToLocalStorage();
+        
+        toast({
+          title: "Exclusão na nuvem falhou",
+          description: "A interpretação foi removida apenas localmente.",
+          variant: "destructive"
+        });
+        
+        return false;
+      }
+      
+      // Atualizar localStorage
+      saveToLocalStorage();
+      
+      toast({
+        title: "Interpretação Removida",
+        description: `A interpretação para ${getCategoryDisplayName(category)} número ${number} foi removida.`
+      });
       
       return true;
-    } else {
-      console.log("Nenhuma interpretação pôde ser restaurada do backup");
+    } catch (error) {
+      console.error("Erro ao excluir interpretação:", error);
+      
+      // Atualizar localStorage
+      saveToLocalStorage();
+      
+      toast({
+        title: "Erro ao excluir na nuvem",
+        description: "A interpretação foi removida apenas localmente devido a um erro de conexão.",
+        variant: "destructive"
+      });
+      
       return false;
     }
+  }
+  
+  return false;
+}
+
+// Carregar interpretações do Supabase
+async function loadFromSupabase(): Promise<void> {
+  try {
+    console.log("Carregando interpretações do Supabase...");
+    
+    const { data, error } = await supabaseClient
+      .from('interpretations')
+      .select('*');
+    
+    if (error) {
+      console.error("Erro ao carregar do Supabase:", error);
+      return;
+    }
+    
+    if (data && data.length > 0) {
+      // Limpar interpretações atuais
+      interpretations = {};
+      
+      // Carregar novas interpretações
+      data.forEach(item => {
+        if (item && item.id && item.title && item.content) {
+          interpretations[item.id] = item as Interpretation;
+        }
+      });
+      
+      console.log(`Carregadas ${Object.keys(interpretations).length} interpretações do Supabase.`);
+      
+      // Atualizar localStorage como backup
+      saveToLocalStorage();
+    } else {
+      console.log("Nenhuma interpretação encontrada no Supabase.");
+    }
   } catch (error) {
-    console.error("Erro ao restaurar do backup:", error);
+    console.error("Erro crítico ao carregar do Supabase:", error);
+    throw error;
+  }
+}
+
+// Salvar todas as interpretações no Supabase
+async function saveToSupabase(isFullSync: boolean = false): Promise<boolean> {
+  try {
+    const items = Object.values(interpretations);
+    
+    if (items.length === 0) {
+      console.log("Nenhuma interpretação para salvar no Supabase.");
+      return true;
+    }
+    
+    console.log(`Salvando ${items.length} interpretações no Supabase...`);
+    
+    if (isFullSync) {
+      // Para sincronização completa, usar transação para garantir consistência
+      const { error } = await supabaseClient.rpc('sync_interpretations', {
+        interpretations_data: items
+      });
+      
+      if (error) {
+        console.error("Erro na sincronização completa:", error);
+        return false;
+      }
+    } else {
+      // Para atualizações normais, usar upsert
+      const { error } = await supabaseClient
+        .from('interpretations')
+        .upsert(items, { onConflict: 'id' });
+      
+      if (error) {
+        console.error("Erro ao salvar no Supabase:", error);
+        return false;
+      }
+    }
+    
+    console.log(`${items.length} interpretações salvas com sucesso no Supabase.`);
+    return true;
+  } catch (error) {
+    console.error("Erro crítico ao salvar no Supabase:", error);
     return false;
   }
 }
 
-// Verificar localStorage por dados de interpretação
-export function scanForInterpretations(): number {
-  let recoveredCount = 0;
-  
+// Salvar no localStorage como backup
+function saveToLocalStorage(): void {
   try {
-    // Procurar por padrões de nome conhecidos
-    for (let i = 0; i < localStorage.length; i++) {
-      const key = localStorage.key(i);
-      if (!key) continue;
-      
-      // Verificar diferentes padrões de nomes de chaves
-      const isBackupKey = key.startsWith('backup_') && !key.includes('_ids') && !key.includes('timestamp');
-      const isDirectKey = key.startsWith('karmicInterp_');
-      
-      if (isBackupKey || isDirectKey) {
-        try {
-          const value = localStorage.getItem(key);
-          if (!value) continue;
-          
-          const data = JSON.parse(value);
-          if (data && data.id && data.title && data.content) {
-            // Extrair o ID real
-            const realId = isBackupKey ? key.replace('backup_', '') : key.replace('karmicInterp_', '');
-            
-            // Adicionar à coleção de interpretações
-            interpretations[realId] = data;
-            recoveredCount++;
-          }
-        } catch (e) {
-          // Ignorar erros de parsing
-        }
-      }
-    }
-    
-    // Se encontrou alguma coisa, salvar
-    if (recoveredCount > 0) {
-      console.log(`Encontradas ${recoveredCount} interpretações no localStorage`);
-      saveInterpretations();
-    }
-    
-    return recoveredCount;
+    localStorage.setItem('karmicInterpretations', JSON.stringify(interpretations));
+    console.log("Backup das interpretações salvo no localStorage.");
   } catch (error) {
-    console.error("Erro ao escanear localStorage:", error);
-    return 0;
+    console.error("Erro ao salvar backup no localStorage:", error);
   }
 }
 
-// Save interpretations to localStorage with better error handling
-function saveInterpretations(): void {
+// Carregar do localStorage
+function loadFromLocalStorage(): Record<string, Interpretation> {
   try {
-    // Verificar se há dados válidos
-    if (!interpretations || Object.keys(interpretations).length === 0) {
-      console.warn("Não há interpretações para salvar");
-      return;
+    const saved = localStorage.getItem('karmicInterpretations');
+    if (saved && saved !== "{}") {
+      const parsed = JSON.parse(saved);
+      console.log(`Carregadas ${Object.keys(parsed).length} interpretações do localStorage.`);
+      return parsed;
     }
+  } catch (error) {
+    console.error("Erro ao carregar do localStorage:", error);
+  }
+  
+  return {};
+}
+
+// Force sync to Supabase
+export async function forceSyncToSupabase(): Promise<boolean> {
+  try {
+    const success = await saveToSupabase(true);
+    return success;
+  } catch (error) {
+    console.error("Erro ao sincronizar com Supabase:", error);
+    return false;
+  }
+}
+
+// Adicionar todas as interpretações de uma vez (para importação)
+export async function importInterpretations(data: Record<string, Interpretation>): Promise<boolean> {
+  if (!data || typeof data !== 'object' || Object.keys(data).length === 0) {
+    return false;
+  }
+  
+  try {
+    // Validar dados
+    const validData: Record<string, Interpretation> = {};
+    let validCount = 0;
     
-    // Salvar o objeto completo
-    const dataToSave = JSON.stringify(interpretations);
-    localStorage.setItem('karmicInterpretations', dataToSave);
-    
-    // Também salvar cada interpretação individualmente como fallback
-    Object.entries(interpretations).forEach(([id, interp]) => {
-      localStorage.setItem(`karmicInterp_${id}`, JSON.stringify(interp));
+    Object.entries(data).forEach(([id, item]) => {
+      if (item && typeof item === 'object' && 'id' in item && 'title' in item && 'content' in item) {
+        validData[id] = {
+          ...item,
+          updated_at: new Date().toISOString()
+        };
+        validCount++;
+      }
     });
     
-    // Salvar lista de IDs
-    localStorage.setItem('karmicInterpretationsKeys', JSON.stringify(Object.keys(interpretations)));
-    
-    console.log(`Salvamento concluído: ${Object.keys(interpretations).length} interpretações`);
-  } catch (error) {
-    console.error("Erro ao salvar interpretações:", error);
-    
-    // Tentar salvar apenas individualmente se o método principal falhar
-    try {
-      Object.entries(interpretations).forEach(([id, interp]) => {
-        localStorage.setItem(`karmicInterp_${id}`, JSON.stringify(interp));
-      });
-      localStorage.setItem('karmicInterpretationsKeys', JSON.stringify(Object.keys(interpretations)));
-      
-      console.log("Salvamento alternativo concluído");
-    } catch (backupError) {
-      console.error("Falha total no salvamento:", backupError);
+    if (validCount === 0) {
+      console.error("Nenhuma interpretação válida encontrada para importar");
+      return false;
     }
+    
+    // Mesclar com dados existentes
+    interpretations = { ...interpretations, ...validData };
+    
+    // Salvar no Supabase
+    const supabaseSuccess = await saveToSupabase(true);
+    
+    // Salvar no localStorage como backup
+    saveToLocalStorage();
+    
+    console.log(`Importadas ${validCount} interpretações com sucesso`);
+    return true;
+  } catch (error) {
+    console.error("Erro ao importar interpretações:", error);
+    return false;
   }
 }
 
-// Load interpretations from localStorage with better error handling
-export function loadInterpretations(): void {
-  console.log("Carregando interpretações do localStorage");
-  
-  try {
-    // Método 1: Carregar objeto completo
-    const saved = localStorage.getItem('karmicInterpretations');
-    
-    if (saved && saved !== "{}") {
-      try {
-        const parsedData = JSON.parse(saved);
-        
-        if (parsedData && typeof parsedData === 'object') {
-          interpretations = parsedData;
-          console.log(`Carregadas ${Object.keys(interpretations).length} interpretações do localStorage`);
-          return;
-        }
-      } catch (parseError) {
-        console.error("Erro ao analisar dados salvos:", parseError);
-      }
-    }
-    
-    // Método 2: Carregar de chaves individuais
-    console.log("Tentando método alternativo de carregamento");
-    const keysString = localStorage.getItem('karmicInterpretationsKeys');
-    
-    if (keysString) {
-      try {
-        const keys = JSON.parse(keysString);
-        if (Array.isArray(keys) && keys.length > 0) {
-          let loadedCount = 0;
-          
-          keys.forEach(key => {
-            const itemString = localStorage.getItem(`karmicInterp_${key}`);
-            if (itemString) {
-              try {
-                interpretations[key] = JSON.parse(itemString);
-                loadedCount++;
-              } catch (e) {
-                console.error(`Erro ao analisar item ${key}:`, e);
-              }
-            }
-          });
-          
-          if (loadedCount > 0) {
-            console.log(`Carregadas ${loadedCount} interpretações pelo método alternativo`);
-            return;
-          }
-        }
-      } catch (keysError) {
-        console.error("Erro ao analisar lista de chaves:", keysError);
-      }
-    }
-    
-    // Método 3: Tentar restaurar do backup
-    console.log("Tentando restaurar do backup");
-    const restored = restoreFromBackup();
-    
-    if (restored) {
-      console.log("Dados restaurados do backup com sucesso");
-      return;
-    }
-    
-    // Método 4: Busca completa no localStorage
-    console.log("Realizando busca completa no localStorage");
-    const recovered = scanForInterpretations();
-    
-    if (recovered > 0) {
-      console.log(`Recuperadas ${recovered} interpretações do localStorage`);
-      return;
-    }
-    
-    // Se chegou aqui, não conseguiu carregar de nenhuma forma
-    console.warn("Não foi possível carregar interpretações. Iniciando com dados vazios.");
-    interpretations = {};
-  } catch (error) {
-    console.error("Erro crítico ao carregar interpretações:", error);
-    interpretations = {};
-  }
+// Obter todas as interpretações para exportação
+export function exportInterpretations(): Record<string, Interpretation> {
+  return { ...interpretations };
 }
-
-// Initialize interpretations from localStorage
-loadInterpretations();
-
-// Backup automático a cada 5 minutos
-setInterval(() => {
-  if (Object.keys(interpretations).length > 0) {
-    createBackup();
-  }
-}, 5 * 60 * 1000);
 
 // Get display name for a category
 export function getCategoryDisplayName(category: string): string {
@@ -380,61 +400,5 @@ export function renderHTML(html: string) {
   return { __html: html };
 }
 
-// Exportar função para recuperação manual
-export function performRecovery(): boolean {
-  // Tenta todos os métodos de recuperação em sequência
-  
-  // 1. Restaurar do backup
-  const fromBackup = restoreFromBackup();
-  if (fromBackup) return true;
-  
-  // 2. Escanear localStorage
-  const fromScan = scanForInterpretations();
-  return fromScan > 0;
-}
-
-// Adicionar todas as interpretações de uma vez (para importação)
-export function importInterpretations(data: Record<string, Interpretation>): boolean {
-  try {
-    // Validar dados
-    if (!data || typeof data !== 'object') {
-      console.error("Dados de importação inválidos");
-      return false;
-    }
-    
-    const entries = Object.entries(data);
-    if (entries.length === 0) {
-      console.error("Nenhum dado para importar");
-      return false;
-    }
-    
-    // Validar que cada entrada é uma interpretação válida
-    let validCount = 0;
-    
-    entries.forEach(([id, item]) => {
-      if (item && typeof item === 'object' && 'id' in item && 'title' in item && 'content' in item) {
-        interpretations[id] = item;
-        validCount++;
-      }
-    });
-    
-    if (validCount > 0) {
-      saveInterpretations();
-      createBackup();
-      
-      console.log(`Importadas ${validCount} interpretações com sucesso`);
-      return true;
-    } else {
-      console.error("Nenhuma interpretação válida encontrada para importar");
-      return false;
-    }
-  } catch (error) {
-    console.error("Erro ao importar interpretações:", error);
-    return false;
-  }
-}
-
-// Obter todas as interpretações para exportação
-export function exportInterpretations(): Record<string, Interpretation> {
-  return { ...interpretations };
-}
+// Initialize the system
+initInterpretations();

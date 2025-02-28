@@ -4,7 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import EmailManager from '@/components/admin/EmailManager';
 import InterpretationEditor from '@/components/admin/InterpretationEditor';
-import { Users, Book, Info } from 'lucide-react';
+import { Users, Book, Info, Cloud } from 'lucide-react';
 
 const Admin = () => {
   const [showInfoBox, setShowInfoBox] = useState(true);
@@ -25,12 +25,12 @@ const Admin = () => {
           <div className="bg-blue-50 border-l-4 border-blue-400 p-4 mb-6 rounded-md">
             <div className="flex">
               <div className="flex-shrink-0">
-                <Info className="h-5 w-5 text-blue-400" />
+                <Cloud className="h-5 w-5 text-blue-400" />
               </div>
               <div className="ml-3">
                 <p className="text-sm text-blue-700">
-                  <strong>Importante:</strong> Seus dados são armazenados no navegador. Para evitar perda de dados, utilize as 
-                  funções "Exportar" e "Importar" para fazer backup das suas interpretações regularmente.
+                  <strong>Armazenamento seguro:</strong> Suas interpretações agora são salvas na nuvem automaticamente. 
+                  Você também pode utilizar as funções "Exportar" e "Importar" para fazer backup adicional das suas interpretações.
                 </p>
               </div>
               <button 

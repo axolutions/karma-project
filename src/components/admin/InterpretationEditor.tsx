@@ -10,11 +10,12 @@ import {
   deleteInterpretation,
   getCategoryDisplayName,
   getAllCategories,
-  performRecovery,
   exportInterpretations,
-  importInterpretations
+  importInterpretations,
+  forceSyncToSupabase
 } from '@/lib/interpretations';
-import { Save, Trash, Bold, Italic, List, Type, Quote, RotateCcw, Download, Upload } from 'lucide-react';
+import { checkConnection } from '@/lib/supabase';
+import { Save, Trash, Bold, Italic, List, Type, Quote, Cloud, Download, Upload, CloudOff, RefreshCw } from 'lucide-react';
 
 const InterpretationEditor: React.FC = () => {
   const [selectedCategory, setSelectedCategory] = useState("karmicSeal");
@@ -24,14 +25,30 @@ const InterpretationEditor: React.FC = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [previewMode, setPreviewMode] = useState(false);
   const [interpretationsCount, setInterpretationsCount] = useState(0);
+  const [isConnected, setIsConnected] = useState<boolean | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
   
   const possibleNumbers = ["1", "2", "3", "4", "5", "6", "7", "8", "9", "11", "22", "33", "44"];
   const categories = getAllCategories();
   
   useEffect(() => {
+    // Verificar status da conexão com Supabase
+    const verifyConnection = async () => {
+      const status = await checkConnection();
+      setIsConnected(status);
+    };
+    
+    verifyConnection();
+    
+    // Carregar a interpretação selecionada
     loadInterpretation();
+    
+    // Atualizar contagem de interpretações
     updateInterpretationsCount();
+    
+    // Verificar conexão a cada 30 segundos
+    const interval = setInterval(verifyConnection, 30000);
+    return () => clearInterval(interval);
   }, [selectedCategory, selectedNumber]);
   
   const loadInterpretation = () => {
@@ -45,7 +62,7 @@ const InterpretationEditor: React.FC = () => {
     setInterpretationsCount(count);
   };
   
-  const handleSave = () => {
+  const handleSave = async () => {
     setIsLoading(true);
     
     if (!title.trim()) {
@@ -72,7 +89,7 @@ const InterpretationEditor: React.FC = () => {
     const formattedContent = formatContentForSaving(content);
     
     try {
-      setInterpretation(
+      await setInterpretation(
         selectedCategory, 
         parseInt(selectedNumber), 
         title, 
@@ -113,39 +130,57 @@ const InterpretationEditor: React.FC = () => {
     return formattedContent;
   };
   
-  const handleDelete = () => {
+  const handleDelete = async () => {
     if (window.confirm(`Tem certeza que deseja excluir esta interpretação?`)) {
-      deleteInterpretation(selectedCategory, parseInt(selectedNumber));
-      setTitle("");
-      setContent("");
-      updateInterpretationsCount();
+      setIsLoading(true);
+      
+      try {
+        await deleteInterpretation(selectedCategory, parseInt(selectedNumber));
+        setTitle("");
+        setContent("");
+        updateInterpretationsCount();
+      } catch (error) {
+        console.error("Erro ao excluir interpretação:", error);
+        toast({
+          title: "Erro ao excluir",
+          description: "Ocorreu um erro ao excluir a interpretação. Tente novamente.",
+          variant: "destructive"
+        });
+      } finally {
+        setIsLoading(false);
+      }
     }
   };
   
-  const handleRecovery = () => {
-    if (window.confirm("Tentar recuperar interpretações do localStorage? Esta operação não apagará os dados atuais.")) {
+  const handleForceSync = async () => {
+    if (window.confirm("Deseja sincronizar todas as interpretações com a nuvem? Isso garantirá que todos os dados estejam salvos no Supabase.")) {
       setIsLoading(true);
       
-      setTimeout(() => {
-        const success = performRecovery();
+      try {
+        const success = await forceSyncToSupabase();
         
         if (success) {
           toast({
-            title: "Recuperação concluída",
-            description: "Foram recuperadas interpretações armazenadas localmente.",
+            title: "Sincronização concluída",
+            description: `${interpretationsCount} interpretações sincronizadas com a nuvem.`
           });
-          loadInterpretation();
-          updateInterpretationsCount();
         } else {
           toast({
-            title: "Recuperação falhou",
-            description: "Não foi possível encontrar interpretações armazenadas para recuperar.",
+            title: "Erro na sincronização",
+            description: "Não foi possível sincronizar com a nuvem. Verifique sua conexão.",
             variant: "destructive"
           });
         }
-        
+      } catch (error) {
+        console.error("Erro ao sincronizar:", error);
+        toast({
+          title: "Erro na sincronização",
+          description: "Ocorreu um erro ao sincronizar com a nuvem.",
+          variant: "destructive"
+        });
+      } finally {
         setIsLoading(false);
-      }, 500);
+      }
     }
   };
   
@@ -192,19 +227,21 @@ const InterpretationEditor: React.FC = () => {
     }
   };
   
-  const handleImportFile = (event: React.ChangeEvent<HTMLInputElement>) => {
+  const handleImportFile = async (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
     if (!file) return;
     
     const reader = new FileReader();
     
-    reader.onload = (e) => {
+    reader.onload = async (e) => {
       try {
+        setIsLoading(true);
+        
         const content = e.target?.result as string;
         const data = JSON.parse(content);
         
         if (window.confirm(`Deseja importar ${Object.keys(data).length} interpretações? Isso manterá as interpretações atuais e adicionará as novas.`)) {
-          const success = importInterpretations(data);
+          const success = await importInterpretations(data);
           
           if (success) {
             toast({
@@ -228,10 +265,12 @@ const InterpretationEditor: React.FC = () => {
           description: "O arquivo selecionado contém dados inválidos.",
           variant: "destructive"
         });
+      } finally {
+        setIsLoading(false);
+        
+        // Limpar input para permitir selecionar o mesmo arquivo novamente
+        event.target.value = '';
       }
-      
-      // Limpar input para permitir selecionar o mesmo arquivo novamente
-      event.target.value = '';
     };
     
     reader.onerror = () => {
@@ -240,6 +279,7 @@ const InterpretationEditor: React.FC = () => {
         description: "Não foi possível ler o arquivo selecionado.",
         variant: "destructive"
       });
+      setIsLoading(false);
     };
     
     reader.readAsText(file);
@@ -301,22 +341,34 @@ const InterpretationEditor: React.FC = () => {
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6">
         <div>
           <h2 className="text-xl font-medium text-karmic-800">Editor de Interpretações</h2>
-          <p className="text-sm text-karmic-600">
-            {interpretationsCount > 0 
-              ? `${interpretationsCount} interpretações salvas` 
-              : "Nenhuma interpretação salva"}
-          </p>
+          <div className="flex items-center text-sm text-karmic-600 mt-1">
+            {isConnected === null ? (
+              <RefreshCw className="h-3.5 w-3.5 mr-1.5 animate-spin text-gray-400" />
+            ) : isConnected ? (
+              <Cloud className="h-3.5 w-3.5 mr-1.5 text-green-500" />
+            ) : (
+              <CloudOff className="h-3.5 w-3.5 mr-1.5 text-red-500" />
+            )}
+            
+            <span>
+              {isConnected === null 
+                ? "Verificando conexão..." 
+                : isConnected 
+                  ? `${interpretationsCount} interpretações salvas na nuvem` 
+                  : "Sem conexão com a nuvem - dados serão salvos localmente"}
+            </span>
+          </div>
         </div>
         
         <div className="flex flex-wrap gap-2">
           <Button 
             variant="outline" 
             size="sm"
-            onClick={handleRecovery}
-            disabled={isLoading}
-            className="text-amber-600 border-amber-300 hover:bg-amber-50"
+            onClick={handleForceSync}
+            disabled={isLoading || !isConnected}
+            className="text-blue-600 border-blue-300 hover:bg-blue-50"
           >
-            <RotateCcw className="h-4 w-4 mr-1" /> Recuperar Dados
+            <Cloud className="h-4 w-4 mr-1" /> Sincronizar
           </Button>
           
           <Button
@@ -332,7 +384,7 @@ const InterpretationEditor: React.FC = () => {
             variant="outline"
             size="sm"
             onClick={handleImportClick}
-            className="text-blue-600 border-blue-300 hover:bg-blue-50"
+            className="text-amber-600 border-amber-300 hover:bg-amber-50"
           >
             <Upload className="h-4 w-4 mr-1" /> Importar
           </Button>
@@ -481,6 +533,7 @@ const InterpretationEditor: React.FC = () => {
           variant="outline"
           className="text-red-500 border-red-300 hover:bg-red-50 hover:text-red-600"
           onClick={handleDelete}
+          disabled={isLoading}
         >
           <Trash className="h-4 w-4 mr-1" /> Excluir
         </Button>
