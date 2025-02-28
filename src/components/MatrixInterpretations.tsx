@@ -1,4 +1,5 @@
 
+
 import React, { useState, useEffect } from 'react';
 import { ChevronDown, ChevronUp, RefreshCw } from "lucide-react";
 import {
@@ -10,7 +11,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
 import { useToast } from "@/components/ui/use-toast";
-import { useMobile } from "@/hooks/use-mobile";
+import { useIsMobile } from "@/hooks/use-mobile";
 import { getInterpretation } from "@/lib/interpretations";
 
 // Definição dos tipos
@@ -43,7 +44,7 @@ const InterpretationCard: React.FC<InterpretationItemProps> = ({
   initialExpanded = false
 }) => {
   const [isExpanded, setIsExpanded] = useState(initialExpanded);
-  const isMobile = useMobile();
+  const isMobile = useIsMobile();
   
   const toggleExpand = () => {
     setIsExpanded(!isExpanded);
@@ -116,7 +117,10 @@ const MatrixInterpretations: React.FC<MatrixInterpretationsProps> = ({ karmicDat
       for (const key of keys) {
         const number = karmicData[key];
         const interpretation = await getInterpretation(key, number);
-        allInterpretations[key] = interpretation || "Interpretação não disponível no momento.";
+        // Fix: Extract the content from Interpretation object
+        allInterpretations[key] = typeof interpretation === 'string' 
+          ? interpretation 
+          : interpretation.content || "Interpretação não disponível no momento.";
       }
       
       setInterpretations(allInterpretations);
