@@ -78,6 +78,7 @@ const KarmicMatrix: React.FC<KarmicMatrixProps> = ({
             border: '1px solid #EAE6E1',
             borderRadius: '8px'
           }}
+          crossOrigin="anonymous"
         />
         <div className="text-center mt-4 text-karmic-600">
           Dados da matriz não disponíveis. Por favor, verifique seu perfil.
@@ -99,13 +100,14 @@ const KarmicMatrix: React.FC<KarmicMatrixProps> = ({
   ];
 
   return (
-    <div className="relative max-w-4xl mx-auto">
+    <div className="relative max-w-4xl mx-auto karmic-matrix-with-image">
       {/* Background matrix image */}
       <img 
         src={imgSrc} 
         alt="Matriz Kármica 2025" 
         className="w-full h-auto"
         onLoad={() => setImageLoaded(true)}
+        crossOrigin="anonymous"
         style={{ 
           // Adiciona um contorno para caso a imagem não seja visível no PDF
           border: '1px solid #EAE6E1',

@@ -96,9 +96,21 @@ const MatrixResult = () => {
       }
       
       // Pequeno delay para garantir que todas as seções estejam expandidas
-      await new Promise(resolve => setTimeout(resolve, 500));
+      await new Promise(resolve => setTimeout(resolve, 1000));
       
-      // Configurações do PDF
+      // Pré-carregar a imagem da matriz antes de gerar o PDF
+      const matrixImage = document.querySelector('.karmic-matrix-with-image img') as HTMLImageElement;
+      if (matrixImage) {
+        // Certifique-se de que a imagem está carregada
+        if (!matrixImage.complete) {
+          await new Promise(resolve => {
+            matrixImage.onload = resolve;
+            matrixImage.onerror = resolve;
+          });
+        }
+      }
+      
+      // Configurações do PDF com melhorias para lidar com imagens
       const pdfOptions = {
         margin: [10, 10, 10, 10],
         filename: `Matriz-Karmica-Completa-${userData?.name || 'Pessoal'}.pdf`,
@@ -106,15 +118,17 @@ const MatrixResult = () => {
         html2canvas: { 
           scale: 2, // Melhor qualidade
           useCORS: true,
-          logging: false,
+          allowTaint: true,
+          logging: true,
           letterRendering: true,
-          allowTaint: true
+          imageTimeout: 0, // Sem timeout para imagens
+          foreignObjectRendering: false // Desativar foreignObject para maior compatibilidade
         },
         jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }
       };
       
-      // Gerar o PDF usando html2pdf
-      html2pdf().from(fullPageElement).set(pdfOptions).save()
+      // Gerar o PDF usando html2pdf com as novas configurações
+      await html2pdf().from(fullPageElement).set(pdfOptions).save()
         .then(() => {
           toast({
             title: "Download concluído",
