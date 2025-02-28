@@ -5,7 +5,7 @@ import { getCurrentUser, getUserData, logout } from '@/lib/auth';
 import { useNavigate } from 'react-router-dom';
 import KarmicMatrix from '@/components/KarmicMatrix';
 import MatrixInterpretations from '@/components/MatrixInterpretations';
-import { Printer, LogOut, RefreshCw, Download } from 'lucide-react';
+import { Printer, LogOut, RefreshCw, Download, FileDown } from 'lucide-react';
 import { toast } from "@/components/ui/use-toast";
 import { motion } from 'framer-motion';
 import html2canvas from 'html2canvas';
@@ -15,9 +15,10 @@ const MatrixResult = () => {
   const [userData, setUserData] = useState<any>(null);
   const [refreshing, setRefreshing] = useState(false);
   const [isPrinting, setIsPrinting] = useState(false);
+  const [isDownloading, setIsDownloading] = useState(false);
   const [loading, setLoading] = useState(true);
-  const matrixRef = useRef<HTMLDivElement>(null);
   const contentRef = useRef<HTMLDivElement>(null);
+  const matrixRef = useRef<HTMLDivElement>(null);
   const navigate = useNavigate();
   
   useEffect(() => {
@@ -131,109 +132,8 @@ const MatrixResult = () => {
     }, 500); // Aumentado o delay para garantir carregamento completo
   };
   
-  // Função para exportar diretamente como PDF sem a janela de impressão
-  const handleExportPDF = async () => {
-    if (isPrinting) return; // Evita múltiplos cliques
-    
-    setIsPrinting(true);
-    
-    toast({
-      title: "Gerando PDF",
-      description: "Aguarde enquanto geramos seu arquivo PDF...",
-    });
-    
-    try {
-      // Primeiro garantimos que a referência exista
-      if (!contentRef.current || !matrixRef.current) {
-        throw new Error("Elementos da página não encontrados");
-      }
-      
-      // Configuração do PDF
-      const pdf = new jsPDF({
-        orientation: 'portrait',
-        unit: 'mm',
-        format: 'a4',
-      });
-      
-      // Capturar a matriz primeiro
-      const matrixCanvas = await html2canvas(matrixRef.current, {
-        scale: 2, // Maior qualidade
-        useCORS: true, // Importante para imagens externas
-        allowTaint: true,
-        backgroundColor: '#ffffff',
-        logging: false,
-      });
-      
-      const matrixImgData = matrixCanvas.toDataURL('image/png');
-      
-      // Adicionar a matriz ao PDF
-      pdf.addImage(
-        matrixImgData,
-        'PNG',
-        15, // margem esquerda em mm
-        15, // margem superior em mm
-        180, // largura em mm (A4 = 210mm, menos margens)
-        100, // altura proporcional em mm
-      );
-      
-      // Capturar o conteúdo de interpretações
-      const contentElement = contentRef.current;
-      const contentCanvas = await html2canvas(contentElement, {
-        scale: 2,
-        useCORS: true,
-        allowTaint: true,
-        backgroundColor: '#ffffff',
-        logging: false,
-      });
-      
-      const contentImgData = contentCanvas.toDataURL('image/png');
-      const contentHeight = (contentCanvas.height * 180) / contentCanvas.width;
-      
-      // Se o conteúdo for muito grande, dividir em múltiplas páginas
-      if (contentHeight > 180) {
-        // Adicionar uma nova página para o conteúdo
-        pdf.addPage();
-        pdf.addImage(
-          contentImgData,
-          'PNG',
-          15, // margem esquerda em mm
-          15, // margem superior em mm
-          180, // largura em mm
-          Math.min(contentHeight, 267) // altura máxima da página A4
-        );
-      } else {
-        // Adicionar o conteúdo abaixo da matriz na primeira página
-        pdf.addImage(
-          contentImgData,
-          'PNG',
-          15, // margem esquerda em mm
-          130, // posição vertical abaixo da matriz
-          180, // largura em mm
-          contentHeight // altura proporcional em mm
-        );
-      }
-      
-      // Salvar o PDF
-      pdf.save(`matriz-karmica-${userData?.name || 'usuario'}.pdf`);
-      
-      toast({
-        title: "PDF gerado com sucesso",
-        description: "Seu arquivo foi baixado com sucesso.",
-      });
-    } catch (error) {
-      console.error("Erro ao gerar PDF:", error);
-      toast({
-        title: "Erro ao gerar PDF",
-        description: "Houve um problema ao criar o arquivo. Por favor, tente novamente.",
-        variant: "destructive",
-      });
-    } finally {
-      setIsPrinting(false);
-    }
-  };
-  
   // Função alternativa para quem tem problemas com a impressão direta
-  const handleExportPDFLegacy = () => {
+  const handleExportPDF = () => {
     if (isPrinting) return; // Evita múltiplos cliques
     
     setIsPrinting(true);
@@ -281,6 +181,112 @@ const MatrixResult = () => {
         });
       }
     }, 800); // Delay maior para garantir que tudo esteja carregado
+  };
+  
+  // Função melhorada para download direto de PDF com garantia de carregar a imagem
+  const handleDirectDownload = async () => {
+    if (isDownloading || !contentRef.current) return;
+    
+    setIsDownloading(true);
+    
+    toast({
+      title: "Gerando PDF",
+      description: "Preparando o download do seu PDF, aguarde um momento..."
+    });
+    
+    try {
+      // Primeiro garantimos que imagens estão carregadas esperando um tempo
+      await new Promise(resolve => setTimeout(resolve, 500));
+      
+      // Adiciona classe para melhorar a aparência no PDF
+      document.body.classList.add('printing-mode');
+      
+      // Primeiro vamos capturar a matriz separadamente para garantir que a imagem de fundo apareça
+      let matrixCanvas;
+      if (matrixRef.current) {
+        matrixCanvas = await html2canvas(matrixRef.current, {
+          scale: 2,
+          useCORS: true,
+          allowTaint: true,
+          logging: true,
+          backgroundColor: '#ffffff',
+          imageTimeout: 15000, // Tempo maior para carregar imagens
+          onclone: (clonedDoc) => {
+            // Forçar visibilidade total no clone
+            const clonedContent = clonedDoc.querySelector('[data-matrix-content]');
+            if (clonedContent) {
+              (clonedContent as HTMLElement).style.opacity = '1';
+              (clonedContent as HTMLElement).style.visibility = 'visible';
+            }
+          }
+        });
+      }
+      
+      // Depois capturamos todo o conteúdo para o PDF
+      const fullCanvas = await html2canvas(contentRef.current, {
+        scale: 2,
+        useCORS: true,
+        allowTaint: true,
+        backgroundColor: '#ffffff',
+        imageTimeout: 15000,
+        onclone: (clonedDoc) => {
+          // Forçar visibilidade de todos elementos no clone
+          const clonedContent = clonedDoc.querySelector('[data-ref="content"]');
+          if (clonedContent) {
+            (clonedContent as HTMLElement).style.opacity = '1';
+            (clonedContent as HTMLElement).style.visibility = 'visible';
+          }
+        }
+      });
+      
+      // Cria um novo documento PDF A4
+      const pdf = new jsPDF('p', 'mm', 'a4');
+      const imgWidth = 210; // A4 width in mm (210mm)
+      
+      // Se temos a matriz separada, adicionamos ela primeiro
+      if (matrixCanvas) {
+        const matrixImgData = matrixCanvas.toDataURL('image/png');
+        const matrixImgHeight = (matrixCanvas.height * imgWidth) / matrixCanvas.width;
+        pdf.addImage(matrixImgData, 'PNG', 0, 0, imgWidth, Math.min(matrixImgHeight, 150));
+      }
+      
+      // Adicionamos o conteúdo completo
+      const fullImgData = fullCanvas.toDataURL('image/png');
+      const fullImgHeight = (fullCanvas.height * imgWidth) / fullCanvas.width;
+      
+      // Se tivermos adicionado a matriz separadamente, ajustamos a posição do conteúdo completo
+      if (matrixCanvas) {
+        // Calcular a altura proporcional da matriz para posicionar o resto do conteúdo
+        const matrixImgHeight = (matrixCanvas.height * imgWidth) / matrixCanvas.width;
+        const matrixHeight = Math.min(matrixImgHeight, 150);
+        
+        // Adicionar o resto do conteúdo em uma nova página
+        pdf.addPage();
+        pdf.addImage(fullImgData, 'PNG', 0, 0, imgWidth, fullImgHeight);
+      } else {
+        // Se não tiver a matriz separada, adiciona tudo de uma vez
+        pdf.addImage(fullImgData, 'PNG', 0, 0, imgWidth, fullImgHeight);
+      }
+      
+      // Baixa o PDF com nome personalizado
+      const userName = userData?.name || 'Visitante';
+      pdf.save(`Matriz_Karmica_${userName}_${new Date().toISOString().slice(0, 10)}.pdf`);
+      
+      toast({
+        title: "Download concluído",
+        description: "Seu PDF foi gerado com sucesso!"
+      });
+    } catch (error) {
+      console.error("Erro ao gerar PDF:", error);
+      toast({
+        title: "Erro ao gerar PDF",
+        description: "Houve um problema ao gerar seu PDF. Por favor, tente novamente.",
+        variant: "destructive"
+      });
+    } finally {
+      document.body.classList.remove('printing-mode');
+      setIsDownloading(false);
+    }
   };
   
   const handleLogout = () => {
@@ -341,12 +347,21 @@ const MatrixResult = () => {
             </Button>
             
             <Button 
+              onClick={handleDirectDownload}
+              className="karmic-button flex items-center"
+              disabled={isDownloading}
+            >
+              <FileDown className={`mr-2 h-4 w-4 ${isDownloading ? 'animate-spin' : ''}`} />
+              {isDownloading ? 'Baixando...' : 'Baixar PDF'}
+            </Button>
+            
+            <Button 
               onClick={handleExportPDF}
               className="karmic-button flex items-center"
               disabled={isPrinting}
             >
               <Download className={`mr-2 h-4 w-4 ${isPrinting ? 'animate-spin' : ''}`} />
-              {isPrinting ? 'Gerando PDF...' : 'Baixar PDF'}
+              {isPrinting ? 'Preparando PDF...' : 'Exportar PDF'}
             </Button>
             
             <Button 
@@ -355,7 +370,7 @@ const MatrixResult = () => {
               disabled={isPrinting}
             >
               <Printer className={`mr-2 h-4 w-4 ${isPrinting ? 'animate-spin' : ''}`} />
-              {isPrinting ? 'Preparando...' : 'Imprimir'}
+              {isPrinting ? 'Gerando PDF...' : 'Imprimir'}
             </Button>
             
             <Button 
@@ -369,24 +384,25 @@ const MatrixResult = () => {
           </div>
         </div>
         
-        <motion.div
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          transition={{ duration: 0.5 }}
-          className="text-center mb-10 print:mb-5"
-          ref={matrixRef}
-        >
-          <h2 className="text-xl md:text-2xl font-serif font-medium text-karmic-800 mb-2">
-            Sua Matriz Kármica
-          </h2>
-          <p className="text-karmic-600 mb-6 print:mb-3">
-            Data de Nascimento: <span className="font-medium">{userData?.birthDate || "Não informada"}</span>
-          </p>
+        <div ref={contentRef} data-ref="content">
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ duration: 0.5 }}
+            className="text-center mb-10 print:mb-5"
+            ref={matrixRef}
+            data-matrix-content
+          >
+            <h2 className="text-xl md:text-2xl font-serif font-medium text-karmic-800 mb-2">
+              Sua Matriz Kármica
+            </h2>
+            <p className="text-karmic-600 mb-6 print:mb-3">
+              Data de Nascimento: <span className="font-medium">{userData?.birthDate || "Não informada"}</span>
+            </p>
+            
+            <KarmicMatrix karmicData={userData?.karmicNumbers} />
+          </motion.div>
           
-          <KarmicMatrix karmicData={userData?.karmicNumbers} />
-        </motion.div>
-        
-        <div ref={contentRef}>
           <MatrixInterpretations karmicData={userData?.karmicNumbers} />
         </div>
       </div>
