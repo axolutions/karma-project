@@ -30,14 +30,14 @@ const KarmicMatrix: React.FC<KarmicMatrixProps> = ({
     // Para valor específico 3 (destinyCall) - NÃO MUDAR
     destinyCall: { top: "13%", left: "85%" },
     
-    // Para valor específico 9 (karmaPortal) - AJUSTADO PARA RESTAURAR
+    // Para valor específico 9 (karmaPortal) - NÃO MUDAR
     karmaPortal: { top: "47%", left: "21%" },
     
     // Para valor específico 4 (karmicInheritance) - NÃO MUDAR
     karmicInheritance: { top: "47%", left: "72%" },
     
-    // Para valor específico 3 (karmicReprogramming) - AJUSTADO PARA SUBIR MUITO
-    karmicReprogramming: { top: "20%", left: "25%" },
+    // Para valor específico 3 (karmicReprogramming) - CORRIGIDO PARA POSIÇÃO CORRETA
+    karmicReprogramming: { top: "35%", left: "25%" },
     
     // Para valor específico 9 (cycleProphecy) - NÃO MUDAR
     cycleProphecy: { top: "74%", left: "48%" },
