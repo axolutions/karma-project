@@ -1,19 +1,23 @@
 
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useRef } from 'react';
 import { Button } from "@/components/ui/button";
 import { getCurrentUser, getUserData, logout } from '@/lib/auth';
 import { useNavigate } from 'react-router-dom';
 import KarmicMatrix from '@/components/KarmicMatrix';
 import MatrixInterpretations from '@/components/MatrixInterpretations';
-import { Printer, LogOut, RefreshCw, Download } from 'lucide-react';
+import { Printer, LogOut, RefreshCw, Download, FileDown } from 'lucide-react';
 import { toast } from "@/components/ui/use-toast";
 import { motion } from 'framer-motion';
+import html2canvas from 'html2canvas';
+import jsPDF from 'jspdf';
 
 const MatrixResult = () => {
   const [userData, setUserData] = useState<any>(null);
   const [refreshing, setRefreshing] = useState(false);
   const [isPrinting, setIsPrinting] = useState(false);
+  const [isDownloading, setIsDownloading] = useState(false);
   const [loading, setLoading] = useState(true);
+  const contentRef = useRef<HTMLDivElement>(null);
   const navigate = useNavigate();
   
   useEffect(() => {
@@ -178,6 +182,62 @@ const MatrixResult = () => {
     }, 800); // Delay maior para garantir que tudo esteja carregado
   };
   
+  // Nova função para download direto de PDF
+  const handleDirectDownload = async () => {
+    if (isDownloading || !contentRef.current) return;
+    
+    setIsDownloading(true);
+    
+    toast({
+      title: "Gerando PDF",
+      description: "Preparando o download do seu PDF, aguarde um momento..."
+    });
+    
+    try {
+      // Adiciona classe para melhorar a aparência no PDF
+      document.body.classList.add('printing-mode');
+      
+      // Captura o elemento com html2canvas
+      const canvas = await html2canvas(contentRef.current, {
+        scale: 2, // Melhor qualidade
+        useCORS: true,
+        logging: false,
+        allowTaint: true,
+        backgroundColor: '#ffffff'
+      });
+      
+      // Cria um novo documento PDF
+      const pdf = new jsPDF('p', 'mm', 'a4');
+      const imgData = canvas.toDataURL('image/png');
+      
+      // Calcula as dimensões para ajustar à página
+      const imgWidth = 210; // A4 width in mm (210mm)
+      const imgHeight = (canvas.height * imgWidth) / canvas.width;
+      
+      // Adiciona a imagem ao PDF
+      pdf.addImage(imgData, 'PNG', 0, 0, imgWidth, imgHeight);
+      
+      // Baixa o PDF com nome personalizado
+      const userName = userData?.name || 'Visitante';
+      pdf.save(`Matriz_Karmica_${userName}_${new Date().toISOString().slice(0, 10)}.pdf`);
+      
+      toast({
+        title: "Download concluído",
+        description: "Seu PDF foi gerado com sucesso!"
+      });
+    } catch (error) {
+      console.error("Erro ao gerar PDF:", error);
+      toast({
+        title: "Erro ao gerar PDF",
+        description: "Houve um problema ao gerar seu PDF. Por favor, tente novamente.",
+        variant: "destructive"
+      });
+    } finally {
+      document.body.classList.remove('printing-mode');
+      setIsDownloading(false);
+    }
+  };
+  
   const handleLogout = () => {
     logout();
     toast({
@@ -236,6 +296,15 @@ const MatrixResult = () => {
             </Button>
             
             <Button 
+              onClick={handleDirectDownload}
+              className="karmic-button flex items-center"
+              disabled={isDownloading}
+            >
+              <FileDown className={`mr-2 h-4 w-4 ${isDownloading ? 'animate-spin' : ''}`} />
+              {isDownloading ? 'Baixando...' : 'Baixar PDF'}
+            </Button>
+            
+            <Button 
               onClick={handleExportPDF}
               className="karmic-button flex items-center"
               disabled={isPrinting}
@@ -264,23 +333,25 @@ const MatrixResult = () => {
           </div>
         </div>
         
-        <motion.div
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          transition={{ duration: 0.5 }}
-          className="text-center mb-10 print:mb-5"
-        >
-          <h2 className="text-xl md:text-2xl font-serif font-medium text-karmic-800 mb-2">
-            Sua Matriz Kármica
-          </h2>
-          <p className="text-karmic-600 mb-6 print:mb-3">
-            Data de Nascimento: <span className="font-medium">{userData?.birthDate || "Não informada"}</span>
-          </p>
+        <div ref={contentRef}>
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ duration: 0.5 }}
+            className="text-center mb-10 print:mb-5"
+          >
+            <h2 className="text-xl md:text-2xl font-serif font-medium text-karmic-800 mb-2">
+              Sua Matriz Kármica
+            </h2>
+            <p className="text-karmic-600 mb-6 print:mb-3">
+              Data de Nascimento: <span className="font-medium">{userData?.birthDate || "Não informada"}</span>
+            </p>
+            
+            <KarmicMatrix karmicData={userData?.karmicNumbers} />
+          </motion.div>
           
-          <KarmicMatrix karmicData={userData?.karmicNumbers} />
-        </motion.div>
-        
-        <MatrixInterpretations karmicData={userData?.karmicNumbers} />
+          <MatrixInterpretations karmicData={userData?.karmicNumbers} />
+        </div>
       </div>
     </div>
   );
