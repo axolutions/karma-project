@@ -24,7 +24,7 @@ const KarmicMatrix: React.FC<KarmicMatrixProps> = ({
   const [imageLoaded, setImageLoaded] = useState(false);
   const [hasError, setHasError] = useState(false);
   
-  // Imagem local como fallback - usar a imagem do projeto
+  // Local fallback image
   const fallbackImage = "/lovable-uploads/e3827c66-0547-4aea-8e5d-403dd2ac4af2.png"; 
   
   useEffect(() => {
@@ -35,65 +35,65 @@ const KarmicMatrix: React.FC<KarmicMatrixProps> = ({
     const img = new Image();
     
     img.onload = () => {
-      console.log("✓ Imagem da matriz carregada com sucesso:", backgroundImage);
+      console.log("✓ Matrix image loaded successfully:", backgroundImage);
       setImageLoaded(true);
     };
     
     img.onerror = () => {
-      console.error("✗ Erro ao carregar a imagem da matriz:", backgroundImage);
+      console.error("✗ Error loading matrix image:", backgroundImage);
       setHasError(true);
     };
     
-    // Tentar carregar a imagem direta sem proxy CORS
+    // Try to load the image directly without CORS proxy
     img.src = backgroundImage;
     
-    // Fallback se a imagem não carregar em 5 segundos
+    // Fallback if image doesn't load in 5 seconds
     const timeout = setTimeout(() => {
       if (!imageLoaded) {
-        console.warn("⚠️ Timeout ao carregar imagem da matriz. Usando fallback.");
+        console.warn("⚠️ Timeout loading matrix image. Using fallback.");
         setHasError(true);
       }
     }, 5000);
     
     return () => clearTimeout(timeout);
-  }, [backgroundImage]);
+  }, [backgroundImage, imageLoaded]);
   
-  // Posições para cada número específico
+  // Accurate positions for each specific number
   const numberPositions = {
-    karmicSeal: { top: "23%", left: "25%" },
+    karmicSeal: { top: "22%", left: "26%" },
     destinyCall: { top: "72%", left: "73%" },
     karmaPortal: { top: "47%", left: "21%" },
-    karmicInheritance: { top: "47%", left: "72%" },
-    karmicReprogramming: { top: "70%", left: "25%" },
-    cycleProphecy: { top: "74%", left: "48%" },
-    spiritualMark: { top: "25%", left: "70%" },
-    manifestationEnigma: { top: "20%", left: "47%" }
+    karmicInheritance: { top: "47%", left: "77%" },
+    karmicReprogramming: { top: "72%", left: "26%" },
+    cycleProphecy: { top: "75%", left: "50%" },
+    spiritualMark: { top: "22%", left: "73%" },
+    manifestationEnigma: { top: "20%", left: "50%" }
   };
 
-  // Renderização do fundo da matriz com fallback
+  // Matrix background rendering with fallback
   const renderBackground = () => {
-    // Se a imagem original carregar, usamos ela
+    // If original image loaded successfully, use it
     if (imageLoaded && !hasError) {
       return (
         <img 
           src={backgroundImage} 
-          alt="Matriz Kármica 2025"
+          alt="Karmic Matrix 2025"
           className="w-full h-auto transition-opacity duration-300"
           style={{ maxWidth: '100%' }}
         />
       );
     }
     
-    // Se tiver erro ou não carregar, usamos o fallback
+    // If error or loading failed, use fallback
     return (
       <div className="relative w-full h-full" style={{ minHeight: "500px" }}>
         <img 
           src={fallbackImage} 
-          alt="Matriz Kármica 2025 (Fallback)"
+          alt="Karmic Matrix 2025 (Fallback)"
           className="w-full h-auto transition-opacity duration-300"
           style={{ maxWidth: '100%' }}
-          onLoad={() => console.log("✓ Imagem fallback carregada com sucesso")}
-          onError={() => console.error("✗ Até mesmo a imagem fallback falhou ao carregar")}
+          onLoad={() => console.log("✓ Fallback image loaded successfully")}
+          onError={() => console.error("✗ Even fallback image failed to load")}
         />
         {hasError && (
           <div className="absolute bottom-0 left-0 right-0 bg-amber-50 bg-opacity-80 p-2 text-center text-sm text-karmic-800">
@@ -104,7 +104,7 @@ const KarmicMatrix: React.FC<KarmicMatrixProps> = ({
     );
   };
 
-  // Se karmicData for undefined, mostramos apenas a imagem de fundo
+  // If karmicData is undefined, show only background image
   if (!karmicData) {
     return (
       <div className="relative max-w-4xl mx-auto">
@@ -120,7 +120,7 @@ const KarmicMatrix: React.FC<KarmicMatrixProps> = ({
         >
           {renderBackground()}
           
-          {/* Spinner durante carregamento */}
+          {/* Loading spinner */}
           {!imageLoaded && !hasError && (
             <div className="absolute inset-0 flex items-center justify-center">
               <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-karmic-800"></div>
@@ -134,7 +134,7 @@ const KarmicMatrix: React.FC<KarmicMatrixProps> = ({
     );
   }
 
-  // Mapeamento para usar os valores diretamente
+  // Map to use values directly
   const numbersToDisplay = [
     { key: 'karmicSeal', value: karmicData.karmicSeal, title: "Selo Kármico 2025" },
     { key: 'destinyCall', value: karmicData.destinyCall, title: "Chamado do Destino 2025" },
@@ -161,7 +161,7 @@ const KarmicMatrix: React.FC<KarmicMatrixProps> = ({
       >
         {renderBackground()}
         
-        {/* Spinner durante carregamento */}
+        {/* Loading spinner */}
         {!imageLoaded && !hasError && (
           <div className="absolute inset-0 flex items-center justify-center">
             <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-karmic-800"></div>
@@ -180,7 +180,8 @@ const KarmicMatrix: React.FC<KarmicMatrixProps> = ({
           style={{ 
             top: numberPositions[item.key as keyof typeof numberPositions].top, 
             left: numberPositions[item.key as keyof typeof numberPositions].left,
-            transform: "translate(-50%, -50%)"
+            transform: "translate(-50%, -50%)",
+            zIndex: 10
           }}
         >
           <div className="flex items-center justify-center">

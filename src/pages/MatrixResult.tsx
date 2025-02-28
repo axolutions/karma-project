@@ -47,7 +47,7 @@ const MatrixResult = () => {
           return;
         }
         
-        // Pequeno delay para garantir que tudo seja carregado corretamente
+        // Small delay to ensure everything loads correctly
         setTimeout(() => {
           setUserData(data);
           setLoading(false);
@@ -66,16 +66,16 @@ const MatrixResult = () => {
     loadUserData();
   }, [navigate]);
   
-  // Nova função para baixar apenas as interpretações como PDF
+  // New function to download just interpretations as PDF
   const handleDownloadInterpretations = async () => {
     try {
       setSending(true);
       
-      // Capturar todas as interpretações expandidas antes de gerar o PDF
+      // Capture all expanded interpretations before generating PDF
       const expandAllInterpretations = document.querySelectorAll('.matrix-interpretations .karmic-card');
       expandAllInterpretations.forEach(card => {
         if (!card.querySelector('.overflow-hidden')) {
-          // Se não estiver expandido, clique para expandir
+          // If not expanded, click to expand
           const header = card.querySelector('.flex.justify-between');
           if (header) {
             (header as HTMLElement).click();
@@ -83,35 +83,34 @@ const MatrixResult = () => {
         }
       });
       
-      // Atraso para garantir que todas as seções expandam antes de gerar o PDF
-      // Corrigindo o uso do Promise com o constructor que requer um executor
+      // Delay to ensure all sections expand before generating PDF
       await new Promise<void>((resolve) => setTimeout(() => resolve(), 1000));
       
       try {
-        // Criar PDF
+        // Create PDF
         const pdf = new jsPDF({
           orientation: 'portrait',
           unit: 'mm',
           format: 'a4',
         });
         
-        // Adicionar título
+        // Add title
         pdf.setFontSize(16);
         pdf.text("Interpretações da Matriz Kármica", 105, 15, { align: 'center' });
         pdf.setFontSize(12);
         pdf.text(`${userData?.name || 'Cliente'} - ${userData?.birthDate || 'Data não informada'}`, 105, 25, { align: 'center' });
         
-        // Capturar cada seção de interpretação individualmente e adicionar ao PDF
+        // Capture each interpretation section individually and add to PDF
         const interpretationCards = document.querySelectorAll('.matrix-interpretations .karmic-card');
-        let currentY = 35; // Posição Y inicial
+        let currentY = 35; // Initial Y position
         
         for (let i = 0; i < interpretationCards.length; i++) {
           const card = interpretationCards[i];
           
-          // Verificar se precisamos adicionar uma nova página
+          // Check if we need to add a new page
           if (i > 0) {
             pdf.addPage();
-            currentY = 15; // Resetar para o topo da nova página
+            currentY = 15; // Reset to top of new page
           }
           
           const canvas = await html2canvas(card as HTMLElement, {
@@ -124,18 +123,18 @@ const MatrixResult = () => {
           
           const imgData = canvas.toDataURL('image/jpeg', 0.95);
           
-          // Calcular dimensões para manter proporções
+          // Calculate dimensions to maintain proportions
           const imgWidth = 190;
           const imgHeight = canvas.height * imgWidth / canvas.width;
           
-          // Adicionar imagem ao PDF
+          // Add image to PDF
           pdf.addImage(imgData, 'JPEG', 10, currentY, imgWidth, imgHeight);
           
-          // Atualizar posição Y para o próximo item
+          // Update Y position for next item
           currentY += imgHeight + 10;
         }
         
-        // Baixar o PDF
+        // Download PDF
         pdf.save(`Interpretações-Matriz-Karmica-${userData?.name || 'Pessoal'}.pdf`);
         
         toast({
@@ -179,7 +178,7 @@ const MatrixResult = () => {
       description: "Recarregando sua Matriz Kármica..."
     });
     
-    // Simular um pequeno delay e então recarregar
+    // Simulate a small delay and then reload
     setTimeout(() => {
       window.location.reload();
     }, 500);
@@ -254,7 +253,7 @@ const MatrixResult = () => {
             Data de Nascimento: <span className="font-medium">{userData?.birthDate || "Não informada"}</span>
           </p>
           
-          <div className="karmic-matrix-container">
+          <div className="karmic-matrix-container relative">
             <KarmicMatrix karmicData={userData?.karmicNumbers} />
           </div>
         </motion.div>
