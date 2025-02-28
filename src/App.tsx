@@ -8,7 +8,7 @@ import Index from "./pages/Index";
 import MatrixResult from "./pages/MatrixResult";
 import Admin from "./pages/Admin";
 import NotFound from "./pages/NotFound";
-import { isLoggedIn } from "./lib/auth";
+import { isLoggedIn, getUserData, getCurrentUser } from "./lib/auth";
 
 const queryClient = new QueryClient();
 

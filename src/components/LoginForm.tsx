@@ -1,5 +1,5 @@
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { login, getUserData, isAuthorizedEmail, getAllAuthorizedEmails } from '@/lib/auth';
@@ -13,6 +13,11 @@ const LoginForm: React.FC = () => {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const navigate = useNavigate();
+  
+  useEffect(() => {
+    // Limpar mensagens de erro quando o componente monta
+    setError(null);
+  }, []);
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -64,14 +69,15 @@ const LoginForm: React.FC = () => {
       
       setTimeout(() => {
         setIsSubmitting(false);
-        if (userData) {
+        if (userData && userData.karmicNumbers) {
           // User already has a matrix, redirect to results
           navigate('/matrix');
         } else {
           // User needs to fill profile, redirect to profile page
-          navigate('/');
-          // Force reload to show profile form
-          window.location.reload();
+          // Recarregar a página atual para mostrar o ProfileForm
+          setTimeout(() => {
+            window.location.reload();
+          }, 500);
         }
       }, 1000);
     } else {
@@ -117,11 +123,9 @@ const LoginForm: React.FC = () => {
         <MoveRight className="ml-2 h-4 w-4 transition-transform group-hover:translate-x-1" />
       </Button>
       
-      {process.env.NODE_ENV === 'development' && (
-        <div className="text-xs text-gray-400 mt-4">
-          <p>Emails autorizados para teste: test@example.com, cliente@teste.com, user@example.com, teste@teste.com</p>
-        </div>
-      )}
+      <div className="text-xs text-gray-400 mt-4">
+        <p>Emails autorizados para teste: test@example.com, cliente@teste.com, user@example.com, teste@teste.com</p>
+      </div>
     </form>
   );
 };
