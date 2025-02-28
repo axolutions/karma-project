@@ -13,27 +13,54 @@ const MatrixResult = () => {
   const [userData, setUserData] = useState<any>(null);
   const [refreshing, setRefreshing] = useState(false);
   const [isPrinting, setIsPrinting] = useState(false);
+  const [loading, setLoading] = useState(true);
   const navigate = useNavigate();
   
   useEffect(() => {
-    const email = getCurrentUser();
-    if (!email) {
-      navigate('/');
-      return;
-    }
+    const loadUserData = async () => {
+      setLoading(true);
+      try {
+        const email = getCurrentUser();
+        
+        if (!email) {
+          toast({
+            title: "Sessão expirada",
+            description: "Por favor, faça login novamente.",
+            variant: "destructive"
+          });
+          navigate('/');
+          return;
+        }
+        
+        const data = getUserData(email);
+        
+        if (!data || !data.karmicNumbers) {
+          toast({
+            title: "Perfil incompleto",
+            description: "Por favor, complete seu perfil com uma data de nascimento válida.",
+            variant: "destructive"
+          });
+          navigate('/');
+          return;
+        }
+        
+        // Pequeno delay para garantir que tudo seja carregado corretamente
+        setTimeout(() => {
+          setUserData(data);
+          setLoading(false);
+        }, 300);
+      } catch (error) {
+        console.error("Erro ao carregar dados do usuário:", error);
+        toast({
+          title: "Erro ao carregar dados",
+          description: "Houve um problema ao carregar seus dados. Por favor, tente novamente.",
+          variant: "destructive"
+        });
+        setLoading(false);
+      }
+    };
     
-    const data = getUserData(email);
-    if (!data) {
-      toast({
-        title: "Perfil não encontrado",
-        description: "Por favor, complete seu perfil primeiro.",
-        variant: "destructive"
-      });
-      navigate('/');
-      return;
-    }
-    
-    setUserData(data);
+    loadUserData();
   }, [navigate]);
   
   // Detecta quando a impressão é concluída ou cancelada
@@ -102,11 +129,12 @@ const MatrixResult = () => {
     }, 500);
   };
   
-  if (!userData) {
+  if (loading) {
     return (
-      <div className="min-h-screen flex items-center justify-center">
+      <div className="min-h-screen flex items-center justify-center bg-gradient-to-b from-karmic-100 to-white">
         <div className="text-center">
-          <p className="text-karmic-700">Carregando...</p>
+          <RefreshCw className="h-8 w-8 text-karmic-600 animate-spin mx-auto mb-4" />
+          <p className="text-karmic-700 text-lg">Carregando sua Matriz Kármica...</p>
         </div>
       </div>
     );
@@ -121,7 +149,7 @@ const MatrixResult = () => {
               Matriz Kármica Pessoal 2025
             </h1>
             <p className="text-karmic-600">
-              Olá, <span className="font-medium">{userData.name}</span>
+              Olá, <span className="font-medium">{userData?.name || "Visitante"}</span>
             </p>
           </div>
           
@@ -166,13 +194,13 @@ const MatrixResult = () => {
             Sua Matriz Kármica
           </h2>
           <p className="text-karmic-600 mb-6 print:mb-3">
-            Data de Nascimento: <span className="font-medium">{userData.birthDate}</span>
+            Data de Nascimento: <span className="font-medium">{userData?.birthDate || "Não informada"}</span>
           </p>
           
-          <KarmicMatrix karmicData={userData.karmicNumbers} />
+          <KarmicMatrix karmicData={userData?.karmicNumbers} />
         </motion.div>
         
-        <MatrixInterpretations karmicData={userData.karmicNumbers} />
+        <MatrixInterpretations karmicData={userData?.karmicNumbers} />
       </div>
     </div>
   );

@@ -14,7 +14,7 @@ interface MatrixInterpretationsProps {
     cycleProphecy: number;
     spiritualMark: number;
     manifestationEnigma: number;
-  };
+  } | undefined;
 }
 
 const MatrixInterpretations: React.FC<MatrixInterpretationsProps> = ({ karmicData }) => {
@@ -31,6 +31,22 @@ const MatrixInterpretations: React.FC<MatrixInterpretationsProps> = ({ karmicDat
       return newSet;
     });
   };
+
+  // Se karmicData for undefined, exibimos uma mensagem
+  if (!karmicData) {
+    return (
+      <div className="max-w-4xl mx-auto mt-8 text-center">
+        <div className="karmic-card p-6">
+          <h2 className="text-xl font-serif font-medium text-karmic-800 mb-4">
+            Interpretações não disponíveis
+          </h2>
+          <p className="text-karmic-600">
+            Os dados da sua matriz kármica não estão disponíveis no momento. Por favor, verifique seu perfil ou tente novamente mais tarde.
+          </p>
+        </div>
+      </div>
+    );
+  }
 
   const interpretationItems = [
     { key: 'karmicSeal', value: karmicData.karmicSeal },

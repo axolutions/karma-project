@@ -13,7 +13,7 @@ interface KarmicMatrixProps {
     cycleProphecy: number;
     spiritualMark: number;
     manifestationEnigma: number;
-  };
+  } | undefined;
   backgroundImage?: string;
 }
 
@@ -65,6 +65,27 @@ const KarmicMatrix: React.FC<KarmicMatrixProps> = ({
     manifestationEnigma: { top: "20%", left: "47%" }
   };
 
+  // Se karmicData for undefined, mostramos apenas a imagem de fundo
+  if (!karmicData) {
+    return (
+      <div className="relative max-w-4xl mx-auto">
+        <img 
+          src={imgSrc} 
+          alt="Matriz Kármica 2025" 
+          className="w-full h-auto"
+          onLoad={() => setImageLoaded(true)}
+          style={{ 
+            border: '1px solid #EAE6E1',
+            borderRadius: '8px'
+          }}
+        />
+        <div className="text-center mt-4 text-karmic-600">
+          Dados da matriz não disponíveis. Por favor, verifique seu perfil.
+        </div>
+      </div>
+    );
+  }
+
   // Simplificamos o mapeamento para usar os valores diretamente
   const numbersToDisplay = [
     { key: 'karmicSeal', value: karmicData.karmicSeal, title: "Selo Kármico 2025" },
@@ -101,8 +122,8 @@ const KarmicMatrix: React.FC<KarmicMatrixProps> = ({
           transition={{ delay: index * 0.1, duration: 0.5 }}
           className="absolute print:!opacity-100"
           style={{ 
-            top: numberPositions[item.key].top, 
-            left: numberPositions[item.key].left,
+            top: numberPositions[item.key as keyof typeof numberPositions].top, 
+            left: numberPositions[item.key as keyof typeof numberPositions].left,
             transform: "translate(-50%, -50%)"
           }}
         >
