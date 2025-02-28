@@ -10,6 +10,7 @@ import { toast } from "@/components/ui/use-toast";
 import { motion } from 'framer-motion';
 import { isInOfflineMode } from '@/lib/supabase';
 import html2canvas from 'html2canvas';
+import html2pdf from 'html2pdf.js';
 
 const MatrixResult = () => {
   const [userData, setUserData] = useState<any>(null);
@@ -65,13 +66,13 @@ const MatrixResult = () => {
     loadUserData();
   }, [navigate]);
   
-  // Função para gerar uma imagem PNG da página completa (matriz + interpretações)
+  // Função para gerar PDF da página completa (matriz + interpretações)
   const handleDownloadFullPage = async () => {
     try {
       setDownloading(true);
       toast({
         title: "Preparando download",
-        description: "Gerando imagem da sua matriz e interpretações...",
+        description: "Gerando PDF da sua matriz e interpretações...",
       });
       
       // Selecionar o contêiner principal que contém a matriz e as interpretações
@@ -97,28 +98,30 @@ const MatrixResult = () => {
       // Pequeno delay para garantir que todas as seções estejam expandidas
       await new Promise(resolve => setTimeout(resolve, 500));
       
-      // Usa html2canvas para capturar todo o conteúdo
-      const canvas = await html2canvas(fullPageElement as HTMLElement, {
-        scale: 1.5, // Qualidade balanceada
-        backgroundColor: "#ffffff",
-        logging: false,
-        useCORS: true, // Permite carregar imagens cross-origin
-        allowTaint: true, // Permite incluir imagens potencialmente não seguras
-      });
+      // Configurações do PDF
+      const pdfOptions = {
+        margin: [10, 10, 10, 10],
+        filename: `Matriz-Karmica-Completa-${userData?.name || 'Pessoal'}.pdf`,
+        image: { type: 'jpeg', quality: 0.98 },
+        html2canvas: { 
+          scale: 2, // Melhor qualidade
+          useCORS: true,
+          logging: false,
+          letterRendering: true,
+          allowTaint: true
+        },
+        jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }
+      };
       
-      // Criar um link de download para a imagem
-      const imgData = canvas.toDataURL('image/png');
-      const link = document.createElement('a');
-      link.href = imgData;
-      link.download = `Matriz-Karmica-Completa-${userData?.name || 'Pessoal'}.png`;
-      document.body.appendChild(link);
-      link.click();
-      document.body.removeChild(link);
+      // Gerar o PDF usando html2pdf
+      html2pdf().from(fullPageElement).set(pdfOptions).save()
+        .then(() => {
+          toast({
+            title: "Download concluído",
+            description: "Sua Matriz Kármica completa foi baixada em PDF com sucesso!",
+          });
+        });
       
-      toast({
-        title: "Download concluído",
-        description: "Sua Matriz Kármica completa foi baixada com sucesso!",
-      });
     } catch (error) {
       console.error("Erro ao gerar download:", error);
       toast({
@@ -194,7 +197,7 @@ const MatrixResult = () => {
               disabled={downloading}
             >
               <Download className="mr-2 h-4 w-4" />
-              {downloading ? 'Gerando...' : 'Baixar Matriz Completa'}
+              {downloading ? 'Gerando PDF...' : 'Baixar Matriz em PDF'}
             </Button>
             
             <Button 
