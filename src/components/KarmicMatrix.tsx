@@ -15,13 +15,11 @@ interface KarmicMatrixProps {
     manifestationEnigma: number;
   } | undefined;
   backgroundImage?: string;
-  showNumbers?: boolean;
 }
 
 const KarmicMatrix: React.FC<KarmicMatrixProps> = ({ 
   karmicData,
-  backgroundImage = "/lovable-uploads/ce9f1d87-d6ab-4456-a798-1f4cec565e32.png",
-  showNumbers = true
+  backgroundImage = "https://darkorange-goldfinch-896244.hostingersite.com/wp-content/uploads/2025/02/Design-sem-nome-1.png"
 }) => {
   const [imageLoaded, setImageLoaded] = useState(false);
   const [imgSrc, setImgSrc] = useState(backgroundImage);
@@ -80,7 +78,6 @@ const KarmicMatrix: React.FC<KarmicMatrixProps> = ({
             border: '1px solid #EAE6E1',
             borderRadius: '8px'
           }}
-          crossOrigin="anonymous"
         />
         <div className="text-center mt-4 text-karmic-600">
           Dados da matriz não disponíveis. Por favor, verifique seu perfil.
@@ -102,14 +99,13 @@ const KarmicMatrix: React.FC<KarmicMatrixProps> = ({
   ];
 
   return (
-    <div className="relative max-w-4xl mx-auto karmic-matrix-with-image">
+    <div className="relative max-w-4xl mx-auto">
       {/* Background matrix image */}
       <img 
         src={imgSrc} 
         alt="Matriz Kármica 2025" 
         className="w-full h-auto"
         onLoad={() => setImageLoaded(true)}
-        crossOrigin="anonymous"
         style={{ 
           // Adiciona um contorno para caso a imagem não seja visível no PDF
           border: '1px solid #EAE6E1',
@@ -118,7 +114,7 @@ const KarmicMatrix: React.FC<KarmicMatrixProps> = ({
       />
       
       {/* Numbers overlay */}
-      {imageLoaded && showNumbers && numbersToDisplay.map((item, index) => (
+      {imageLoaded && numbersToDisplay.map((item, index) => (
         <motion.div
           key={item.key}
           initial={{ opacity: 0, scale: 0.8 }}
