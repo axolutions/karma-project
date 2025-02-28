@@ -25,6 +25,9 @@ const MatrixResult = () => {
   const matrixRef = useRef<HTMLDivElement>(null);
   const navigate = useNavigate();
   
+  // Usamos o ID para forçar um recarregamento quando necessário
+  const [matrixId, setMatrixId] = useState(Date.now());
+  
   useEffect(() => {
     const loadUserData = async () => {
       setLoading(true);
@@ -161,22 +164,15 @@ const MatrixResult = () => {
         const sourceHeight = contentCanvas.height / contentPageCount;
         const destHeight = contentImgHeight / contentPageCount;
         
-        // Correção aqui: Utilizando o método addImage com os parâmetros corretos
-        // O problema estava nesta linha, com parâmetros extras sendo passados
+        // Usa apenas os parâmetros necessários
         pdf.addImage(
           contentImgData, // source
           'PNG', // format
           10, // x
           10, // y
           contentImgWidth, // width
-          destHeight, // height
-          null, // alias
-          'FAST', // compression
-          0 // rotation
+          destHeight // height
         );
-        
-        // Se precisar recortar partes da imagem, use um canvas temporário
-        // em vez de usar parâmetros adicionais
       }
       
       // Converte o PDF para base64
@@ -231,10 +227,16 @@ const MatrixResult = () => {
       description: "Recarregando sua Matriz Kármica..."
     });
     
-    // Simular um pequeno delay e então recarregar
+    // Forçar recarregamento da matriz mudando seu ID para forçar re-renderização
+    setMatrixId(Date.now());
+    
     setTimeout(() => {
-      window.location.reload();
-    }, 500);
+      setRefreshing(false);
+      toast({
+        title: "Atualizado",
+        description: "Matriz Kármica recarregada com sucesso!"
+      });
+    }, 1000);
   };
   
   if (loading) {
@@ -334,7 +336,7 @@ const MatrixResult = () => {
               Data de Nascimento: <span className="font-medium">{userData?.birthDate || "Não informada"}</span>
             </p>
             
-            <div ref={matrixRef}>
+            <div ref={matrixRef} key={matrixId}>
               <KarmicMatrix karmicData={userData?.karmicNumbers} />
             </div>
           </motion.div>

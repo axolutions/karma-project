@@ -1,5 +1,5 @@
 
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useRef } from 'react';
 import { getInterpretation, renderHTML } from '@/lib/interpretations';
 import { motion } from 'framer-motion';
 
@@ -22,42 +22,51 @@ const KarmicMatrix: React.FC<KarmicMatrixProps> = ({
   backgroundImage = "/lovable-uploads/77a4e867-ec94-4db5-b2be-656d9131268e.png"
 }) => {
   const [imageLoaded, setImageLoaded] = useState(false);
-  const [imgSrc, setImgSrc] = useState(backgroundImage);
+  const [imgSrc, setImgSrc] = useState('/placeholder.svg'); // Começamos com o placeholder
+  const imgRef = useRef<HTMLImageElement>(null);
   
-  // Pré-carrega a imagem para garantir que ela esteja disponível para impressão e geração de PDF
+  // Pré-carrega a imagem para garantir que ela esteja disponível
   useEffect(() => {
+    // Função para precarregar a imagem de fundo
     const preloadImage = () => {
-      try {
-        const img = new Image();
-        img.crossOrigin = "anonymous";
-        img.onload = () => {
-          setImageLoaded(true);
-          setImgSrc(backgroundImage);
-        };
-        img.onerror = () => {
-          // Fallback para uma imagem local se a externa falhar
-          console.error("Erro ao carregar a imagem da matriz. Usando fallback.");
-          setImgSrc("/placeholder.svg");
-          setImageLoaded(true);
-        };
-        img.src = backgroundImage;
-        
-        // Definimos um timeout para garantir que não ficamos travados esperando o carregamento
-        setTimeout(() => {
-          if (!imageLoaded) {
-            console.warn("Timeout no carregamento da imagem, marcando como carregada de qualquer forma");
-            setImageLoaded(true);
-          }
-        }, 3000);
-      } catch (error) {
-        console.error("Erro ao pré-carregar imagem:", error);
-        setImgSrc("/placeholder.svg");
+      const img = new Image();
+      img.crossOrigin = "anonymous";
+      
+      img.onload = () => {
+        console.log("Imagem carregada com sucesso:", backgroundImage);
+        setImgSrc(backgroundImage);
         setImageLoaded(true);
-      }
+      };
+      
+      img.onerror = (e) => {
+        console.error("Erro ao carregar a imagem da matriz:", e);
+        setImgSrc('/placeholder.svg');
+        setImageLoaded(true);
+      };
+      
+      // Definimos um timeout para garantir que não ficamos presos esperando
+      const timeoutId = setTimeout(() => {
+        if (!imageLoaded) {
+          console.warn("Timeout no carregamento da imagem, usando placeholder");
+          setImgSrc('/placeholder.svg');
+          setImageLoaded(true);
+        }
+      }, 5000);
+      
+      // Atribuímos a source no final para iniciar o carregamento
+      img.src = backgroundImage;
+      
+      // Limpeza do timeout quando o componente for desmontado
+      return () => clearTimeout(timeoutId);
     };
     
     preloadImage();
-  }, [backgroundImage]);
+    
+    // Limpeza quando o componente desmontar
+    return () => {
+      console.log("Componente KarmicMatrix desmontado");
+    };
+  }, [backgroundImage]); // Remova imageLoaded daqui para evitar loop infinito
   
   // Vamos listar explicitamente as posições para cada número específico
   const numberPositions = {
@@ -91,10 +100,10 @@ const KarmicMatrix: React.FC<KarmicMatrixProps> = ({
     return (
       <div className="relative max-w-4xl mx-auto">
         <img 
+          ref={imgRef}
           src={imgSrc} 
           alt="Matriz Kármica 2025" 
           className="w-full h-auto"
-          onLoad={() => setImageLoaded(true)}
           style={{ 
             border: '1px solid #EAE6E1',
             borderRadius: '8px'
@@ -123,16 +132,26 @@ const KarmicMatrix: React.FC<KarmicMatrixProps> = ({
     <div className="relative max-w-4xl mx-auto">
       {/* Background matrix image */}
       <img 
+        ref={imgRef}
         src={imgSrc} 
         alt="Matriz Kármica 2025" 
         className="w-full h-auto"
-        onLoad={() => setImageLoaded(true)}
         style={{ 
           // Adiciona um contorno para caso a imagem não seja visível no PDF
           border: '1px solid #EAE6E1',
           borderRadius: '8px'
         }}
       />
+      
+      {/* Indicator if image is not loaded properly */}
+      {!imageLoaded && (
+        <div className="absolute inset-0 flex items-center justify-center bg-white bg-opacity-50">
+          <div className="text-karmic-600 text-center p-4">
+            <div className="animate-spin h-8 w-8 border-4 border-karmic-600 rounded-full border-t-transparent mx-auto mb-2"></div>
+            Carregando imagem...
+          </div>
+        </div>
+      )}
       
       {/* Numbers overlay */}
       {imageLoaded && numbersToDisplay.map((item, index) => (
