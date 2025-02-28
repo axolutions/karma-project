@@ -5,14 +5,12 @@ import { getCurrentUser, getUserData, logout } from '@/lib/auth';
 import { useNavigate } from 'react-router-dom';
 import KarmicMatrix from '@/components/KarmicMatrix';
 import MatrixInterpretations from '@/components/MatrixInterpretations';
-import { LogOut, RefreshCw, Mail, Download } from 'lucide-react';
+import { LogOut, RefreshCw, FileText, Image } from 'lucide-react';
 import { toast } from "@/components/ui/use-toast";
 import { motion } from 'framer-motion';
 import { supabaseClient, isInOfflineMode } from '@/lib/supabase';
 import html2canvas from 'html2canvas';
-
-// Constante para controlar se devemos usar o modo de fallback para email
-const USE_EMAIL_FALLBACK = true;
+import jsPDF from 'jspdf';
 
 const MatrixResult = () => {
   const [userData, setUserData] = useState<any>(null);
@@ -68,12 +66,12 @@ const MatrixResult = () => {
     loadUserData();
   }, [navigate]);
   
-  // Função para gerar e baixar um arquivo PDF ou imagem PNG da matriz
+  // Função para gerar e baixar apenas a matriz como PNG
   const handleDownloadMatrix = async () => {
     try {
       setSending(true);
       
-      // Capturar a matriz como imagem
+      // Capturar apenas a matriz como imagem
       const matrixElement = document.querySelector('.karmic-matrix-container');
       if (!matrixElement) {
         throw new Error("Não foi possível encontrar a matriz para baixar");
@@ -99,7 +97,7 @@ const MatrixResult = () => {
         description: "Sua Matriz Kármica foi baixada com sucesso!",
       });
     } catch (error) {
-      console.error("Erro ao gerar download:", error);
+      console.error("Erro ao gerar download da matriz:", error);
       toast({
         title: "Erro ao gerar download",
         description: "Não foi possível baixar a matriz. Por favor, tente novamente mais tarde.",
@@ -110,118 +108,60 @@ const MatrixResult = () => {
     }
   };
   
-  const handleSendEmail = async () => {
-    if (!userData || !userData.email) {
-      toast({
-        title: "Email não disponível",
-        description: "Não foi possível encontrar seu email. Por favor, verifique seu perfil.",
-        variant: "destructive"
-      });
-      return;
-    }
-    
-    setSending(true);
-    
+  // Nova função para baixar apenas as interpretações como PDF
+  const handleDownloadInterpretations = async () => {
     try {
-      // Capturar a matriz como imagem
-      const matrixElement = document.querySelector('.karmic-matrix-container');
-      if (!matrixElement) {
-        throw new Error("Não foi possível encontrar a matriz para enviar");
+      setSending(true);
+      
+      // Capturar apenas as interpretações
+      const interpretationsElement = document.querySelector('.matrix-interpretations');
+      if (!interpretationsElement) {
+        throw new Error("Não foi possível encontrar as interpretações para baixar");
       }
       
-      const canvas = await html2canvas(matrixElement as HTMLElement, {
-        scale: 2, // Melhor qualidade
+      const canvas = await html2canvas(interpretationsElement as HTMLElement, {
+        scale: 1.5, // Qualidade adequada para PDF
         backgroundColor: "#ffffff",
         logging: false,
       });
       
-      const matrixImageData = canvas.toDataURL('image/png');
+      const imgData = canvas.toDataURL('image/jpeg', 0.95);
       
-      // Preparar os dados da interpretação
-      const interpretationsElement = document.querySelector('.matrix-interpretations');
-      let interpretationsText = '';
-      
-      if (interpretationsElement) {
-        const titles = interpretationsElement.querySelectorAll('h3');
-        const contents = interpretationsElement.querySelectorAll('p');
-        
-        titles.forEach((title, index) => {
-          if (contents[index]) {
-            interpretationsText += `${title.textContent}\n${contents[index].textContent}\n\n`;
-          }
-        });
-      }
-      
-      // Verificar se estamos em modo offline ou se o uso de fallback está ativado
-      if (isInOfflineMode() || USE_EMAIL_FALLBACK) {
-        console.log("Usando método de fallback para envio de email");
-        handleEmailFallback(userData.email, matrixImageData);
-        return;
-      }
-      
-      // Chamar função do Supabase para enviar o email
-      const { data, error } = await supabaseClient.functions.invoke('send-matrix-email', {
-        body: {
-          to: userData.email,
-          name: userData.name || "Cliente",
-          birthDate: userData.birthDate,
-          matrixImage: matrixImageData,
-          interpretations: interpretationsText
-        }
+      // Criar PDF
+      const pdf = new jsPDF({
+        orientation: 'portrait',
+        unit: 'mm',
       });
       
-      if (error) {
-        console.error("Erro ao invocar função de email:", error);
-        // Se falhar com o Supabase, usar o fallback
-        handleEmailFallback(userData.email, matrixImageData);
-        return;
-      }
+      // Adicionar título
+      pdf.setFontSize(16);
+      pdf.text("Interpretações da Matriz Kármica", 105, 15, { align: 'center' });
+      pdf.setFontSize(12);
+      pdf.text(`${userData?.name || 'Cliente'} - ${userData?.birthDate || 'Data não informada'}`, 105, 25, { align: 'center' });
+      
+      // Calcular dimensões para manter proporções
+      const imgWidth = 190;
+      const imgHeight = canvas.height * imgWidth / canvas.width;
+      
+      // Adicionar imagem ao PDF
+      pdf.addImage(imgData, 'JPEG', 10, 35, imgWidth, imgHeight);
+      
+      // Baixar o PDF
+      pdf.save(`Interpretações-Matriz-Karmica-${userData?.name || 'Pessoal'}.pdf`);
       
       toast({
-        title: "Email enviado",
-        description: `Sua Matriz Kármica foi enviada para ${userData.email}`,
+        title: "Download concluído",
+        description: "As interpretações da sua Matriz Kármica foram baixadas com sucesso!",
       });
     } catch (error) {
-      console.error("Erro ao enviar email:", error);
-      // Se ocorrer qualquer erro, tenta o método de fallback
-      if (userData && userData.email) {
-        handleEmailFallback(userData.email, "");
-      } else {
-        toast({
-          title: "Erro ao enviar email",
-          description: "Não foi possível enviar o email. Por favor, tente novamente mais tarde.",
-          variant: "destructive"
-        });
-      }
-    } finally {
-      setSending(false);
-    }
-  };
-  
-  // Método de fallback para quando o Supabase não funciona
-  const handleEmailFallback = (email: string, imageData: string) => {
-    try {
-      // Oferecer download direto como alternativa
-      if (imageData) {
-        const link = document.createElement('a');
-        link.href = imageData;
-        link.download = `Matriz-Karmica-${userData?.name || 'Pessoal'}.png`;
-        document.body.appendChild(link);
-        link.click();
-        document.body.removeChild(link);
-      }
-      
+      console.error("Erro ao gerar PDF das interpretações:", error);
       toast({
-        title: "Download disponível",
-        description: "Não foi possível enviar o email. Sua matriz foi baixada diretamente no seu dispositivo.",
-      });
-    } catch (fallbackError) {
-      console.error("Erro no método fallback:", fallbackError);
-      toast({
-        title: "Erro ao processar",
-        description: "Não foi possível enviar por email nem baixar a matriz. Tente o botão de download diretamente.",
+        title: "Erro ao gerar PDF",
+        description: "Não foi possível baixar as interpretações. Por favor, tente novamente mais tarde.",
         variant: "destructive"
       });
+    } finally {
+      setSending(false);
     }
   };
   
@@ -283,22 +223,22 @@ const MatrixResult = () => {
             </Button>
             
             <Button 
-              onClick={handleDownloadMatrix}
+              onClick={handleDownloadInterpretations}
               variant="outline"
               className="karmic-button-outline flex items-center"
               disabled={sending}
             >
-              <Download className="mr-2 h-4 w-4" />
-              Baixar Matriz
+              <FileText className="mr-2 h-4 w-4" />
+              Baixar Interpretação
             </Button>
             
             <Button 
-              onClick={handleSendEmail}
+              onClick={handleDownloadMatrix}
               className="karmic-button flex items-center"
               disabled={sending}
             >
-              <Mail className="mr-2 h-4 w-4" />
-              {sending ? 'Processando...' : 'Enviar por Email'}
+              <Image className="mr-2 h-4 w-4" />
+              Baixar Matriz
             </Button>
             
             <Button 
