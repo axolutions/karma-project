@@ -24,13 +24,13 @@ const KarmicMatrix: React.FC<KarmicMatrixProps> = ({
   // Positions configuradas como percentuais da imagem
   // As posições são: [top, left] para cada ponto do selo kármico
   const positionConfig = {
-    topLeft: [15, 25],        // 3 da esquerda (topo)
-    topRight: [15, 75],       // 1 da direita (topo)
+    topLeft: [10, 20],        // 3 da esquerda (topo) - mais para cima e esquerda
+    topRight: [10, 80],       // 1 da direita (topo) - mais para cima e direita
     middleLeft: [46, 21],     // meio esquerda (inalterado)
     middleRight: [47, 72],    // meio direita (inalterado)
-    bottomLeft: [85, 25],     // 11 da esquerda (baixo)
+    bottomLeft: [90, 20],     // 11 da esquerda (baixo) - mais para baixo e esquerda
     bottomMiddle: [74, 48],   // meio inferior (inalterado)
-    bottomRight: [85, 75],    // 3 da direita (baixo)
+    bottomRight: [90, 80],    // 3 da direita (baixo) - mais para baixo e direita
     topMiddle: [20, 47]       // meio superior (inalterado)
   };
 
@@ -99,7 +99,7 @@ const KarmicMatrix: React.FC<KarmicMatrixProps> = ({
   ];
 
   // Tamanho dos círculos ajustado para garantir que caibam nos quadrados
-  const circleSize = "w-14 h-14"; // Tamanho ligeiramente menor
+  const circleSize = "w-12 h-12"; // Tamanho ainda menor para garantir que caibam
 
   return (
     <div className="relative max-w-4xl mx-auto">
@@ -125,7 +125,7 @@ const KarmicMatrix: React.FC<KarmicMatrixProps> = ({
           }}
         >
           <div className="flex items-center justify-center">
-            <span className={`bg-white bg-opacity-80 rounded-full ${circleSize} flex items-center justify-center text-2xl font-serif font-bold text-karmic-800 shadow-lg`}>
+            <span className={`bg-white bg-opacity-80 rounded-full ${circleSize} flex items-center justify-center text-xl font-serif font-bold text-karmic-800 shadow-lg`}>
               {item.value}
             </span>
           </div>
