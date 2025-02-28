@@ -17,23 +17,25 @@ const ProfileForm: React.FC = () => {
   const navigate = useNavigate();
   
   useEffect(() => {
-    // Verificar se o usuário já tem um perfil gerado
-    const currentUser = getCurrentUser();
-    if (currentUser) {
-      const userData = getUserData(currentUser);
-      if (userData) {
-        // Usuário já possui perfil, redirecionar para a matriz
-        setExistingProfile(true);
-        setTimeout(() => {
-          toast({
-            title: "Matriz já gerada",
-            description: "Você já possui uma Matriz Kármica Pessoal. Redirecionando para visualização.",
-          });
-          navigate('/matrix');
-        }, 500);
+    // Verificar apenas uma vez se o usuário já tem perfil
+    let shouldCheckProfile = true;
+    
+    if (shouldCheckProfile) {
+      // Verificar se o usuário já tem um perfil gerado
+      const currentUser = getCurrentUser();
+      if (currentUser) {
+        const userData = getUserData(currentUser);
+        if (userData && userData.karmicNumbers) {
+          // Usuário já possui perfil, redirecionar para a matriz
+          setExistingProfile(true);
+          setTimeout(() => {
+            navigate('/matrix');
+          }, 500);
+        }
       }
+      shouldCheckProfile = false;
     }
-  }, [navigate]);
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
   
   const formatDate = (value: string) => {
     // Filter out non-numeric characters except /
@@ -94,7 +96,7 @@ const ProfileForm: React.FC = () => {
     const currentUser = getCurrentUser();
     if (currentUser) {
       const userData = getUserData(currentUser);
-      if (userData) {
+      if (userData && userData.karmicNumbers) {
         toast({
           title: "Matriz já gerada",
           description: "Você já possui uma Matriz Kármica. Redirecionando para visualização.",

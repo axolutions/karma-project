@@ -1,5 +1,5 @@
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { motion } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
 import LoginForm from '@/components/LoginForm';
@@ -11,25 +11,36 @@ const Index = () => {
   const [userLoggedIn, setUserLoggedIn] = useState(false);
   const [hasProfile, setHasProfile] = useState(false);
   const navigate = useNavigate();
+  // Ref para evitar loop infinito de redirecionamento
+  const hasRedirected = useRef(false);
   
   useEffect(() => {
-    // Check if user is logged in
-    const loggedIn = isLoggedIn();
-    setUserLoggedIn(loggedIn);
-    
-    if (loggedIn) {
-      // Check if user has created profile
-      const email = getCurrentUser();
-      if (email) {
-        const userData = getUserData(email);
-        if (userData && userData.karmicNumbers) {
-          setHasProfile(true);
-          // Redirect to matrix page if they have karmicNumbers
-          navigate('/matrix');
+    // Verificar estado de login apenas uma vez quando o componente monta
+    const checkLoginStatus = () => {
+      // Check if user is logged in
+      const loggedIn = isLoggedIn();
+      setUserLoggedIn(loggedIn);
+      
+      if (loggedIn) {
+        // Check if user has created profile
+        const email = getCurrentUser();
+        if (email) {
+          const userData = getUserData(email);
+          if (userData && userData.karmicNumbers && !hasRedirected.current) {
+            // Define que tem perfil completo
+            setHasProfile(true);
+            // Marcar que já redirecionamos para evitar loops
+            hasRedirected.current = true;
+            // Redirect to matrix page if they have karmicNumbers
+            navigate('/matrix');
+          }
         }
       }
-    }
-  }, [navigate]);
+    };
+    
+    checkLoginStatus();
+    // Remover o navigate da dependência para evitar loops
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-karmic-100 to-white py-12">
