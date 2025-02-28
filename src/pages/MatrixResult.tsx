@@ -77,48 +77,21 @@ const MatrixResult = () => {
         throw new Error("Não foi possível encontrar a matriz para baixar");
       }
       
-      // Garantir que a imagem seja totalmente carregada antes de capturar
-      await new Promise(resolve => setTimeout(resolve, 2000));
+      // Pequeno delay para garantir que a imagem carregue
+      await new Promise(resolve => setTimeout(resolve, 1000));
       
-      // Preparar todos os elementos antes de capturar
-      const matrixClone = matrixElement.cloneNode(true) as HTMLElement;
-      const errorDiv = matrixClone.querySelector('.bg-amber-50');
-      if (errorDiv) {
-        // Se encontrar uma mensagem de erro, removê-la para não aparecer no download
-        errorDiv.parentNode?.removeChild(errorDiv);
-      }
-      
-      // Opções específicas para preservar cores e transparência
       const canvas = await html2canvas(matrixElement as HTMLElement, {
-        scale: 4, // Qualidade ainda melhor
-        backgroundColor: null, // Sem fundo para preservar transparência
-        logging: true, // Ativar logs para debug
-        useCORS: true,
-        allowTaint: true,
-        imageTimeout: 10000, // Tempo maior para imagens carregarem
-        removeContainer: false,
-        onclone: (document, clone) => {
-          // Procurar a imagem no clone do documento e garantir que esteja visível
-          const errorMessages = clone.querySelectorAll('.bg-amber-50.bg-opacity-80');
-          errorMessages.forEach(msg => {
-            // Remover mensagens de erro para não aparecerem no download
-            msg.parentNode?.removeChild(msg);
-          });
-          
-          // Garantir que a imagem da matriz esteja visível
-          const img = clone.querySelector('.karmic-matrix-container img');
-          if (img) {
-            (img as HTMLElement).style.opacity = '1';
-            // Forçar a imagem a ser visível
-            (img as HTMLElement).style.display = 'block';
-          }
-          
-          return Promise.resolve();
-        }
+        scale: 2, // Melhor qualidade
+        backgroundColor: null, // Transparente para preservar as cores originais
+        logging: false, // Desabilita logs para evitar poluição do console
+        useCORS: true, // Importante para imagens de outros domínios
+        allowTaint: true, // Permite imagens de outros domínios
+        imageTimeout: 0, // Sem timeout para imagens
+        removeContainer: false // Não remove o container temporário
       });
       
-      // Criar um link de download para a imagem com máxima qualidade
-      const imgData = canvas.toDataURL('image/png', 1.0);
+      // Criar um link de download para a imagem
+      const imgData = canvas.toDataURL('image/png');
       const link = document.createElement('a');
       link.href = imgData;
       link.download = `Matriz-Karmica-${userData?.name || 'Pessoal'}.png`;
@@ -352,4 +325,3 @@ const MatrixResult = () => {
 };
 
 export default MatrixResult;
-
