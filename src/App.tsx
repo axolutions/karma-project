@@ -14,8 +14,20 @@ const queryClient = new QueryClient();
 
 // Protected route component
 const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
+  // Verificar se o usuário está logado
   if (!isLoggedIn()) {
+    console.log("Usuário não está logado, redirecionando para a página inicial");
     return <Navigate to="/" replace />;
+  }
+  
+  // Verificar se o usuário tem matriz
+  const email = getCurrentUser();
+  if (email) {
+    const userData = getUserData(email);
+    if (!userData || !userData.karmicNumbers) {
+      console.log("Usuário logado mas sem matriz, redirecionando para a página inicial");
+      return <Navigate to="/" replace />;
+    }
   }
   
   return <>{children}</>;
