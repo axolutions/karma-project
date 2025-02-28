@@ -5,7 +5,7 @@ import { getCurrentUser, getUserData, logout } from '@/lib/auth';
 import { useNavigate } from 'react-router-dom';
 import KarmicMatrix from '@/components/KarmicMatrix';
 import MatrixInterpretations from '@/components/MatrixInterpretations';
-import { Printer, LogOut, RefreshCw } from 'lucide-react';
+import { Printer, LogOut, RefreshCw, Download } from 'lucide-react';
 import { toast } from "@/components/ui/use-toast";
 import { motion } from 'framer-motion';
 
@@ -86,7 +86,16 @@ const MatrixResult = () => {
     // Garantir que todos os estilos e imagens sejam carregados antes de imprimir
     setTimeout(() => {
       try {
+        // Adiciona a classe específica para modo de impressão
+        document.body.classList.add('printing-mode');
+        
+        // Usar o método de impressão nativo do navegador
         window.print();
+        
+        // Remove a classe após um tempo
+        setTimeout(() => {
+          document.body.classList.remove('printing-mode');
+        }, 1000);
         
         // Em alguns navegadores, o evento afterprint pode não ser disparado
         // Então definimos um timeout de segurança
@@ -104,7 +113,41 @@ const MatrixResult = () => {
           variant: "destructive"
         });
       }
-    }, 300);
+    }, 500); // Aumentado o delay para garantir carregamento completo
+  };
+  
+  // Função alternativa para quem tem problemas com a impressão direta
+  const handleExportPDF = () => {
+    toast({
+      title: "Exportando PDF",
+      description: "Use a opção 'Salvar como PDF' na janela de impressão que irá abrir."
+    });
+    
+    setTimeout(() => {
+      try {
+        // Adiciona a classe específica para modo de impressão
+        document.body.classList.add('printing-mode');
+        
+        const printOptions = {
+          destination: 'save-as-pdf'
+        };
+        
+        // Em navegadores modernos, isso deve abrir diretamente a opção de salvar como PDF
+        window.print();
+        
+        // Remove a classe após um tempo
+        setTimeout(() => {
+          document.body.classList.remove('printing-mode');
+        }, 1000);
+      } catch (error) {
+        console.error("Erro ao exportar PDF:", error);
+        toast({
+          title: "Erro ao exportar",
+          description: "Houve um problema ao exportar o PDF. Tente imprimir normalmente e escolha 'Salvar como PDF'.",
+          variant: "destructive"
+        });
+      }
+    }, 500);
   };
   
   const handleLogout = () => {
@@ -165,12 +208,21 @@ const MatrixResult = () => {
             </Button>
             
             <Button 
+              onClick={handleExportPDF}
+              className="karmic-button flex items-center"
+              disabled={isPrinting}
+            >
+              <Download className="mr-2 h-4 w-4" />
+              Exportar PDF
+            </Button>
+            
+            <Button 
               onClick={handlePrint}
               className="karmic-button flex items-center"
               disabled={isPrinting}
             >
               <Printer className={`mr-2 h-4 w-4 ${isPrinting ? 'animate-spin' : ''}`} />
-              {isPrinting ? 'Gerando PDF...' : 'Imprimir / PDF'}
+              {isPrinting ? 'Gerando PDF...' : 'Imprimir'}
             </Button>
             
             <Button 
@@ -201,8 +253,6 @@ const MatrixResult = () => {
         </motion.div>
         
         <MatrixInterpretations karmicData={userData?.karmicNumbers} />
-        
-        {/* Versão atualizada 1.1 - Botão de ferramentas de diagnóstico removido */}
       </div>
     </div>
   );
