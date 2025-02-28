@@ -16,8 +16,6 @@ const LoginForm: React.FC = () => {
     e.preventDefault();
     setIsSubmitting(true);
     
-    console.log("LoginForm: Iniciando login para:", email);
-    
     if (!email.trim()) {
       toast({
         title: "Email obrigatório",
@@ -29,7 +27,6 @@ const LoginForm: React.FC = () => {
     }
     
     // Check if email is authorized
-    console.log("LoginForm: Verificando se email está autorizado");
     if (!isAuthorizedEmail(email)) {
       toast({
         title: "Acesso negado",
@@ -41,7 +38,6 @@ const LoginForm: React.FC = () => {
     }
     
     // Login the user
-    console.log("LoginForm: Email autorizado, realizando login");
     const success = login(email);
     if (success) {
       toast({
@@ -50,26 +46,21 @@ const LoginForm: React.FC = () => {
       });
       
       // Check if user has already completed profile
-      console.log("LoginForm: Verificando se usuário já tem perfil");
       const userData = getUserData(email);
-      console.log("LoginForm: Dados do usuário:", userData);
       
       setTimeout(() => {
         setIsSubmitting(false);
-        if (userData && userData.id) {
+        if (userData) {
           // User already has a matrix, redirect to results
-          console.log("LoginForm: Usuário já tem matriz, redirecionando para results");
           navigate('/matrix');
         } else {
           // User needs to fill profile, redirect to profile page
-          console.log("LoginForm: Usuário precisa preencher perfil");
           navigate('/');
           // Force reload to show profile form
           window.location.reload();
         }
       }, 1000);
     } else {
-      console.log("LoginForm: Falha no login");
       setIsSubmitting(false);
     }
   };

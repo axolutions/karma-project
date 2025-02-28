@@ -3,17 +3,27 @@ import React, { useEffect, useState } from 'react';
 import { motion } from 'framer-motion';
 
 interface KarmicMatrixProps {
-  karmicData: any;
+  karmicData: {
+    karmicSeal?: number;
+    destinyCall?: number;
+    karmaPortal?: number;
+    karmicInheritance?: number;
+    karmicReprogramming?: number;
+    cycleProphecy?: number;
+    spiritualMark?: number;
+    manifestationEnigma?: number;
+  };
   backgroundImage?: string;
 }
 
 const KarmicMatrix: React.FC<KarmicMatrixProps> = ({ 
-  karmicData,
+  karmicData = {},
   backgroundImage = "https://darkorange-goldfinch-896244.hostingersite.com/wp-content/uploads/2025/02/Design-sem-nome-1.png"
 }) => {
+  const [imageLoaded, setImageLoaded] = useState(false);
   const [imgSrc, setImgSrc] = useState(backgroundImage);
   
-  console.log("KarmicMatrix: Dados recebidos:", karmicData);
+  console.log("KarmicMatrix: Renderizando com dados:", karmicData);
   
   // Criar dados kármicos seguros (garantindo valores padrão para campos ausentes)
   const safeKarmicData = {
@@ -27,19 +37,30 @@ const KarmicMatrix: React.FC<KarmicMatrixProps> = ({
     manifestationEnigma: karmicData?.manifestationEnigma || 0
   };
   
-  console.log("KarmicMatrix: Dados seguros:", safeKarmicData);
-  
   // Pré-carrega a imagem para garantir que ela esteja disponível
   useEffect(() => {
+    console.log("KarmicMatrix: Carregando imagem:", backgroundImage);
     const img = new Image();
     img.onload = () => {
       console.log("KarmicMatrix: Imagem carregada com sucesso");
+      setImageLoaded(true);
     };
     img.onerror = () => {
       console.error("KarmicMatrix: Erro ao carregar imagem. Usando fallback.");
       setImgSrc("/placeholder.svg");
+      setImageLoaded(true);
     };
     img.src = backgroundImage;
+    
+    // Iniciar como carregado após um timeout para caso a imagem não carregue
+    const timeout = setTimeout(() => {
+      if (!imageLoaded) {
+        console.log("KarmicMatrix: Timeout de carregamento de imagem atingido");
+        setImageLoaded(true);
+      }
+    }, 3000);
+    
+    return () => clearTimeout(timeout);
   }, [backgroundImage]);
   
   // Vamos listar explicitamente as posições para cada número específico
@@ -73,6 +94,10 @@ const KarmicMatrix: React.FC<KarmicMatrixProps> = ({
         src={imgSrc} 
         alt="Matriz Kármica 2025" 
         className="w-full h-auto"
+        onLoad={() => {
+          console.log("KarmicMatrix: Imagem carregada via onLoad");
+          setImageLoaded(true);
+        }}
         style={{ 
           border: '1px solid #EAE6E1',
           borderRadius: '8px',
@@ -80,27 +105,27 @@ const KarmicMatrix: React.FC<KarmicMatrixProps> = ({
         }}
       />
       
-      {/* Sempre renderizar os números */}
-      {numbersToDisplay.map((item, index) => {
-        const position = numberPositions[item.key];
-        return (
-          <div
-            key={item.key}
-            className="absolute print:!opacity-100"
-            style={{ 
-              top: position.top, 
-              left: position.left,
-              transform: "translate(-50%, -50%)"
-            }}
-          >
-            <div className="flex items-center justify-center">
-              <span className="bg-white bg-opacity-80 rounded-full w-10 h-10 flex items-center justify-center text-lg font-serif font-bold text-karmic-800 shadow-lg print:shadow-none print:border print:border-karmic-300">
-                {item.value}
-              </span>
-            </div>
+      {/* Sempre renderizar os números, mesmo se a imagem não estiver carregada completamente */}
+      {numbersToDisplay.map((item, index) => (
+        <motion.div
+          key={item.key}
+          initial={{ opacity: 0, scale: 0.8 }}
+          animate={{ opacity: 1, scale: 1 }}
+          transition={{ delay: index * 0.1, duration: 0.5 }}
+          className="absolute print:!opacity-100"
+          style={{ 
+            top: numberPositions[item.key].top, 
+            left: numberPositions[item.key].left,
+            transform: "translate(-50%, -50%)"
+          }}
+        >
+          <div className="flex items-center justify-center">
+            <span className="bg-white bg-opacity-80 rounded-full w-10 h-10 flex items-center justify-center text-lg font-serif font-bold text-karmic-800 shadow-lg print:shadow-none print:border print:border-karmic-300">
+              {item.value}
+            </span>
           </div>
-        );
-      })}
+        </motion.div>
+      ))}
     </div>
   );
 };
