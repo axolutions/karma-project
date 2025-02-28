@@ -1,16 +1,30 @@
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import EmailManager from '@/components/admin/EmailManager';
 import InterpretationEditor from '@/components/admin/InterpretationEditor';
 import SupabaseSetup from '@/components/admin/SupabaseSetup';
-import { Users, Book, Info, Cloud, Database, Download, Upload } from 'lucide-react';
+import { Users, Book, Info, Cloud, Database, Download, Upload, WifiOff, RefreshCw } from 'lucide-react';
 import { exportInterpretations, importInterpretations } from '@/lib/interpretations';
 import { toast } from "@/components/ui/use-toast";
+import { isInOfflineMode, attemptReconnect } from '@/lib/supabase';
 
 const Admin = () => {
   const [showInfoBox, setShowInfoBox] = useState(true);
+  const [isOffline, setIsOffline] = useState(false);
+  
+  // Verificar estado offline a cada 5 segundos
+  useEffect(() => {
+    const checkOfflineStatus = () => {
+      setIsOffline(isInOfflineMode());
+    };
+    
+    checkOfflineStatus();
+    const interval = setInterval(checkOfflineStatus, 5000);
+    
+    return () => clearInterval(interval);
+  }, []);
   
   // Função para diagnosticar o estado dos dados
   const runDiagnostics = () => {
@@ -100,6 +114,12 @@ const Admin = () => {
     }
   };
   
+  // Função para tentar reconectar com Supabase
+  const handleReconnect = async () => {
+    const success = await attemptReconnect();
+    setIsOffline(!success);
+  };
+  
   return (
     <div className="min-h-screen bg-gradient-to-b from-karmic-100 to-white py-12">
       <div className="container max-w-4xl mx-auto px-4">
@@ -110,6 +130,24 @@ const Admin = () => {
           <p className="text-karmic-600">
             Gerencie emails autorizados e interpretações da Matriz Kármica.
           </p>
+          
+          {/* Indicador de offline e botão de reconexão */}
+          {isOffline && (
+            <div className="mt-4 bg-amber-50 border-l-4 border-amber-400 p-4 rounded-md flex items-center justify-between">
+              <div className="flex items-center">
+                <WifiOff className="h-5 w-5 text-amber-500 mr-2" />
+                <span className="text-amber-700">Modo offline ativo. Dados salvos apenas localmente.</span>
+              </div>
+              <Button 
+                variant="outline" 
+                size="sm" 
+                onClick={handleReconnect}
+                className="bg-white text-amber-600 border-amber-300 hover:bg-amber-50"
+              >
+                <RefreshCw className="h-4 w-4 mr-1" /> Reconectar
+              </Button>
+            </div>
+          )}
           
           {/* Botões de diagnóstico de emergência */}
           <div className="mt-4 flex gap-2">
@@ -140,8 +178,8 @@ const Admin = () => {
               </div>
               <div className="ml-3">
                 <p className="text-sm text-blue-700">
-                  <strong>Armazenamento seguro:</strong> Suas interpretações agora são salvas na nuvem automaticamente. 
-                  Você também pode utilizar as funções "Exportar" e "Importar" para fazer backup adicional das suas interpretações.
+                  <strong>Armazenamento seguro:</strong> Suas interpretações são salvas na nuvem automaticamente quando possível, e também localmente. 
+                  Para segurança adicional, utilize as funções "Exportar" e "Importar" para fazer backup das suas interpretações.
                 </p>
               </div>
               <button 
