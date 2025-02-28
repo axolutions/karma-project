@@ -35,7 +35,6 @@ const KarmicMatrix: React.FC<KarmicMatrixProps> = ({
       console.error("Erro ao carregar a imagem da matriz. Usando fallback.");
       setImgSrc("/placeholder.svg");
     };
-    img.crossOrigin = "anonymous"; // Importante para conseguir capturar a imagem em canvas
     img.src = backgroundImage;
   }, [backgroundImage]);
   
@@ -73,7 +72,6 @@ const KarmicMatrix: React.FC<KarmicMatrixProps> = ({
         <img 
           src={imgSrc} 
           alt="Matriz Kármica 2025"
-          crossOrigin="anonymous"
           className="w-full h-auto"
           onLoad={() => setImageLoaded(true)}
           style={{ 
@@ -106,11 +104,9 @@ const KarmicMatrix: React.FC<KarmicMatrixProps> = ({
       <img 
         src={imgSrc} 
         alt="Matriz Kármica 2025"
-        crossOrigin="anonymous"
         className="w-full h-auto"
         onLoad={() => setImageLoaded(true)}
         style={{ 
-          // Adiciona um contorno para caso a imagem não seja visível no PDF
           border: '1px solid #EAE6E1',
           borderRadius: '8px'
         }}
