@@ -14,7 +14,7 @@ const Index = () => {
   const navigate = useNavigate();
   
   // Função para verificar o status do login e determinar o estado de navegação
-  const checkUserStatus = async () => {
+  const checkUserStatus = () => {
     try {
       setLoading(true);
       
@@ -31,10 +31,9 @@ const Index = () => {
           if (userData && userData.karmicNumbers) {
             // Usuário já tem matriz kármica completa
             console.log("Usuário com matriz kármica, redirecionando...");
+            // Ao invés de redirecionar automaticamente, apenas atualizamos o estado
             setUserLoggedIn(true);
             setHasProfile(true);
-            navigate('/matrix');
-            return;
           } else {
             // Usuário está logado mas precisa completar o perfil
             console.log("Usuário logado mas sem perfil completo");
@@ -80,7 +79,7 @@ const Index = () => {
   
   // Handler para quando o perfil for completado
   const handleProfileComplete = () => {
-    checkUserStatus();
+    navigate('/matrix');
   };
 
   // Se estiver carregando, mostrar indicador
