@@ -75,9 +75,7 @@ const LoginForm: React.FC = () => {
         } else {
           // User needs to fill profile, redirect to profile page
           // Recarregar a página atual para mostrar o ProfileForm
-          setTimeout(() => {
-            window.location.reload();
-          }, 500);
+          window.location.reload();
         }
       }, 1000);
     } else {
