@@ -12,6 +12,8 @@ const KarmicMatrix: React.FC<KarmicMatrixProps> = ({
   backgroundImage = "https://matrizkarmica.com/wp-content/uploads/2025/02/Design-sem-nome-1.png"
 }) => {
   const [imgSrc, setImgSrc] = useState(backgroundImage);
+  const [isImageLoaded, setIsImageLoaded] = useState(false);
+  const [imageError, setImageError] = useState(false);
   
   console.log("KarmicMatrix: Dados recebidos:", karmicData);
   
@@ -31,15 +33,34 @@ const KarmicMatrix: React.FC<KarmicMatrixProps> = ({
   
   // Pré-carrega a imagem para garantir que ela esteja disponível
   useEffect(() => {
+    // Resetar o estado ao trocar a imagem
+    setIsImageLoaded(false);
+    setImageError(false);
+    
     const img = new Image();
     img.onload = () => {
       console.log("KarmicMatrix: Imagem carregada com sucesso");
+      setIsImageLoaded(true);
+      setImageError(false);
     };
     img.onerror = () => {
-      console.error("KarmicMatrix: Erro ao carregar imagem. Usando fallback.");
-      setImgSrc("/placeholder.svg");
+      console.error("KarmicMatrix: Erro ao carregar imagem. Usando imagem local.");
+      setImageError(true);
+      // Usar a imagem enviada pelo usuário como fallback
+      setImgSrc("/lovable-uploads/cd6e3165-659f-45ba-b486-c2702df90610.png");
     };
     img.src = backgroundImage;
+    
+    // Se após 5 segundos a imagem não carregar, usar fallback
+    const timeoutId = setTimeout(() => {
+      if (!isImageLoaded) {
+        console.warn("KarmicMatrix: Timeout ao carregar imagem. Usando fallback.");
+        setImageError(true);
+        setImgSrc("/lovable-uploads/cd6e3165-659f-45ba-b486-c2702df90610.png");
+      }
+    }, 5000);
+    
+    return () => clearTimeout(timeoutId);
   }, [backgroundImage]);
   
   // Vamos listar explicitamente as posições para cada número específico
@@ -68,6 +89,16 @@ const KarmicMatrix: React.FC<KarmicMatrixProps> = ({
 
   return (
     <div className="relative max-w-4xl mx-auto">
+      {/* Mensagem de carregamento se necessário */}
+      {!isImageLoaded && !imageError && (
+        <div className="absolute inset-0 flex items-center justify-center bg-gray-100 bg-opacity-80 z-10">
+          <div className="text-center">
+            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-karmic-700 mx-auto mb-2"></div>
+            <p className="text-karmic-700">Carregando imagem da matriz...</p>
+          </div>
+        </div>
+      )}
+      
       {/* Background matrix image */}
       <img 
         src={imgSrc} 
@@ -78,10 +109,16 @@ const KarmicMatrix: React.FC<KarmicMatrixProps> = ({
           borderRadius: '8px',
           minHeight: '300px' // Altura mínima para evitar colapso enquanto carrega
         }}
+        onLoad={() => setIsImageLoaded(true)}
+        onError={() => {
+          console.error("KarmicMatrix: Erro ao carregar imagem na tag. Usando fallback.");
+          setImageError(true);
+          setImgSrc("/lovable-uploads/cd6e3165-659f-45ba-b486-c2702df90610.png");
+        }}
       />
       
       {/* Sempre renderizar os números */}
-      {numbersToDisplay.map((item, index) => {
+      {numbersToDisplay.map((item) => {
         const position = numberPositions[item.key];
         return (
           <div

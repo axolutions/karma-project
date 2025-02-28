@@ -288,6 +288,9 @@ const MatrixResult = () => {
   // Garantir que temos números kármicos para mostrar
   const karmicNumbers = userData.karmicNumbers || {};
   
+  // Usar a imagem enviada pelo usuário como fallback
+  const matrixBackgroundImage = "/lovable-uploads/cd6e3165-659f-45ba-b486-c2702df90610.png";
+  
   return (
     <div className="min-h-screen bg-gradient-to-b from-karmic-100 to-white py-12 print:bg-white print:py-0">
       <div className="container max-w-4xl mx-auto px-4">
@@ -399,7 +402,10 @@ const MatrixResult = () => {
             </p>
           )}
           
-          <KarmicMatrix karmicData={karmicNumbers} />
+          <KarmicMatrix 
+            karmicData={karmicNumbers} 
+            backgroundImage={matrixBackgroundImage}
+          />
         </motion.div>
         
         <MatrixInterpretations karmicData={karmicNumbers} />
