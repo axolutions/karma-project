@@ -1,3 +1,4 @@
+
 import React, { useEffect, useState } from 'react';
 import { Button } from "@/components/ui/button";
 import { getCurrentUser, getUserData, logout } from '@/lib/auth';
@@ -77,23 +78,41 @@ const MatrixResult = () => {
       }
       
       // Garantir que a imagem seja totalmente carregada antes de capturar
-      await new Promise(resolve => setTimeout(resolve, 1500));
+      await new Promise(resolve => setTimeout(resolve, 2000));
+      
+      // Preparar todos os elementos antes de capturar
+      const matrixClone = matrixElement.cloneNode(true) as HTMLElement;
+      const errorDiv = matrixClone.querySelector('.bg-amber-50');
+      if (errorDiv) {
+        // Se encontrar uma mensagem de erro, removê-la para não aparecer no download
+        errorDiv.parentNode?.removeChild(errorDiv);
+      }
       
       // Opções específicas para preservar cores e transparência
       const canvas = await html2canvas(matrixElement as HTMLElement, {
-        scale: 3, // Alta qualidade
+        scale: 4, // Qualidade ainda melhor
         backgroundColor: null, // Sem fundo para preservar transparência
-        logging: false,
+        logging: true, // Ativar logs para debug
         useCORS: true,
         allowTaint: true,
-        imageTimeout: 0,
+        imageTimeout: 10000, // Tempo maior para imagens carregarem
         removeContainer: false,
         onclone: (document, clone) => {
           // Procurar a imagem no clone do documento e garantir que esteja visível
+          const errorMessages = clone.querySelectorAll('.bg-amber-50.bg-opacity-80');
+          errorMessages.forEach(msg => {
+            // Remover mensagens de erro para não aparecerem no download
+            msg.parentNode?.removeChild(msg);
+          });
+          
+          // Garantir que a imagem da matriz esteja visível
           const img = clone.querySelector('.karmic-matrix-container img');
           if (img) {
             (img as HTMLElement).style.opacity = '1';
+            // Forçar a imagem a ser visível
+            (img as HTMLElement).style.display = 'block';
           }
+          
           return Promise.resolve();
         }
       });
@@ -333,3 +352,4 @@ const MatrixResult = () => {
 };
 
 export default MatrixResult;
+

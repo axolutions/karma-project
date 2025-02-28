@@ -24,8 +24,11 @@ const KarmicMatrix: React.FC<KarmicMatrixProps> = ({
   const [imageLoaded, setImageLoaded] = useState(false);
   const [hasError, setHasError] = useState(false);
   
-  // Imagem local como fallback
+  // Imagem local como fallback (se precisarmos usar)
   const fallbackImage = "/placeholder.svg";
+  
+  // Usar um fallback remoto melhor se o principal falhar
+  const fallbackRemoteImage = "https://images.unsplash.com/photo-1526374965328-7f61d4dc18c5";
   
   useEffect(() => {
     setImageLoaded(false);
@@ -68,52 +71,45 @@ const KarmicMatrix: React.FC<KarmicMatrixProps> = ({
     manifestationEnigma: { top: "20%", left: "47%" }
   };
 
-  const renderMatrixBackground = () => {
-    return (
-      <div 
-        className="w-full h-auto relative rounded-lg overflow-hidden"
-        style={{ 
-          minHeight: "400px",
-          backgroundColor: 'transparent',
-          border: '1px solid #EAE6E1',
-          borderRadius: '8px',
-        }}
-      >
-        <img 
-          src={hasError ? fallbackImage : backgroundImage} 
-          alt="Matriz Kármica 2025"
-          className={`w-full h-auto object-contain ${!imageLoaded && !hasError ? 'opacity-0' : 'opacity-100'}`}
-          style={{ maxHeight: '600px' }}
-          onLoad={() => setImageLoaded(true)}
-          onError={() => {
-            console.error("✗ Erro ao exibir imagem da matriz");
-            setHasError(true);
-          }}
-        />
-        
-        {/* Spinner durante carregamento */}
-        {!imageLoaded && !hasError && (
-          <div className="absolute inset-0 flex items-center justify-center">
-            <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-karmic-800"></div>
-          </div>
-        )}
-        
-        {/* Mensagem de erro se a imagem falhar */}
-        {hasError && (
-          <div className="absolute inset-0 flex flex-col items-center justify-center bg-amber-50 bg-opacity-80">
-            <p className="text-karmic-800 font-medium mb-2">Imagem indisponível</p>
-            <p className="text-karmic-600 text-sm">Usando modelo temporário</p>
-          </div>
-        )}
-      </div>
-    );
-  };
-
   // Se karmicData for undefined, mostramos apenas a imagem de fundo
   if (!karmicData) {
     return (
       <div className="relative max-w-4xl mx-auto">
-        {renderMatrixBackground()}
+        <div 
+          className="w-full h-auto relative rounded-lg overflow-hidden"
+          style={{ 
+            minHeight: "400px",
+            backgroundColor: 'transparent',
+            border: '1px solid #EAE6E1',
+            borderRadius: '8px',
+          }}
+        >
+          <img 
+            src={hasError ? fallbackRemoteImage : backgroundImage} 
+            alt="Matriz Kármica 2025"
+            className="w-full h-auto object-contain"
+            style={{ maxHeight: '600px' }}
+            onLoad={() => setImageLoaded(true)}
+            onError={() => {
+              console.error("✗ Erro ao exibir imagem da matriz");
+              setHasError(true);
+            }}
+          />
+          
+          {/* Spinner durante carregamento */}
+          {!imageLoaded && !hasError && (
+            <div className="absolute inset-0 flex items-center justify-center">
+              <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-karmic-800"></div>
+            </div>
+          )}
+          
+          {hasError && (
+            <div className="absolute inset-0 flex flex-col items-center justify-center bg-amber-50 bg-opacity-80">
+              <p className="text-karmic-800 font-medium mb-2">Imagem indisponível</p>
+              <p className="text-karmic-600 text-sm">Usando modelo temporário</p>
+            </div>
+          )}
+        </div>
         <div className="text-center mt-4 text-karmic-600">
           Dados da matriz não disponíveis. Por favor, verifique seu perfil.
         </div>
@@ -136,7 +132,41 @@ const KarmicMatrix: React.FC<KarmicMatrixProps> = ({
   return (
     <div className="relative max-w-4xl mx-auto">
       {/* Background matrix image */}
-      {renderMatrixBackground()}
+      <div 
+        className="w-full h-auto relative rounded-lg overflow-hidden"
+        style={{ 
+          minHeight: "400px",
+          backgroundColor: 'transparent',
+          border: '1px solid #EAE6E1',
+          borderRadius: '8px',
+        }}
+      >
+        <img 
+          src={hasError ? fallbackRemoteImage : backgroundImage} 
+          alt="Matriz Kármica 2025"
+          className="w-full h-auto object-contain" 
+          style={{ maxHeight: '600px' }}
+          onLoad={() => setImageLoaded(true)}
+          onError={() => {
+            console.error("✗ Erro ao exibir imagem da matriz");
+            setHasError(true);
+          }}
+        />
+        
+        {/* Spinner durante carregamento */}
+        {!imageLoaded && !hasError && (
+          <div className="absolute inset-0 flex items-center justify-center">
+            <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-karmic-800"></div>
+          </div>
+        )}
+        
+        {hasError && (
+          <div className="absolute inset-0 flex flex-col items-center justify-center bg-amber-50 bg-opacity-80">
+            <p className="text-karmic-800 font-medium mb-2">Imagem indisponível</p>
+            <p className="text-karmic-600 text-sm">Usando modelo temporário</p>
+          </div>
+        )}
+      </div>
       
       {/* Numbers overlay */}
       {numbersToDisplay.map((item, index) => (
