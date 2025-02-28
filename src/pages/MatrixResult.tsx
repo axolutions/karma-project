@@ -1,29 +1,52 @@
 
 import React, { useEffect, useState } from 'react';
 import { Button } from "@/components/ui/button";
-import { getCurrentUser, getUserData, logout } from '@/lib/auth';
+import { 
+  getCurrentUser, 
+  getUserData, 
+  getAllUserDataByEmail, 
+  getCurrentMatrixId, 
+  setCurrentMatrixId, 
+  logout 
+} from '@/lib/auth';
 import { useNavigate } from 'react-router-dom';
 import KarmicMatrix from '@/components/KarmicMatrix';
 import MatrixInterpretations from '@/components/MatrixInterpretations';
-import { Printer, LogOut, RefreshCw } from 'lucide-react';
+import { Printer, LogOut, RefreshCw, ChevronDown, Plus } from 'lucide-react';
 import { toast } from "@/components/ui/use-toast";
 import { motion } from 'framer-motion';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 
 const MatrixResult = () => {
   const [userData, setUserData] = useState<any>(null);
+  const [userMaps, setUserMaps] = useState<any[]>([]);
   const [refreshing, setRefreshing] = useState(false);
   const [isPrinting, setIsPrinting] = useState(false);
   const navigate = useNavigate();
   
   useEffect(() => {
+    loadUserData();
+  }, [navigate]);
+  
+  const loadUserData = () => {
     const email = getCurrentUser();
     if (!email) {
       navigate('/');
       return;
     }
     
-    const data = getUserData(email);
-    if (!data) {
+    // Obter todos os mapas do usuário
+    const allMaps = getAllUserDataByEmail(email);
+    setUserMaps(allMaps);
+    
+    if (allMaps.length === 0) {
       toast({
         title: "Perfil não encontrado",
         description: "Por favor, complete seu perfil primeiro.",
@@ -33,8 +56,24 @@ const MatrixResult = () => {
       return;
     }
     
-    setUserData(data);
-  }, [navigate]);
+    // Tentar obter o mapa específico definido na sessão
+    const currentMatrixId = getCurrentMatrixId();
+    let currentData;
+    
+    if (currentMatrixId) {
+      currentData = getUserData(email, currentMatrixId);
+    }
+    
+    // Se não encontrar o mapa específico, usar o mais recente
+    if (!currentData) {
+      currentData = allMaps[allMaps.length - 1];
+      if (currentData.id) {
+        setCurrentMatrixId(currentData.id);
+      }
+    }
+    
+    setUserData(currentData);
+  };
   
   // Detecta quando a impressão é concluída ou cancelada
   useEffect(() => {
@@ -102,6 +141,34 @@ const MatrixResult = () => {
     }, 500);
   };
   
+  const handleSwitchMap = (mapId: string) => {
+    const email = getCurrentUser();
+    if (!email) return;
+    
+    const selectedMap = getUserData(email, mapId);
+    if (selectedMap) {
+      setCurrentMatrixId(mapId);
+      setUserData(selectedMap);
+      
+      toast({
+        title: "Mapa alterado",
+        description: `Visualizando mapa de ${selectedMap.name} (${selectedMap.birthDate}).`
+      });
+    }
+  };
+  
+  const handleCreateNewMap = () => {
+    navigate('/');
+    
+    // Pequeno delay para exibir a toast
+    setTimeout(() => {
+      toast({
+        title: "Criar novo mapa",
+        description: "Preencha os dados para gerar um novo mapa kármico."
+      });
+    }, 300);
+  };
+  
   if (!userData) {
     return (
       <div className="min-h-screen flex items-center justify-center">
@@ -111,6 +178,9 @@ const MatrixResult = () => {
       </div>
     );
   }
+  
+  // Formatar data de criação
+  const createdDate = userData.createdAt ? new Date(userData.createdAt).toLocaleDateString() : '';
   
   return (
     <div className="min-h-screen bg-gradient-to-b from-karmic-100 to-white py-12 print:bg-white print:py-0">
@@ -122,10 +192,45 @@ const MatrixResult = () => {
             </h1>
             <p className="text-karmic-600">
               Olá, <span className="font-medium">{userData.name}</span>
+              {userMaps.length > 1 && (
+                <span className="text-xs ml-2 text-karmic-500">
+                  (Você possui {userMaps.length} mapas kármicos)
+                </span>
+              )}
             </p>
           </div>
           
           <div className="flex space-x-3">
+            {userMaps.length > 1 && (
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button variant="outline" className="karmic-button-outline">
+                    Meus Mapas <ChevronDown className="ml-2 h-4 w-4" />
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="end" className="w-64">
+                  <DropdownMenuLabel>Selecione um mapa</DropdownMenuLabel>
+                  <DropdownMenuSeparator />
+                  {userMaps.map((map) => (
+                    <DropdownMenuItem 
+                      key={map.id} 
+                      onClick={() => handleSwitchMap(map.id)}
+                      className={map.id === userData.id ? "bg-karmic-100 font-medium" : ""}
+                    >
+                      {map.name} - {map.birthDate}
+                      <span className="text-xs ml-2 text-karmic-500">
+                        ({new Date(map.createdAt).toLocaleDateString()})
+                      </span>
+                    </DropdownMenuItem>
+                  ))}
+                  <DropdownMenuSeparator />
+                  <DropdownMenuItem onClick={handleCreateNewMap} className="text-karmic-700">
+                    <Plus className="mr-2 h-4 w-4" /> Criar novo mapa
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
+            )}
+            
             <Button 
               onClick={handleRefresh}
               variant="outline"
@@ -165,9 +270,14 @@ const MatrixResult = () => {
           <h2 className="text-xl md:text-2xl font-serif font-medium text-karmic-800 mb-2">
             Sua Matriz Kármica
           </h2>
-          <p className="text-karmic-600 mb-6 print:mb-3">
+          <p className="text-karmic-600 mb-2 print:mb-1">
             Data de Nascimento: <span className="font-medium">{userData.birthDate}</span>
           </p>
+          {createdDate && (
+            <p className="text-karmic-500 text-xs mb-6 print:mb-3">
+              Matriz gerada em: {createdDate}
+            </p>
+          )}
           
           <KarmicMatrix karmicData={userData.karmicNumbers} />
         </motion.div>

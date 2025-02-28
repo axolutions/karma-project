@@ -6,20 +6,32 @@ import { toast } from "@/components/ui/use-toast";
 import { 
   getAllAuthorizedEmails, 
   addAuthorizedEmail, 
-  removeAuthorizedEmail 
+  removeAuthorizedEmail,
+  getAllUserDataByEmail
 } from '@/lib/auth';
-import { X, Plus } from 'lucide-react';
+import { X, Plus, Map } from 'lucide-react';
 
 const EmailManager: React.FC = () => {
   const [emails, setEmails] = useState<string[]>([]);
   const [newEmail, setNewEmail] = useState('');
+  const [emailStats, setEmailStats] = useState<Record<string, number>>({});
   
   useEffect(() => {
     refreshEmails();
   }, []);
   
   const refreshEmails = () => {
-    setEmails(getAllAuthorizedEmails());
+    const authorizedEmails = getAllAuthorizedEmails();
+    setEmails(authorizedEmails);
+    
+    // Calcular estatísticas - quantos mapas cada email possui
+    const stats: Record<string, number> = {};
+    authorizedEmails.forEach(email => {
+      const userMaps = getAllUserDataByEmail(email);
+      stats[email] = userMaps.length;
+    });
+    
+    setEmailStats(stats);
   };
   
   const handleAddEmail = () => {
@@ -60,6 +72,15 @@ const EmailManager: React.FC = () => {
   };
   
   const handleRemoveEmail = (email: string) => {
+    // Verificar se o email possui mapas criados
+    const mapsCount = emailStats[email] || 0;
+    
+    if (mapsCount > 0) {
+      if (!confirm(`Este email possui ${mapsCount} mapas criados. Remover este email impedirá o acesso a esses mapas. Deseja continuar?`)) {
+        return;
+      }
+    }
+    
     const success = removeAuthorizedEmail(email);
     
     if (success) {
@@ -118,7 +139,15 @@ const EmailManager: React.FC = () => {
                 key={email} 
                 className="flex justify-between items-center p-3 bg-karmic-100 rounded-md"
               >
-                <span>{email}</span>
+                <div className="flex items-center">
+                  <span>{email}</span>
+                  {emailStats[email] > 0 && (
+                    <div className="ml-3 flex items-center text-xs bg-karmic-200 text-karmic-700 px-2 py-1 rounded-full">
+                      <Map className="h-3 w-3 mr-1" />
+                      {emailStats[email]} {emailStats[email] === 1 ? 'mapa' : 'mapas'}
+                    </div>
+                  )}
+                </div>
                 <Button 
                   size="sm" 
                   variant="ghost" 

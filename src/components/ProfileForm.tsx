@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button";
 import { MoveRight } from "lucide-react";
 import { calculateAllKarmicNumbers } from '@/lib/calculations';
 import { toast } from "@/components/ui/use-toast";
-import { saveUserData, getCurrentUser, getUserData } from '@/lib/auth';
+import { saveUserData, getCurrentUser, getAllUserDataByEmail, setCurrentMatrixId } from '@/lib/auth';
 import { useNavigate } from 'react-router-dom';
 
 const ProfileForm: React.FC = () => {
@@ -13,24 +13,19 @@ const ProfileForm: React.FC = () => {
   const [birthDate, setBirthDate] = useState('');
   const [isValid, setIsValid] = useState(true);
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [existingProfile, setExistingProfile] = useState(false);
+  const [existingMaps, setExistingMaps] = useState<any[]>([]);
   const navigate = useNavigate();
   
   useEffect(() => {
     // Verificar se o usuário já tem um perfil gerado
     const currentUser = getCurrentUser();
     if (currentUser) {
-      const userData = getUserData(currentUser);
-      if (userData) {
-        // Usuário já possui perfil, redirecionar para a matriz
-        setExistingProfile(true);
-        setTimeout(() => {
-          toast({
-            title: "Matriz já gerada",
-            description: "Você já possui uma Matriz Kármica Pessoal. Redirecionando para visualização.",
-          });
-          navigate('/matrix');
-        }, 500);
+      const userMaps = getAllUserDataByEmail(currentUser);
+      setExistingMaps(userMaps);
+      
+      // Se houver mapas existentes, preencher o nome com o do último mapa
+      if (userMaps.length > 0) {
+        setName(userMaps[userMaps.length - 1].name);
       }
     }
   }, [navigate]);
@@ -90,21 +85,6 @@ const ProfileForm: React.FC = () => {
     e.preventDefault();
     setIsSubmitting(true);
     
-    // Verificar novamente se o usuário já tem perfil (dupla checagem)
-    const currentUser = getCurrentUser();
-    if (currentUser) {
-      const userData = getUserData(currentUser);
-      if (userData) {
-        toast({
-          title: "Matriz já gerada",
-          description: "Você já possui uma Matriz Kármica. Redirecionando para visualização.",
-        });
-        setIsSubmitting(false);
-        navigate('/matrix');
-        return;
-      }
-    }
-    
     if (!name.trim()) {
       toast({
         title: "Nome obrigatório",
@@ -142,15 +122,18 @@ const ProfileForm: React.FC = () => {
     const karmicNumbers = calculateAllKarmicNumbers(birthDate);
     
     // Save user data
-    saveUserData({
+    const newMapId = saveUserData({
       email,
       name,
       birthDate,
       karmicNumbers
     });
     
+    // Definir o ID do mapa atual para visualização
+    setCurrentMatrixId(newMapId);
+    
     toast({
-      title: "Perfil salvo com sucesso",
+      title: "Mapa criado com sucesso",
       description: "Sua Matriz Kármica Pessoal 2025 foi gerada com sucesso.",
     });
     
@@ -160,17 +143,6 @@ const ProfileForm: React.FC = () => {
       navigate('/matrix');
     }, 1000);
   };
-
-  // Se o usuário já tem um perfil, não mostrar o formulário
-  if (existingProfile) {
-    return (
-      <div className="flex flex-col items-center justify-center space-y-4 py-8">
-        <p className="text-center text-karmic-700">
-          Redirecionando para sua Matriz Kármica Pessoal...
-        </p>
-      </div>
-    );
-  }
 
   return (
     <form onSubmit={handleSubmit} className="space-y-4 max-w-md mx-auto">
@@ -209,12 +181,30 @@ const ProfileForm: React.FC = () => {
         )}
       </div>
       
+      {existingMaps.length > 0 && (
+        <div className="p-3 bg-karmic-100 rounded-md">
+          <p className="text-sm text-karmic-700 mb-2 font-medium">
+            Você já possui {existingMaps.length} {existingMaps.length === 1 ? 'mapa' : 'mapas'} criado{existingMaps.length === 1 ? '' : 's'}:
+          </p>
+          <ul className="text-xs space-y-1 text-karmic-600">
+            {existingMaps.map((map, index) => (
+              <li key={map.id || index}>
+                • {map.name} - {map.birthDate} (criado em: {new Date(map.createdAt).toLocaleDateString()})
+              </li>
+            ))}
+          </ul>
+          <p className="text-xs text-karmic-700 mt-2 italic">
+            Ao criar um novo mapa, você manterá acesso a todos os anteriores.
+          </p>
+        </div>
+      )}
+      
       <Button 
         type="submit" 
         className="karmic-button w-full group"
         disabled={isSubmitting}
       >
-        {isSubmitting ? 'Processando...' : 'Gerar Minha Matriz Kármica 2025'}
+        {isSubmitting ? 'Processando...' : existingMaps.length > 0 ? 'Gerar Novo Mapa Kármico 2025' : 'Gerar Minha Matriz Kármica 2025'}
         <MoveRight className="ml-2 h-4 w-4 transition-transform group-hover:translate-x-1" />
       </Button>
     </form>
