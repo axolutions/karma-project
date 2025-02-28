@@ -1,11 +1,19 @@
 
 import React, { useState, useEffect } from 'react';
-import { getInterpretation, getCategoryDisplayName, exportInterpretations, getAllInterpretations } from '@/lib/interpretations';
-import { motion, AnimatePresence } from 'framer-motion';
-import { ChevronDown, ChevronUp, AlertCircle, RefreshCw } from 'lucide-react';
-import { toast } from "@/components/ui/use-toast";
+import { ChevronDown, ChevronUp, RefreshCw } from "lucide-react";
+import {
+  Accordion,
+  AccordionContent,
+  AccordionItem,
+  AccordionTrigger,
+} from "@/components/ui/accordion";
 import { Button } from "@/components/ui/button";
+import { Separator } from "@/components/ui/separator";
+import { useToast } from "@/components/ui/use-toast";
+import { useMobile } from "@/hooks/use-mobile";
+import { getInterpretation } from "@/lib/interpretations";
 
+// Definição dos tipos
 interface MatrixInterpretationsProps {
   karmicData: {
     karmicSeal: number;
@@ -19,196 +27,164 @@ interface MatrixInterpretationsProps {
   } | undefined;
 }
 
+interface InterpretationItemProps {
+  title: string;
+  number: number;
+  interpretation: string;
+  isOpen?: boolean;
+  onToggle?: () => void;
+  initialExpanded?: boolean;
+}
+
+const InterpretationCard: React.FC<InterpretationItemProps> = ({
+  title,
+  number,
+  interpretation,
+  initialExpanded = false
+}) => {
+  const [isExpanded, setIsExpanded] = useState(initialExpanded);
+  const isMobile = useMobile();
+  
+  const toggleExpand = () => {
+    setIsExpanded(!isExpanded);
+  };
+  
+  // Função para processar emojis no texto
+  const processContent = (content: string) => {
+    return content;
+  };
+
+  // Corrigir o HTML que vem da interpretação
+  const sanitizeHtml = (html: string) => {
+    // Remover quebras de linha extras e espaços
+    return html.replace(/\n\s*\n/g, '\n').trim();
+  };
+  
+  return (
+    <div className="karmic-card">
+      <div className="flex justify-between items-center cursor-pointer" onClick={toggleExpand}>
+        <div className="flex items-center">
+          <div className="karmic-number mr-3">{number}</div>
+          <h3 className="text-lg font-serif font-medium text-karmic-800">{title}</h3>
+        </div>
+        <Button 
+          variant="ghost" 
+          size="sm" 
+          className="interpretation-toggle p-1 h-8 w-8"
+          onClick={(e) => {
+            e.stopPropagation();
+            toggleExpand();
+          }}
+        >
+          {isExpanded ? <ChevronUp className="h-5 w-5" /> : <ChevronDown className="h-5 w-5" />}
+        </Button>
+      </div>
+      
+      <div className={`interpretation-content ${isExpanded ? '' : 'hidden'}`}>
+        {interpretation && (
+          <div 
+            className="prose-karmic karmic-content"
+            dangerouslySetInnerHTML={{ 
+              __html: sanitizeHtml(processContent(interpretation)) 
+            }}
+          />
+        )}
+      </div>
+    </div>
+  );
+};
+
+// Componente principal para exibir as interpretações da matriz
 const MatrixInterpretations: React.FC<MatrixInterpretationsProps> = ({ karmicData }) => {
-  const [expandedSections, setExpandedSections] = useState<Set<string>>(new Set(['karmicSeal']));
-  const [isLoaded, setIsLoaded] = useState(false);
-  const [interpretationsData, setInterpretationsData] = useState<Record<string, any>>({});
-  const [loadError, setLoadError] = useState(false);
-  const [rawStorageData, setRawStorageData] = useState<string>("");
-
-  // Function to force reload interpretations
-  const forceReloadInterpretations = async () => {
-    setIsLoaded(false);
-    
+  const [interpretations, setInterpretations] = useState<Record<string, string>>({});
+  const [loading, setLoading] = useState(true);
+  const { toast } = useToast();
+  
+  // Carregar interpretações
+  const loadInterpretations = async () => {
+    setLoading(true);
     try {
-      // Inspect localStorage directly
-      const rawData = localStorage.getItem('karmicInterpretations');
-      if (rawData) {
-        setRawStorageData(rawData);
-        console.log("Raw localStorage data found:", rawData.substring(0, 500) + "...");
+      if (!karmicData) {
+        throw new Error("Dados kármicos não disponíveis");
       }
       
-      // Try to get all interpretations
-      const allInterpretations = getAllInterpretations();
-      console.log("Total interpretations found:", allInterpretations.length);
+      const allInterpretations: Record<string, string> = {};
       
-      if (allInterpretations.length > 0) {
-        // Display first 3 for diagnostics
-        console.log("Sample interpretations:", allInterpretations.slice(0, 3));
-      }
-
-      // Get all data as object
-      const allData = exportInterpretations();
-      console.log("Exported interpretations data:", Object.keys(allData).length);
-      setInterpretationsData(allData);
+      // Obter interpretações para cada número kármico
+      const keys = Object.keys(karmicData) as Array<keyof typeof karmicData>;
       
-      if (Object.keys(allData).length === 0) {
-        setLoadError(true);
-        toast({
-          title: "Nenhuma interpretação encontrada",
-          description: "Não foi possível encontrar suas interpretações no sistema. Verifique se os dados foram importados corretamente.",
-          variant: "destructive"
-        });
-      } else {
-        setLoadError(false);
-        toast({
-          title: "Interpretações carregadas",
-          description: `Interpretações carregadas com sucesso.`
-        });
+      for (const key of keys) {
+        const number = karmicData[key];
+        const interpretation = await getInterpretation(key, number);
+        allInterpretations[key] = interpretation || "Interpretação não disponível no momento.";
       }
+      
+      setInterpretations(allInterpretations);
     } catch (error) {
-      console.error("Erro ao recarregar interpretações:", error);
-      setLoadError(true);
+      console.error("Erro ao carregar interpretações:", error);
       toast({
         title: "Erro ao carregar interpretações",
-        description: "Ocorreu um erro ao tentar recuperar suas interpretações.",
+        description: "Não foi possível obter as interpretações dos números kármicos.",
         variant: "destructive"
       });
     } finally {
-      setIsLoaded(true);
+      setLoading(false);
     }
   };
-
+  
   useEffect(() => {
-    // Carregar interpretações logo no início
-    const loadAllInterpretations = () => {
-      try {
-        console.log("Carregando todas as interpretações disponíveis");
-        // Extrair todas as interpretações disponíveis para diagnóstico
-        const allData = exportInterpretations();
-        console.log("Dados de interpretações disponíveis:", allData);
-        setInterpretationsData(allData);
-        
-        // Obter a lista completa de interpretações para depuração
-        const allInterpretations = getAllInterpretations();
-        console.log("Total de interpretações encontradas:", allInterpretations.length);
-        
-        if (Object.keys(allData).length === 0) {
-          console.warn("Nenhuma interpretação encontrada no armazenamento");
-          setLoadError(true);
-          
-          // Verificar localStorage diretamente
-          const rawData = localStorage.getItem('karmicInterpretations');
-          if (rawData) {
-            setRawStorageData(rawData);
-            console.log("Dados brutos encontrados no localStorage:", rawData.substring(0, 500) + "...");
-            
-            // Tentar recuperar manualmente
-            try {
-              const parsedData = JSON.parse(rawData);
-              if (parsedData && Object.keys(parsedData).length > 0) {
-                console.log("Dados recuperados manualmente do localStorage:", Object.keys(parsedData).length);
-                setInterpretationsData(parsedData);
-                setLoadError(false);
-              }
-            } catch (parseError) {
-              console.error("Erro ao analisar dados do localStorage:", parseError);
-            }
-          }
-          
-          if (loadError) {
-            toast({
-              title: "Dados não encontrados",
-              description: "Suas interpretações não foram encontradas. Use o botão 'Recuperar Interpretações' para tentar novamente.",
-              variant: "destructive"
-            });
-          }
-        }
-      } catch (error) {
-        console.error("Erro ao carregar interpretações:", error);
-        setLoadError(true);
-      } finally {
-        // Mesmo com erro, continuamos para mostrar ao menos os defaults
-        setIsLoaded(true);
-      }
-    };
-
-    // Pequeno delay para garantir que as interpretações sejam carregadas
-    const timer = setTimeout(() => {
-      loadAllInterpretations();
-    }, 500);
-    
-    return () => clearTimeout(timer);
-  }, []);
-
-  const toggleSection = (category: string) => {
-    setExpandedSections(prev => {
-      const newSet = new Set(prev);
-      if (newSet.has(category)) {
-        newSet.delete(category);
-      } else {
-        newSet.add(category);
-      }
-      return newSet;
+    if (karmicData) {
+      loadInterpretations();
+    }
+  }, [karmicData]);
+  
+  const forceReloadInterpretations = () => {
+    toast({
+      title: "Recarregando interpretações",
+      description: "Aguarde enquanto atualizamos as interpretações kármicas..."
     });
+    loadInterpretations();
   };
-
-  // Se karmicData for undefined, exibimos uma mensagem
+  
+  // Definir os títulos para cada número kármico
+  const numberTitles = {
+    karmicSeal: "Selo Kármico 2025",
+    destinyCall: "Chamado do Destino 2025",
+    karmaPortal: "Portal do Karma 2025",
+    karmicInheritance: "Herança Kármica 2025",
+    karmicReprogramming: "Códex da Reprogramação 2025",
+    cycleProphecy: "Profecia dos Ciclos 2025",
+    spiritualMark: "Marca Espiritual 2025",
+    manifestationEnigma: "Enigma da Manifestação 2025"
+  };
+  
   if (!karmicData) {
     return (
-      <div className="max-w-4xl mx-auto mt-8 text-center">
-        <div className="karmic-card p-6">
-          <h2 className="text-xl font-serif font-medium text-karmic-800 mb-4">
-            Interpretações não disponíveis
-          </h2>
-          <p className="text-karmic-600">
-            Os dados da sua matriz kármica não estão disponíveis no momento. Por favor, verifique seu perfil ou tente novamente mais tarde.
-          </p>
-        </div>
+      <div className="p-6 bg-amber-50 rounded-lg text-center text-amber-800">
+        Dados kármicos não disponíveis. Por favor, verifique sua data de nascimento.
       </div>
     );
   }
-
-  const interpretationItems = [
-    { key: 'karmicSeal', value: karmicData.karmicSeal },
-    { key: 'destinyCall', value: karmicData.destinyCall },
-    { key: 'karmaPortal', value: karmicData.karmaPortal },
-    { key: 'karmicInheritance', value: karmicData.karmicInheritance },
-    { key: 'karmicReprogramming', value: karmicData.karmicReprogramming },
-    { key: 'cycleProphecy', value: karmicData.cycleProphecy },
-    { key: 'spiritualMark', value: karmicData.spiritualMark },
-    { key: 'manifestationEnigma', value: karmicData.manifestationEnigma }
+  
+  // Ordenar as interpretações na ordem desejada
+  const interpretationOrder = [
+    'karmicSeal',
+    'destinyCall',
+    'karmaPortal', 
+    'karmicInheritance',
+    'karmicReprogramming',
+    'cycleProphecy',
+    'spiritualMark',
+    'manifestationEnigma'
   ];
-
-  // Tentar recuperar e exibir a interpretação real, sem fallback
-  const getRawInterpretation = (category: string, number: number) => {
-    const id = `${category}-${number}`;
-    const interpretationData = interpretationsData[id];
-    return interpretationData ? interpretationData.content : null;
-  };
-
-  if (!isLoaded) {
-    return (
-      <div className="max-w-4xl mx-auto mt-8 text-center">
-        <div className="animate-pulse karmic-card p-6">
-          <h2 className="text-xl font-serif font-medium text-karmic-800 mb-4">
-            Carregando interpretações...
-          </h2>
-          <div className="h-4 bg-karmic-200 rounded mb-3"></div>
-          <div className="h-4 bg-karmic-200 rounded mb-3 w-3/4"></div>
-          <div className="h-4 bg-karmic-200 rounded w-1/2"></div>
-        </div>
-      </div>
-    );
-  }
-
+  
   return (
-    <div className="max-w-4xl mx-auto mt-8">
-      <h2 className="text-2xl md:text-3xl font-serif font-medium text-karmic-800 mb-6 text-center">
-        Interpretações da Sua Matriz Kármica
-      </h2>
-      
-      {loadError && (
+    <div className="matrix-interpretations">
+      <div className="flex flex-col md:flex-row justify-between items-center mb-6">
+        <h2 className="text-xl md:text-2xl font-serif font-medium text-karmic-800 mb-4 md:mb-0">
+          Interpretações da sua Matriz
+        </h2>
+        
         <Button
           variant="outline"
           size="sm"
@@ -217,113 +193,35 @@ const MatrixInterpretations: React.FC<MatrixInterpretationsProps> = ({ karmicDat
         >
           <RefreshCw className="h-3.5 w-3.5 mr-1.5" /> Recarregar Interpretações
         </Button>
-      )}
+      </div>
       
-      {loadError && (
-        <div className="bg-amber-50 border-l-4 border-amber-400 p-4 mb-6 rounded-md">
-          <div className="flex items-start">
-            <div className="flex-shrink-0 pt-0.5">
-              <AlertCircle className="h-5 w-5 text-amber-400" />
-            </div>
-            <div className="ml-3">
-              <p className="text-sm text-amber-700">
-                <strong>Problemas ao carregar suas interpretações.</strong> Suas interpretações personalizadas não puderam ser carregadas.
-              </p>
-              <div className="mt-2 flex space-x-2">
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={forceReloadInterpretations}
-                  className="h-8 text-xs border-amber-400 text-amber-700 hover:bg-amber-100"
-                >
-                  <RefreshCw className="h-3.5 w-3.5 mr-1.5" /> Tentar Novamente
-                </Button>
-              </div>
-            </div>
-          </div>
+      <Separator className="mb-8 bg-karmic-200" />
+      
+      {loading ? (
+        <div className="text-center py-10">
+          <RefreshCw className="h-8 w-8 text-karmic-600 animate-spin mx-auto mb-4" />
+          <p className="text-karmic-700">Carregando interpretações kármicas...</p>
+        </div>
+      ) : (
+        <div className="space-y-6">
+          {interpretationOrder.map((key, index) => {
+            const karmicKey = key as keyof typeof karmicData;
+            const number = karmicData[karmicKey];
+            const title = numberTitles[karmicKey as keyof typeof numberTitles];
+            const interpretation = interpretations[karmicKey] || "Interpretação não disponível.";
+            
+            return (
+              <InterpretationCard
+                key={karmicKey}
+                title={title}
+                number={number}
+                interpretation={interpretation}
+                initialExpanded={index === 0} // Primeiro item expandido por padrão
+              />
+            );
+          })}
         </div>
       )}
-      
-      <div className="space-y-4">
-        {interpretationItems.map((item, index) => {
-          // Tenta obter a interpretação, com tratamento de erro
-          let interpretation = { title: '', content: '' };
-          try {
-            // Primeiro verificamos se temos a interpretação real nos dados carregados
-            const rawInterpretation = getRawInterpretation(item.key, item.value);
-            
-            if (rawInterpretation) {
-              // Se temos a interpretação real, usamos ela
-              interpretation = {
-                title: `${getCategoryDisplayName(item.key)} ${item.value}`,
-                content: rawInterpretation
-              };
-            } else {
-              // Se não temos, tentamos obter do sistema
-              interpretation = getInterpretation(item.key, item.value);
-              
-              // Verificar se temos apenas o conteúdo padrão (indica que não existe interpretação)
-              if (interpretation.content.includes("Interpretação não disponível")) {
-                console.warn(`Interpretação não encontrada para ${item.key}-${item.value}`);
-              }
-            }
-          } catch (error) {
-            console.error(`Erro ao obter interpretação para ${item.key}-${item.value}:`, error);
-            interpretation = {
-              title: `${getCategoryDisplayName(item.key)} ${item.value}`,
-              content: `<p>Não foi possível carregar esta interpretação. Por favor, tente recarregar a página.</p>`
-            };
-          }
-          
-          const isExpanded = expandedSections.has(item.key);
-          
-          return (
-            <motion.div
-              key={item.key}
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: index * 0.1, duration: 0.4 }}
-              className="karmic-card"
-            >
-              <div 
-                className="flex justify-between items-center mb-2 cursor-pointer"
-                onClick={() => toggleSection(item.key)}
-              >
-                <h3 className="text-xl font-serif font-medium text-karmic-800">
-                  {getCategoryDisplayName(item.key)}
-                </h3>
-                <div className="flex items-center space-x-3">
-                  <span className="karmic-number">{item.value}</span>
-                  {isExpanded ? (
-                    <ChevronUp className="h-5 w-5 text-karmic-500" />
-                  ) : (
-                    <ChevronDown className="h-5 w-5 text-karmic-500" />
-                  )}
-                </div>
-              </div>
-              
-              <AnimatePresence>
-                {isExpanded && (
-                  <motion.div
-                    initial={{ height: 0, opacity: 0 }}
-                    animate={{ height: 'auto', opacity: 1 }}
-                    exit={{ height: 0, opacity: 0 }}
-                    transition={{ duration: 0.3 }}
-                    className="overflow-hidden"
-                  >
-                    <div className="karmic-content mt-4 pt-4 border-t border-karmic-200">
-                      <div 
-                        className="prose prose-karmic max-w-none"
-                        dangerouslySetInnerHTML={{ __html: interpretation.content }} 
-                      />
-                    </div>
-                  </motion.div>
-                )}
-              </AnimatePresence>
-            </motion.div>
-          );
-        })}
-      </div>
     </div>
   );
 };

@@ -93,7 +93,7 @@
 
 /* Estilos personalizados para o site */
 .karmic-card {
-  @apply bg-white rounded-lg shadow-md p-6;
+  @apply bg-white rounded-lg shadow-md p-6 mb-6;
 }
 
 .karmic-number {
@@ -168,11 +168,31 @@
 
 /* Corrigir a exibição dos emojis */
 .karmic-content {
-  @apply font-normal;
+  @apply font-normal text-base leading-relaxed;
 }
 
 /* Garantir que os emojis apareçam corretamente */
 .emoji-wrapper {
   display: inline-block;
   font-family: "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol", sans-serif;
+}
+
+/* Ajustes para expandir o conteúdo corretamente */
+.interpretation-content {
+  @apply mt-4 text-karmic-700;
+}
+
+/* Melhorar o estilo dos cards de interpretação */
+.matrix-interpretations .karmic-card {
+  @apply border border-karmic-100 hover:border-karmic-200 transition-colors duration-200;
+}
+
+/* Melhorar o estilo dos títulos de interpretação */
+.matrix-interpretations .karmic-card h3 {
+  @apply text-karmic-700 font-medium;
+}
+
+/* Melhorar botões de expansão */
+.interpretation-toggle {
+  @apply text-karmic-600 hover:text-karmic-800;
 }
