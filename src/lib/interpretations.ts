@@ -1,3 +1,4 @@
+<lov-code>
 import { toast } from "@/components/ui/use-toast";
 import { supabaseClient, isInOfflineMode } from '@/lib/supabase';
 
@@ -237,7 +238,8 @@ export async function initInterpretations(): Promise<void> {
       console.log(`Carregadas ${Object.keys(interpretations).length} interpretações do localStorage durante inicialização.`);
     }
     
-    // Depois tentar carregar do Supabase (pode atualizar os dados do localStorage)\n    try {
+    // Depois tentar carregar do Supabase (pode atualizar os dados do localStorage)
+    try {
       await loadFromSupabase();
     } catch (supabaseError) {
       console.error("Erro ao carregar do Supabase durante inicialização:", supabaseError);
@@ -621,4 +623,4 @@ function loadExampleInterpretations(): void {
   // Adicionar números adicionais para os outros campos
   interpretations[generateInterpretationId('manifestationEnigma', 1)] = {
     id: generateInterpretationId('manifestationEnigma', 1),
-    title: "Enigma da Manifestação
+    title: "Enigma
