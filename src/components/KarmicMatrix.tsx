@@ -21,15 +21,15 @@ const KarmicMatrix: React.FC<KarmicMatrixProps> = ({
   karmicData,
   backgroundImage = "https://darkorange-goldfinch-896244.hostingersite.com/wp-content/uploads/2025/02/Design-sem-nome-1.png"
 }) => {
-  // Define positions of the 8 boxes on the matrix image - ajustes para posicionar dentro dos quadrados pequenos
+  // Define positions of the 8 boxes on the matrix image - ajustes específicos conforme direcionamento
   const boxPositions = [
-    { top: '15%', left: '25%', translateX: '-50%', translateY: '-50%' },   // Position 1 - top left square (3) - mais próximo do quadrado
-    { top: '15%', left: '76%', translateX: '-50%', translateY: '-50%' },   // Position 2 - top right square (1) - mais próximo do quadrado
+    { top: '8%', left: '25%', translateX: '-50%', translateY: '-50%' },    // Position 1 - top left square (3) - subir bem
+    { top: '8%', left: '76%', translateX: '-50%', translateY: '-50%' },    // Position 2 - top right square (1) - subir bem
     { top: '46%', left: '21%', translateX: '-50%', translateY: '-50%' },   // Position 3 - middle left square (9) - manter
     { top: '47%', left: '72%', translateX: '-50%', translateY: '-50%' },   // Position 4 - middle right square (4) - manter
-    { top: '78%', left: '25%', translateX: '-50%', translateY: '-50%' },   // Position 5 - bottom left square (11) - mais próximo do quadrado 
+    { top: '88%', left: '25%', translateX: '-50%', translateY: '-50%' },   // Position 5 - bottom left square (11) - descer bem
     { top: '74%', left: '48%', translateX: '-50%', translateY: '-50%' },   // Position 6 - bottom middle square (9) - manter
-    { top: '78%', left: '73%', translateX: '-50%', translateY: '-50%' },   // Position 7 - bottom right square (3) - mais próximo do quadrado
+    { top: '88%', left: '73%', translateX: '-50%', translateY: '-50%' },   // Position 7 - bottom right square (3) - descer bem
     { top: '20%', left: '47%', translateX: '-50%', translateY: '-50%' }    // Position 8 - top middle square (11) - manter
   ];
 
