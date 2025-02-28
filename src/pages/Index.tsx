@@ -5,42 +5,71 @@ import { useNavigate } from 'react-router-dom';
 import LoginForm from '@/components/LoginForm';
 import ProfileForm from '@/components/ProfileForm';
 import IntroSection from '@/components/IntroSection';
-import { getCurrentUser, isLoggedIn, getUserData } from '@/lib/auth';
+import { getCurrentUser, isLoggedIn, getUserData, logout } from '@/lib/auth';
 
 const Index = () => {
   const [userLoggedIn, setUserLoggedIn] = useState(false);
   const [hasProfile, setHasProfile] = useState(false);
+  const [loading, setLoading] = useState(true);
   const navigate = useNavigate();
-  // Ref para evitar loop infinito de redirecionamento
-  const hasRedirected = useRef(false);
   
   useEffect(() => {
-    // Verificar estado de login apenas uma vez quando o componente monta
-    const checkLoginStatus = () => {
-      // Check if user is logged in
-      const loggedIn = isLoggedIn();
-      setUserLoggedIn(loggedIn);
-      
-      if (loggedIn) {
-        // Check if user has created profile
-        const email = getCurrentUser();
-        if (email) {
-          const userData = getUserData(email);
-          if (userData && userData.karmicNumbers && !hasRedirected.current) {
-            // Define que tem perfil completo
-            setHasProfile(true);
-            // Marcar que já redirecionamos para evitar loops
-            hasRedirected.current = true;
-            // Redirect to matrix page if they have karmicNumbers
-            navigate('/matrix');
+    // Função para verificar o status do login
+    const checkLoginStatus = async () => {
+      setLoading(true);
+      try {
+        // Verificar se o usuário está logado
+        const loggedIn = isLoggedIn();
+        setUserLoggedIn(loggedIn);
+        
+        if (loggedIn) {
+          // Verificar se o usuário já completou o perfil
+          const email = getCurrentUser();
+          if (email) {
+            const userData = getUserData(email);
+            
+            // Se tem dados de usuário com matriz kármica, redirecionar para /matrix
+            if (userData && userData.karmicNumbers) {
+              console.log("Usuário com matriz kármica detectado, redirecionando...");
+              setHasProfile(true);
+              navigate('/matrix');
+              return;
+            } else {
+              // Usuário logado mas sem perfil completo
+              console.log("Usuário logado sem perfil completo");
+              setHasProfile(false);
+            }
           }
+        } else {
+          // Limpar estados se não estiver logado
+          console.log("Usuário não está logado");
+          setHasProfile(false);
         }
+      } catch (error) {
+        console.error("Erro ao verificar login:", error);
+        // Em caso de erro, fazer logout para garantir
+        logout();
+        setUserLoggedIn(false);
+        setHasProfile(false);
+      } finally {
+        setLoading(false);
       }
     };
     
     checkLoginStatus();
-    // Remover o navigate da dependência para evitar loops
   }, []); // eslint-disable-line react-hooks/exhaustive-deps
+
+  // Se estiver carregando, mostrar indicador
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-gradient-to-b from-karmic-100 to-white py-12 flex items-center justify-center">
+        <div className="text-center">
+          <div className="animate-spin h-8 w-8 border-4 border-karmic-500 border-t-transparent rounded-full mx-auto mb-4"></div>
+          <p className="text-karmic-700">Carregando...</p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-karmic-100 to-white py-12">

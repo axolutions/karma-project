@@ -74,7 +74,6 @@ const LoginForm: React.FC = () => {
           navigate('/matrix');
         } else {
           // User needs to fill profile, redirect to profile page
-          // Recarregar a página atual para mostrar o ProfileForm
           window.location.reload();
         }
       }, 1000);
