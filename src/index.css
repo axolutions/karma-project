@@ -127,3 +127,18 @@
 .karmic-subtitle {
   @apply text-lg font-serif font-medium text-karmic-700 mt-6 mb-3;
 }
+
+/* Estilos para emojis e elementos especiais nas interpretações */
+.prose-karmic img.emoji {
+  @apply inline-block h-5 w-5 align-text-bottom mx-0.5;
+}
+
+/* Garante que o HTML renderizado exiba corretamente */
+.prose-karmic {
+  white-space: pre-wrap;
+}
+
+/* Fazer com que emojis e símbolos sejam exibidos corretamente */
+.karmic-content * {
+  font-family: "Merriweather", serif, "Segoe UI Emoji", "Segoe UI Symbol", "Apple Color Emoji";
+}
