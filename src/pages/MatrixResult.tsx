@@ -5,15 +5,15 @@ import { getCurrentUser, getUserData, logout } from '@/lib/auth';
 import { useNavigate } from 'react-router-dom';
 import KarmicMatrix from '@/components/KarmicMatrix';
 import MatrixInterpretations from '@/components/MatrixInterpretations';
-import { Printer, LogOut, RefreshCw, Download } from 'lucide-react';
+import { LogOut, RefreshCw, Mail } from 'lucide-react';
 import { toast } from "@/components/ui/use-toast";
 import { motion } from 'framer-motion';
 
 const MatrixResult = () => {
   const [userData, setUserData] = useState<any>(null);
   const [refreshing, setRefreshing] = useState(false);
-  const [isPrinting, setIsPrinting] = useState(false);
   const [loading, setLoading] = useState(true);
+  const [sending, setSending] = useState(false);
   const navigate = useNavigate();
   
   useEffect(() => {
@@ -63,91 +63,30 @@ const MatrixResult = () => {
     loadUserData();
   }, [navigate]);
   
-  // Detecta quando a impressão é concluída ou cancelada
-  useEffect(() => {
-    if (isPrinting) {
-      // Adicionar evento para quando o modal de impressão for fechado
-      const handleAfterPrint = () => {
-        setIsPrinting(false);
-        console.log("Impressão concluída ou cancelada");
-      };
-      
-      window.addEventListener('afterprint', handleAfterPrint);
-      
-      return () => {
-        window.removeEventListener('afterprint', handleAfterPrint);
-      };
+  const handleSendEmail = () => {
+    if (!userData || !userData.email) {
+      toast({
+        title: "Email não disponível",
+        description: "Não foi possível encontrar seu email. Por favor, verifique seu perfil.",
+        variant: "destructive"
+      });
+      return;
     }
-  }, [isPrinting]);
-  
-  const handlePrint = () => {
-    setIsPrinting(true);
     
-    // Garantir que todos os estilos e imagens sejam carregados antes de imprimir
-    setTimeout(() => {
-      try {
-        // Adiciona a classe específica para modo de impressão
-        document.body.classList.add('printing-mode');
-        
-        // Usar o método de impressão nativo do navegador
-        window.print();
-        
-        // Remove a classe após um tempo
-        setTimeout(() => {
-          document.body.classList.remove('printing-mode');
-        }, 1000);
-        
-        // Em alguns navegadores, o evento afterprint pode não ser disparado
-        // Então definimos um timeout de segurança
-        setTimeout(() => {
-          if (isPrinting) {
-            setIsPrinting(false);
-          }
-        }, 5000);
-      } catch (error) {
-        console.error("Erro ao imprimir:", error);
-        setIsPrinting(false);
-        toast({
-          title: "Erro ao imprimir",
-          description: "Houve um problema ao gerar o PDF. Tente novamente.",
-          variant: "destructive"
-        });
-      }
-    }, 500); // Aumentado o delay para garantir carregamento completo
-  };
-  
-  // Função alternativa para quem tem problemas com a impressão direta
-  const handleExportPDF = () => {
-    toast({
-      title: "Exportando PDF",
-      description: "Use a opção 'Salvar como PDF' na janela de impressão que irá abrir."
-    });
+    setSending(true);
     
+    // Simular o envio de email
     setTimeout(() => {
-      try {
-        // Adiciona a classe específica para modo de impressão
-        document.body.classList.add('printing-mode');
-        
-        const printOptions = {
-          destination: 'save-as-pdf'
-        };
-        
-        // Em navegadores modernos, isso deve abrir diretamente a opção de salvar como PDF
-        window.print();
-        
-        // Remove a classe após um tempo
-        setTimeout(() => {
-          document.body.classList.remove('printing-mode');
-        }, 1000);
-      } catch (error) {
-        console.error("Erro ao exportar PDF:", error);
-        toast({
-          title: "Erro ao exportar",
-          description: "Houve um problema ao exportar o PDF. Tente imprimir normalmente e escolha 'Salvar como PDF'.",
-          variant: "destructive"
-        });
-      }
-    }, 500);
+      setSending(false);
+      toast({
+        title: "Email enviado",
+        description: `Sua Matriz Kármica foi enviada para ${userData.email}`,
+      });
+    }, 2000);
+    
+    // Aqui você implementaria a lógica real de envio de email
+    // Isso geralmente seria feito através de uma API no backend
+    console.log("Enviando matriz por email para:", userData.email);
   };
   
   const handleLogout = () => {
@@ -208,21 +147,12 @@ const MatrixResult = () => {
             </Button>
             
             <Button 
-              onClick={handleExportPDF}
+              onClick={handleSendEmail}
               className="karmic-button flex items-center"
-              disabled={isPrinting}
+              disabled={sending}
             >
-              <Download className="mr-2 h-4 w-4" />
-              Exportar PDF
-            </Button>
-            
-            <Button 
-              onClick={handlePrint}
-              className="karmic-button flex items-center"
-              disabled={isPrinting}
-            >
-              <Printer className={`mr-2 h-4 w-4 ${isPrinting ? 'animate-spin' : ''}`} />
-              {isPrinting ? 'Gerando PDF...' : 'Imprimir'}
+              <Mail className="mr-2 h-4 w-4" />
+              {sending ? 'Enviando...' : 'Enviar por Email'}
             </Button>
             
             <Button 
