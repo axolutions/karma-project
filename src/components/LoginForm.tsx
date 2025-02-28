@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
@@ -53,8 +54,8 @@ const LoginForm: React.FC = () => {
           // User already has a matrix, redirect to results
           navigate('/matrix');
         } else {
-          // User needs to fill profile, but keep on same page
-          // Will show profile form via state changes
+          // User needs to fill profile, force reload to show profile form
+          window.location.reload();
         }
       }, 1000);
     } else {
