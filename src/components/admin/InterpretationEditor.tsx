@@ -12,10 +12,11 @@ import {
   getAllCategories,
   exportInterpretations,
   importInterpretations,
-  forceSyncToSupabase
+  forceSyncToSupabase,
+  getAllInterpretations
 } from '@/lib/interpretations';
 import { checkConnection } from '@/lib/supabase';
-import { Save, Trash, Bold, Italic, List, Type, Quote, Cloud, Download, Upload, CloudOff, RefreshCw } from 'lucide-react';
+import { Save, Trash, Bold, Italic, List, Type, Quote, Cloud, Download, Upload, CloudOff, RefreshCw, Info } from 'lucide-react';
 
 const InterpretationEditor: React.FC = () => {
   const [selectedCategory, setSelectedCategory] = useState("karmicSeal");
@@ -26,6 +27,7 @@ const InterpretationEditor: React.FC = () => {
   const [previewMode, setPreviewMode] = useState(false);
   const [interpretationsCount, setInterpretationsCount] = useState(0);
   const [isConnected, setIsConnected] = useState<boolean | null>(null);
+  const [debugInfo, setDebugInfo] = useState("");
   const fileInputRef = useRef<HTMLInputElement>(null);
   
   const possibleNumbers = ["1", "2", "3", "4", "5", "6", "7", "8", "9", "11", "22", "33", "44"];
@@ -55,11 +57,28 @@ const InterpretationEditor: React.FC = () => {
     const interpretation = getInterpretation(selectedCategory, parseInt(selectedNumber));
     setTitle(interpretation.title);
     setContent(interpretation.content);
+    
+    // Add debug info about loaded interpretation
+    console.log("Loaded interpretation:", interpretation);
   };
   
   const updateInterpretationsCount = () => {
-    const count = Object.keys(exportInterpretations()).length;
+    const allInterpretations = exportInterpretations();
+    const count = Object.keys(allInterpretations).length;
     setInterpretationsCount(count);
+    
+    // Generate debug info about stored interpretations
+    const debugText = generateDebugInfo(allInterpretations);
+    setDebugInfo(debugText);
+  };
+  
+  const generateDebugInfo = (interpretations: any) => {
+    const keys = Object.keys(interpretations);
+    if (keys.length === 0) {
+      return "Nenhuma interpretação encontrada no armazenamento.";
+    }
+    
+    return `${keys.length} interpretações encontradas:\n${keys.slice(0, 10).join('\n')}${keys.length > 10 ? '\n...(e mais)' : ''}`;
   };
   
   const handleSave = async () => {
@@ -99,6 +118,10 @@ const InterpretationEditor: React.FC = () => {
       setTimeout(() => {
         setIsLoading(false);
         updateInterpretationsCount();
+        
+        // Show stored data in console for debugging
+        const allInterpretations = exportInterpretations();
+        console.log("All stored interpretations after save:", allInterpretations);
       }, 300);
     } catch (error) {
       console.error("Erro ao salvar interpretação:", error);
@@ -336,6 +359,36 @@ const InterpretationEditor: React.FC = () => {
     return processedHTML;
   };
   
+  // Função para listar todas as interpretações armazenadas
+  const handleShowAllInterpretations = () => {
+    const allInterpretations = getAllInterpretations();
+    console.log("Todas as interpretações armazenadas:", allInterpretations);
+    
+    toast({
+      title: "Interpretações carregadas no console",
+      description: `${allInterpretations.length} interpretações foram listadas no console do navegador (F12).`
+    });
+  };
+  
+  const checkLocalStorage = () => {
+    try {
+      const saved = localStorage.getItem('karmicInterpretations');
+      console.log("localStorage 'karmicInterpretations':", saved ? JSON.parse(saved) : null);
+      
+      toast({
+        title: "LocalStorage verificado",
+        description: "Conteúdo do localStorage exibido no console do navegador (F12)."
+      });
+    } catch (error) {
+      console.error("Erro ao verificar localStorage:", error);
+      toast({
+        title: "Erro ao verificar localStorage",
+        description: "Não foi possível acessar o localStorage. Verifique o console para mais detalhes.",
+        variant: "destructive"
+      });
+    }
+  };
+  
   return (
     <div className="space-y-6">
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6">
@@ -397,6 +450,32 @@ const InterpretationEditor: React.FC = () => {
             className="hidden"
           />
         </div>
+      </div>
+      
+      {/* Debug info panel */}
+      <div className="bg-gray-50 border rounded-md p-3 text-xs font-mono overflow-x-auto">
+        <div className="flex justify-between items-center mb-2">
+          <span className="font-medium">Diagnóstico de Armazenamento</span>
+          <div className="space-x-2">
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={handleShowAllInterpretations}
+              className="h-7 text-xs"
+            >
+              <Info className="h-3.5 w-3.5 mr-1" /> Ver no Console
+            </Button>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={checkLocalStorage}
+              className="h-7 text-xs"
+            >
+              <Info className="h-3.5 w-3.5 mr-1" /> Ver LocalStorage
+            </Button>
+          </div>
+        </div>
+        <pre className="whitespace-pre-wrap">{debugInfo}</pre>
       </div>
       
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">

@@ -5,10 +5,100 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import EmailManager from '@/components/admin/EmailManager';
 import InterpretationEditor from '@/components/admin/InterpretationEditor';
 import SupabaseSetup from '@/components/admin/SupabaseSetup';
-import { Users, Book, Info, Cloud, Database } from 'lucide-react';
+import { Users, Book, Info, Cloud, Database, Download, Upload } from 'lucide-react';
+import { exportInterpretations, importInterpretations } from '@/lib/interpretations';
+import { toast } from "@/components/ui/use-toast";
 
 const Admin = () => {
   const [showInfoBox, setShowInfoBox] = useState(true);
+  
+  // Função para diagnosticar o estado dos dados
+  const runDiagnostics = () => {
+    try {
+      // Verificar interpretações no localStorage
+      const localStorageData = localStorage.getItem('karmicInterpretations');
+      const parsedData = localStorageData ? JSON.parse(localStorageData) : {};
+      const interpretationCount = Object.keys(parsedData).length;
+      
+      console.log("Diagnóstico de dados:");
+      console.log("Interpretações em localStorage:", interpretationCount);
+      console.log("Dados brutos:", parsedData);
+      
+      // Exportar para console
+      const exportedData = exportInterpretations();
+      console.log("Dados exportados:", exportedData);
+      
+      toast({
+        title: "Diagnóstico concluído",
+        description: `Encontradas ${interpretationCount} interpretações no localStorage. Detalhes no console.`
+      });
+    } catch (error) {
+      console.error("Erro ao executar diagnóstico:", error);
+      toast({
+        title: "Erro de diagnóstico",
+        description: "Ocorreu um erro ao analisar os dados. Veja o console para detalhes.",
+        variant: "destructive"
+      });
+    }
+  };
+  
+  // Função para fazer backup de emergência
+  const emergencyExport = () => {
+    try {
+      const data = exportInterpretations();
+      
+      if (Object.keys(data).length === 0) {
+        toast({
+          title: "Nada para exportar",
+          description: "Não há interpretações para exportar no armazenamento.",
+          variant: "destructive"
+        });
+        return;
+      }
+      
+      const dataStr = JSON.stringify(data, null, 2);
+      const dataUri = `data:application/json;charset=utf-8,${encodeURIComponent(dataStr)}`;
+      
+      const exportName = `backup-emergencial-${new Date().toISOString().slice(0, 19).replace(/:/g, '-')}.json`;
+      
+      const linkElement = document.createElement('a');
+      linkElement.setAttribute('href', dataUri);
+      linkElement.setAttribute('download', exportName);
+      linkElement.click();
+      
+      toast({
+        title: "Backup de emergência concluído",
+        description: `${Object.keys(data).length} interpretações exportadas com sucesso.`
+      });
+    } catch (error) {
+      console.error("Erro ao fazer backup de emergência:", error);
+      
+      // Tentar recuperar dados brutos do localStorage
+      try {
+        const rawData = localStorage.getItem('karmicInterpretations');
+        if (rawData) {
+          const blob = new Blob([rawData], {type: 'application/json'});
+          const url = URL.createObjectURL(blob);
+          const link = document.createElement('a');
+          link.href = url;
+          link.download = `localStorage-raw-backup-${new Date().toISOString().slice(0, 10)}.json`;
+          link.click();
+          
+          toast({
+            title: "Backup bruto realizado",
+            description: "Os dados brutos do localStorage foram exportados com sucesso."
+          });
+        }
+      } catch (e) {
+        console.error("Erro na tentativa de backup bruto:", e);
+        toast({
+          title: "Falha completa no backup",
+          description: "Não foi possível realizar nenhum tipo de backup.",
+          variant: "destructive"
+        });
+      }
+    }
+  };
   
   return (
     <div className="min-h-screen bg-gradient-to-b from-karmic-100 to-white py-12">
@@ -20,6 +110,26 @@ const Admin = () => {
           <p className="text-karmic-600">
             Gerencie emails autorizados e interpretações da Matriz Kármica.
           </p>
+          
+          {/* Botões de diagnóstico de emergência */}
+          <div className="mt-4 flex gap-2">
+            <Button 
+              variant="outline" 
+              size="sm" 
+              onClick={runDiagnostics}
+              className="text-blue-600 border-blue-300 hover:bg-blue-50"
+            >
+              <Info className="h-4 w-4 mr-1" /> Diagnóstico
+            </Button>
+            <Button 
+              variant="outline" 
+              size="sm" 
+              onClick={emergencyExport}
+              className="text-red-600 border-red-300 hover:bg-red-50"
+            >
+              <Download className="h-4 w-4 mr-1" /> Backup de Emergência
+            </Button>
+          </div>
         </div>
         
         {showInfoBox && (

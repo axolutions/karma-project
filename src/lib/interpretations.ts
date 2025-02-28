@@ -27,41 +27,38 @@ export async function initInterpretations(): Promise<void> {
   if (isInitialized) return;
   
   try {
-    // Primeiro tenta carregar do Supabase
-    await loadFromSupabase();
+    console.log("Inicializando sistema de interpretações...");
     
-    // Se não tem dados no Supabase mas tem no localStorage, fazer migração
+    // Primeiro tentar carregar do localStorage para ter acesso rápido aos dados
+    const localData = loadFromLocalStorage();
+    if (Object.keys(localData).length > 0) {
+      interpretations = localData;
+      console.log(`Carregadas ${Object.keys(interpretations).length} interpretações do localStorage durante inicialização.`);
+    }
+    
+    // Depois tentar carregar do Supabase (pode atualizar os dados do localStorage)
+    try {
+      await loadFromSupabase();
+    } catch (supabaseError) {
+      console.error("Erro ao carregar do Supabase durante inicialização:", supabaseError);
+      // Se falhar, já temos dados do localStorage de qualquer forma
+    }
+    
+    // Se não tem dados no Supabase nem no localStorage, carregar exemplos
     if (Object.keys(interpretations).length === 0) {
-      const localData = loadFromLocalStorage();
-      if (Object.keys(localData).length > 0) {
-        interpretations = localData;
-        await saveToSupabase(true);
-        toast({
-          title: "Migração concluída",
-          description: "Suas interpretações foram migradas do armazenamento local para a nuvem."
-        });
-      } else {
-        // Se não tiver dados nem no localStorage, carregar exemplos
-        loadExampleInterpretations();
-        saveToLocalStorage();
-      }
+      console.log("Nenhuma interpretação encontrada - carregando exemplos");
+      loadExampleInterpretations();
+      saveToLocalStorage();
     }
     
     isInitialized = true;
     console.log(`Sistema de interpretações inicializado com ${Object.keys(interpretations).length} entradas.`);
   } catch (error) {
-    console.error("Erro ao inicializar interpretações:", error);
+    console.error("Erro crítico ao inicializar interpretações:", error);
     
-    // Em caso de falha, tenta carregar do localStorage como fallback
-    const localData = loadFromLocalStorage();
-    if (Object.keys(localData).length > 0) {
-      interpretations = localData;
-      console.log(`Carregamento de fallback concluído com ${Object.keys(interpretations).length} interpretações do localStorage.`);
-    } else {
-      // Se não tiver dados nem no localStorage, carregar exemplos
-      loadExampleInterpretations();
-      saveToLocalStorage();
-    }
+    // Em caso de falha total, ao menos tentar carregar exemplos
+    loadExampleInterpretations();
+    saveToLocalStorage();
     
     isInitialized = true;
   }
@@ -288,6 +285,11 @@ export async function setInterpretation(category: string, number: number, title:
 
 // Get an interpretation
 export function getInterpretation(category: string, number: number): Interpretation {
+  if (!isInitialized) {
+    console.warn("Sistema de interpretações não inicializado ao tentar recuperar interpretação.");
+    initInterpretations(); // Inicializar de forma síncrona
+  }
+  
   const id = generateInterpretationId(category, number);
   
   // If not found, return a default interpretation
@@ -304,6 +306,11 @@ export function getInterpretation(category: string, number: number): Interpretat
 
 // Get all interpretations
 export function getAllInterpretations(): Interpretation[] {
+  if (!isInitialized) {
+    console.warn("Sistema de interpretações não inicializado ao tentar listar todas as interpretações.");
+    initInterpretations(); // Inicializar de forma síncrona
+  }
+  
   return Object.values(interpretations);
 }
 
@@ -376,12 +383,11 @@ async function loadFromSupabase(): Promise<void> {
     
     if (error) {
       console.error("Erro ao carregar do Supabase:", error);
-      return;
+      throw error;
     }
     
     if (data && data.length > 0) {
-      // Limpar interpretações atuais
-      interpretations = {};
+      console.log(`Encontradas ${data.length} interpretações no Supabase.`);
       
       // Carregar novas interpretações
       data.forEach(item => {
@@ -423,7 +429,16 @@ async function saveToSupabase(isFullSync: boolean = false): Promise<boolean> {
       
       if (error) {
         console.error("Erro na sincronização completa:", error);
-        return false;
+        
+        // Tentar método alternativo com upsert normal
+        const { error: upsertError } = await supabaseClient
+          .from('interpretations')
+          .upsert(items, { onConflict: 'id' });
+        
+        if (upsertError) {
+          console.error("Erro no método alternativo de sincronização:", upsertError);
+          return false;
+        }
       }
     } else {
       // Para atualizações normais, usar upsert
@@ -460,9 +475,17 @@ function loadFromLocalStorage(): Record<string, Interpretation> {
   try {
     const saved = localStorage.getItem('karmicInterpretations');
     if (saved && saved !== "{}") {
-      const parsed = JSON.parse(saved);
-      console.log(`Carregadas ${Object.keys(parsed).length} interpretações do localStorage.`);
-      return parsed;
+      try {
+        const parsed = JSON.parse(saved);
+        console.log(`Carregadas ${Object.keys(parsed).length} interpretações do localStorage.`);
+        return parsed;
+      } catch (parseError) {
+        console.error("Erro ao analisar dados do localStorage:", parseError);
+        // Fazer backup dos dados brutos para não perder nada
+        localStorage.setItem('karmicInterpretations_backup_' + Date.now(), saved);
+      }
+    } else {
+      console.log("Nenhuma interpretação encontrada no localStorage ou objeto vazio.");
     }
   } catch (error) {
     console.error("Erro ao carregar do localStorage:", error);
@@ -508,11 +531,19 @@ export async function importInterpretations(data: Record<string, Interpretation>
       return false;
     }
     
+    // Backup dos dados atuais antes de mesclar
+    const currentData = { ...interpretations };
+    localStorage.setItem('karmicInterpretations_preimport_backup', JSON.stringify(currentData));
+    
     // Mesclar com dados existentes
     interpretations = { ...interpretations, ...validData };
     
     // Salvar no Supabase
     const supabaseSuccess = await saveToSupabase(true);
+    
+    if (!supabaseSuccess) {
+      console.warn("Não foi possível salvar no Supabase - salvando apenas localmente");
+    }
     
     // Salvar no localStorage como backup
     saveToLocalStorage();
@@ -527,6 +558,11 @@ export async function importInterpretations(data: Record<string, Interpretation>
 
 // Obter todas as interpretações para exportação
 export function exportInterpretations(): Record<string, Interpretation> {
+  if (!isInitialized) {
+    console.warn("Sistema de interpretações não inicializado ao tentar exportar.");
+    initInterpretations(); // Inicializar de forma síncrona
+  }
+  
   return { ...interpretations };
 }
 
