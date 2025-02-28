@@ -1,4 +1,3 @@
-
 import React, { useEffect, useState } from 'react';
 import { Button } from "@/components/ui/button";
 import { 
@@ -199,7 +198,7 @@ const MatrixResult = () => {
   const handleDownloadPDF = () => {
     if (!userData || !userData.karmicNumbers) {
       toast({
-        title: "Erro ao gerar PDF",
+        title: "Erro ao gerar arquivo",
         description: "Não foi possível encontrar seus dados kármicos.",
         variant: "destructive"
       });
@@ -207,9 +206,8 @@ const MatrixResult = () => {
     }
     
     try {
-      setIsPrinting(true);
       toast({
-        title: "Gerando PDF",
+        title: "Gerando arquivo",
         description: "Preparando suas interpretações para download..."
       });
       
@@ -218,57 +216,39 @@ const MatrixResult = () => {
       
       // Criar um Blob com o conteúdo HTML
       const blob = new Blob([htmlContent], { type: 'text/html' });
+      
+      // Criar um link de download
+      const fileName = `Interpretacoes-Karmicas-${userData.name?.replace(/\s+/g, '-') || 'Usuario'}.html`;
       const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = fileName;
+      document.body.appendChild(a);
       
-      // Criar um iframe temporário para renderizar o HTML
-      const iframe = document.createElement('iframe');
-      iframe.style.display = 'none';
-      document.body.appendChild(iframe);
-      iframe.src = url;
+      // Disparar o download
+      a.click();
       
-      // Quando o iframe estiver carregado, iniciar a impressão
-      iframe.onload = () => {
-        try {
-          // Acessar o documento do iframe
-          const iframeDoc = iframe.contentDocument || iframe.contentWindow?.document;
-          if (!iframeDoc) throw new Error("Não foi possível acessar o documento do iframe");
-          
-          // Iniciar a impressão programaticamente
-          setTimeout(() => {
-            iframe.contentWindow?.print();
-            
-            // Limpar recursos após algum tempo
-            setTimeout(() => {
-              document.body.removeChild(iframe);
-              URL.revokeObjectURL(url);
-              setIsPrinting(false);
-            }, 2000);
-          }, 500);
-        } catch (error) {
-          console.error("Erro ao imprimir iframe:", error);
-          document.body.removeChild(iframe);
-          URL.revokeObjectURL(url);
-          setIsPrinting(false);
-          
-          toast({
-            title: "Erro ao gerar PDF",
-            description: "Ocorreu um problema ao preparar o documento. Tente novamente.",
-            variant: "destructive"
-          });
-        }
-      };
-    } catch (error) {
-      console.error("Erro ao preparar HTML para impressão:", error);
-      setIsPrinting(false);
+      // Limpar recursos
+      setTimeout(() => {
+        document.body.removeChild(a);
+        URL.revokeObjectURL(url);
+      }, 100);
       
       toast({
-        title: "Erro ao gerar PDF",
+        title: "Download concluído",
+        description: "Arquivo HTML gerado com suas interpretações. Você pode abri-lo em qualquer navegador."
+      });
+    } catch (error) {
+      console.error("Erro ao preparar arquivo para download:", error);
+      
+      toast({
+        title: "Erro ao gerar arquivo",
         description: "Ocorreu um erro inesperado. Por favor, tente novamente mais tarde.",
         variant: "destructive"
       });
     }
   };
-  
+
   const handleLogout = () => {
     logout();
     toast({
@@ -438,18 +418,18 @@ const MatrixResult = () => {
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
                 <Button className="karmic-button flex items-center" disabled={isPrinting}>
-                  <Printer className={`mr-2 h-4 w-4 ${isPrinting ? 'animate-spin' : ''}`} />
-                  {isPrinting ? 'Gerando...' : 'Imprimir / PDF'}
+                  <FileDown className="mr-2 h-4 w-4" />
+                  Exportar Interpretações
                 </Button>
               </DropdownMenuTrigger>
               <DropdownMenuContent align="end">
+                <DropdownMenuItem onClick={handleDownloadPDF}>
+                  <FileDown className="mr-2 h-4 w-4" />
+                  Baixar interpretações (HTML)
+                </DropdownMenuItem>
                 <DropdownMenuItem onClick={handlePrint}>
                   <Printer className="mr-2 h-4 w-4" />
                   Imprimir mapa completo
-                </DropdownMenuItem>
-                <DropdownMenuItem onClick={handleDownloadPDF}>
-                  <FileDown className="mr-2 h-4 w-4" />
-                  Baixar só interpretações
                 </DropdownMenuItem>
               </DropdownMenuContent>
             </DropdownMenu>

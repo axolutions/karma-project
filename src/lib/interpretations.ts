@@ -1,4 +1,3 @@
-
 import { toast } from "@/components/ui/use-toast";
 
 // Define types for interpretations
@@ -131,7 +130,7 @@ export function renderHTML(html: string) {
   return { __html: html };
 }
 
-// Generate HTML for PDF export
+// Generate HTML for download
 export function generateInterpretationsHTML(karmicData: any): string {
   if (!karmicData) return '<p>Nenhum dado kármico disponível.</p>';
   
@@ -220,7 +219,7 @@ export function generateInterpretationsHTML(karmicData: any): string {
   
   // Adicionar cada categoria de interpretação
   categories.forEach(category => {
-    if (karmicData[category]) {
+    if (karmicData[category] || karmicData[category] === 0) {
       const number = karmicData[category];
       const interpretation = getInterpretation(category, number);
       
