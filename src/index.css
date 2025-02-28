@@ -87,6 +87,7 @@
   }
   body {
     @apply bg-background text-foreground;
+    font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji';
   }
 }
 
@@ -96,7 +97,8 @@
 }
 
 .karmic-number {
-  @apply font-serif text-xl font-bold text-karmic-600 bg-karmic-50 w-8 h-8 flex items-center justify-center rounded-full;
+  @apply font-serif text-xl font-bold text-karmic-600 w-8 h-8 flex items-center justify-center rounded-full;
+  background-color: hsl(var(--karmic-50));
 }
 
 /* Estilos para interpretações kármicas */
@@ -117,7 +119,9 @@
 }
 
 .affirmation-box {
-  @apply my-6 p-4 bg-karmic-50 border-l-4 border-karmic-400 rounded;
+  @apply my-6 p-4 rounded;
+  background-color: hsl(var(--karmic-50));
+  border-left: 4px solid hsl(var(--karmic-400));
 }
 
 .affirmation-title {
@@ -141,4 +145,34 @@
 /* Fazer com que emojis e símbolos sejam exibidos corretamente */
 .karmic-content * {
   font-family: "Merriweather", serif, "Segoe UI Emoji", "Segoe UI Symbol", "Apple Color Emoji";
+}
+
+/* Estilos adicionais para corrigir problemas de formatação */
+.prose-karmic h1, 
+.prose-karmic h2, 
+.prose-karmic h3 {
+  @apply font-serif text-karmic-800 font-medium mt-6 mb-3;
+}
+
+.prose-karmic h1 {
+  @apply text-2xl;
+}
+
+.prose-karmic h2 {
+  @apply text-xl;
+}
+
+.prose-karmic h3 {
+  @apply text-lg;
+}
+
+/* Corrigir a exibição dos emojis */
+.karmic-content {
+  @apply font-normal;
+}
+
+/* Garantir que os emojis apareçam corretamente */
+.emoji-wrapper {
+  display: inline-block;
+  font-family: "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol", sans-serif;
 }

@@ -213,7 +213,7 @@ const MatrixInterpretations: React.FC<MatrixInterpretationsProps> = ({ karmicDat
           variant="outline"
           size="sm"
           onClick={forceReloadInterpretations}
-          className="h-8 text-xs border-amber-400 text-amber-700 hover:bg-amber-100"
+          className="h-8 text-xs border-amber-400 text-amber-700 hover:bg-amber-100 mb-4"
         >
           <RefreshCw className="h-3.5 w-3.5 mr-1.5" /> Recarregar Interpretações
         </Button>
