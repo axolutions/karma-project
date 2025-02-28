@@ -1,4 +1,3 @@
-<lov-code>
 import { toast } from "@/components/ui/use-toast";
 import { supabaseClient, isInOfflineMode } from '@/lib/supabase';
 
@@ -623,4 +622,4 @@ function loadExampleInterpretations(): void {
   // Adicionar números adicionais para os outros campos
   interpretations[generateInterpretationId('manifestationEnigma', 1)] = {
     id: generateInterpretationId('manifestationEnigma', 1),
-    title: "Enigma
+    title: "Enigma da Manifestação
