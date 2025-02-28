@@ -39,100 +39,116 @@ const MatrixResult = () => {
   }, [navigate]);
   
   const loadUserData = () => {
-    const email = getCurrentUser();
-    if (!email) {
-      console.log("Nenhum usuário logado, redirecionando para a página inicial");
-      navigate('/');
-      return;
-    }
-    
-    console.log("Carregando dados para o email:", email);
-    
-    // Obter todos os mapas do usuário
-    const allMaps = getAllUserDataByEmail(email);
-    console.log("Mapas encontrados:", allMaps);
-    
-    // Verificar se temos mapas válidos
-    if (!allMaps || allMaps.length === 0) {
-      console.log("Nenhum mapa encontrado");
-      toast({
-        title: "Perfil não encontrado",
-        description: "Por favor, complete seu perfil primeiro.",
-        variant: "destructive"
-      });
-      navigate('/');
-      return;
-    }
-    
-    // Filtrar mapas inválidos (sem id ou dados corrompidos)
-    const validMaps = allMaps.filter(map => map && map.id);
-    console.log("Mapas válidos:", validMaps);
-    
-    if (validMaps.length === 0) {
-      console.log("Nenhum mapa válido encontrado");
-      toast({
-        title: "Dados corrompidos",
-        description: "Os dados do seu perfil parecem estar corrompidos. Por favor, crie um novo perfil.",
-        variant: "destructive"
-      });
-      navigate('/');
-      return;
-    }
-    
-    setUserMaps(validMaps);
-    
-    // Verificar se o usuário pode criar novos mapas
-    checkIfCanCreateNewMap(email, validMaps.length);
-    
-    // Tentar obter o mapa específico definido na sessão
-    const currentMatrixId = getCurrentMatrixId();
-    console.log("ID da matriz atual:", currentMatrixId);
-    
-    let currentData = null;
-    
-    if (currentMatrixId) {
-      currentData = getUserData(email, currentMatrixId);
-      console.log("Dados da matriz atual:", currentData);
-    }
-    
-    // Se não encontrar o mapa específico, usar o mais recente
-    if (!currentData || !currentData.id) {
-      console.log("Usando o mapa mais recente");
-      currentData = validMaps[validMaps.length - 1];
-      if (currentData && currentData.id) {
-        setCurrentMatrixId(currentData.id);
+    try {
+      const email = getCurrentUser();
+      if (!email) {
+        console.log("Nenhum usuário logado, redirecionando para a página inicial");
+        navigate('/');
+        return;
       }
-    }
-    
-    // Verificação final para garantir que temos dados válidos
-    if (!currentData || !currentData.id) {
-      console.log("Falha ao carregar dados válidos");
+      
+      console.log("Carregando dados para o email:", email);
+      
+      // Obter todos os mapas do usuário
+      let allMaps = getAllUserDataByEmail(email);
+      console.log("Dados brutos recebidos:", JSON.stringify(allMaps));
+      
+      // Se não for um array, tenta converter para array
+      if (allMaps && !Array.isArray(allMaps)) {
+        console.log("Convertendo objeto para array");
+        allMaps = [allMaps];
+      }
+      
+      // Verificar se temos mapas válidos
+      if (!allMaps || !Array.isArray(allMaps) || allMaps.length === 0) {
+        console.log("Nenhum mapa encontrado");
+        toast({
+          title: "Perfil não encontrado",
+          description: "Por favor, complete seu perfil primeiro.",
+          variant: "destructive"
+        });
+        navigate('/');
+        return;
+      }
+      
+      // Filtrar mapas inválidos (sem id ou dados corrompidos)
+      const validMaps = Array.isArray(allMaps) ? allMaps.filter(map => map && map.id) : [];
+      console.log("Mapas válidos:", validMaps);
+      
+      if (validMaps.length === 0) {
+        console.log("Nenhum mapa válido encontrado");
+        toast({
+          title: "Dados corrompidos",
+          description: "Os dados do seu perfil parecem estar corrompidos. Por favor, crie um novo perfil.",
+          variant: "destructive"
+        });
+        navigate('/');
+        return;
+      }
+      
+      setUserMaps(validMaps);
+      
+      // Verificar se o usuário pode criar novos mapas
+      checkIfCanCreateNewMap(email, validMaps.length);
+      
+      // Tentar obter o mapa específico definido na sessão
+      const currentMatrixId = getCurrentMatrixId();
+      console.log("ID da matriz atual:", currentMatrixId);
+      
+      let currentData = null;
+      
+      if (currentMatrixId) {
+        currentData = getUserData(email, currentMatrixId);
+        console.log("Dados da matriz obtidos por ID:", currentData);
+      }
+      
+      // Se não encontrar o mapa específico, usar o mais recente
+      if (!currentData || !currentData.id) {
+        console.log("Usando o mapa mais recente");
+        currentData = validMaps[validMaps.length - 1];
+        if (currentData && currentData.id) {
+          setCurrentMatrixId(currentData.id);
+        }
+      }
+      
+      // Verificação final para garantir que temos dados válidos
+      if (!currentData || !currentData.id) {
+        console.log("Falha ao carregar dados válidos");
+        toast({
+          title: "Erro ao carregar dados",
+          description: "Não foi possível carregar os dados da matriz kármica. Por favor, crie um novo perfil.",
+          variant: "destructive"
+        });
+        navigate('/');
+        return;
+      }
+      
+      // Garantir que temos números kármicos, mesmo que vazios
+      if (!currentData.karmicNumbers) {
+        console.log("Números kármicos ausentes, criando objeto vazio");
+        currentData.karmicNumbers = {
+          karmicSeal: 0,
+          destinyCall: 0,
+          karmaPortal: 0,
+          karmicInheritance: 0,
+          karmicReprogramming: 0,
+          cycleProphecy: 0,
+          spiritualMark: 0,
+          manifestationEnigma: 0
+        };
+      }
+      
+      console.log("Definindo userData com:", currentData);
+      setUserData(currentData);
+    } catch (error) {
+      console.error("Erro ao carregar dados:", error);
       toast({
         title: "Erro ao carregar dados",
-        description: "Não foi possível carregar os dados da matriz kármica. Por favor, crie um novo perfil.",
+        description: "Ocorreu um erro inesperado. Por favor, tente novamente.",
         variant: "destructive"
       });
       navigate('/');
-      return;
     }
-    
-    // Garantir que temos números kármicos, mesmo que vazios
-    if (!currentData.karmicNumbers) {
-      console.log("Números kármicos ausentes, criando objeto vazio");
-      currentData.karmicNumbers = {
-        karmicSeal: 0,
-        destinyCall: 0,
-        karmaPortal: 0,
-        karmicInheritance: 0,
-        karmicReprogramming: 0,
-        cycleProphecy: 0,
-        spiritualMark: 0,
-        manifestationEnigma: 0
-      };
-    }
-    
-    console.log("Definindo userData com:", currentData);
-    setUserData(currentData);
   };
   
   const checkIfCanCreateNewMap = (email: string, mapCount: number) => {

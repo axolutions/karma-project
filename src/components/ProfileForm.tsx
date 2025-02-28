@@ -22,16 +22,13 @@ const ProfileForm: React.FC = () => {
     const currentUser = getCurrentUser();
     if (currentUser) {
       const userMaps = getAllUserDataByEmail(currentUser);
-      setExistingMaps(userMaps);
+      setExistingMaps(userMaps || []);
       
       // Se houver mapas existentes, preencher o nome com o do último mapa
-      if (userMaps.length > 0) {
-        setName(userMaps[userMaps.length - 1].name);
+      if (userMaps && userMaps.length > 0) {
+        setName(userMaps[userMaps.length - 1].name || '');
         
         // Verificar se o usuário pode criar um novo mapa
-        // Cada email só pode criar um mapa, a menos que seja adicionado novamente pelo admin
-        // Lógica: se o número de mapas for maior ou igual ao número de vezes que o email foi autorizado, 
-        // não pode criar mais mapas
         checkIfCanCreateNewMap(currentUser, userMaps.length);
       }
     }
@@ -39,20 +36,8 @@ const ProfileForm: React.FC = () => {
   
   const checkIfCanCreateNewMap = (email: string, mapCount: number) => {
     // Aqui verificamos se o usuário pode criar um novo mapa
-    // Cada vez que um email é adicionado à lista de autorizados, ele ganha direito a um novo mapa
-    
-    // Em uma implementação real, essa lógica seria mais complexa e poderia envolver:
-    // 1. Verificar compras na Yampi
-    // 2. Verificar um contador de créditos no backend
-    // 3. Verificar um plano de assinatura
-    
-    // Por enquanto, usamos uma regra simples: 
-    // Se o email está na lista de autorizados, mas já usou seu crédito (criou um mapa),
-    // então não pode criar mais
-    
     if (mapCount > 0 && isAuthorizedEmail(email)) {
       // Simples verificação: se já tem mapas, não pode criar mais
-      // Esta lógica será substituída pela verificação real de compras ou créditos
       setCanCreateNewMap(false);
     } else {
       setCanCreateNewMap(true);
@@ -158,30 +143,41 @@ const ProfileForm: React.FC = () => {
       return;
     }
     
-    // Calculate karmic numbers
-    const karmicNumbers = calculateAllKarmicNumbers(birthDate);
-    
-    // Save user data
-    const newMapId = saveUserData({
-      email,
-      name,
-      birthDate,
-      karmicNumbers
-    });
-    
-    // Definir o ID do mapa atual para visualização
-    setCurrentMatrixId(newMapId);
-    
-    toast({
-      title: "Mapa criado com sucesso",
-      description: "Sua Matriz Kármica Pessoal 2025 foi gerada com sucesso.",
-    });
-    
-    // Redirect to matrix results
-    setTimeout(() => {
+    try {
+      // Calculate karmic numbers
+      const karmicNumbers = calculateAllKarmicNumbers(birthDate);
+      console.log("Números kármicos calculados:", karmicNumbers);
+      
+      // Save user data
+      const newMapId = saveUserData({
+        email,
+        name,
+        birthDate,
+        karmicNumbers
+      });
+      
+      // Definir o ID do mapa atual para visualização
+      setCurrentMatrixId(newMapId);
+      
+      toast({
+        title: "Mapa criado com sucesso",
+        description: "Sua Matriz Kármica Pessoal 2025 foi gerada com sucesso.",
+      });
+      
+      // Redirect to matrix results
+      setTimeout(() => {
+        setIsSubmitting(false);
+        navigate('/matrix');
+      }, 1000);
+    } catch (error) {
+      console.error("Erro ao gerar mapa:", error);
+      toast({
+        title: "Erro ao criar mapa",
+        description: "Ocorreu um erro ao processar seus dados. Por favor, tente novamente.",
+        variant: "destructive"
+      });
       setIsSubmitting(false);
-      navigate('/matrix');
-    }, 1000);
+    }
   };
 
   return (

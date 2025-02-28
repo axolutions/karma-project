@@ -22,10 +22,13 @@ const Index = () => {
       const email = getCurrentUser();
       if (email) {
         const userData = getUserData(email);
-        if (userData) {
+        if (userData && userData.id) {
+          console.log("Usuário já tem perfil, redirecionando para matriz");
           setHasProfile(true);
           // Redirect to matrix page
           navigate('/matrix');
+        } else {
+          console.log("Usuário logado, mas sem perfil");
         }
       }
     }
