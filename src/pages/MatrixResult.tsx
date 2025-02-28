@@ -74,14 +74,25 @@ const MatrixResult = () => {
       
       window.addEventListener('afterprint', handleAfterPrint);
       
+      // Também definimos um timeout para garantir que o estado de impressão não fique preso
+      const safetyTimeout = setTimeout(() => {
+        setIsPrinting(false);
+      }, 10000); // 10 segundos de timeout de segurança
+      
       return () => {
         window.removeEventListener('afterprint', handleAfterPrint);
+        clearTimeout(safetyTimeout);
       };
     }
   }, [isPrinting]);
   
   const handlePrint = () => {
     setIsPrinting(true);
+    
+    toast({
+      title: "Preparando impressão",
+      description: "Preparando sua Matriz Kármica para impressão..."
+    });
     
     // Garantir que todos os estilos e imagens sejam carregados antes de imprimir
     setTimeout(() => {
@@ -118,12 +129,14 @@ const MatrixResult = () => {
   
   // Função alternativa para quem tem problemas com a impressão direta
   const handleExportPDF = () => {
+    if (isPrinting) return; // Evita múltiplos cliques
+    
+    setIsPrinting(true);
+    
     toast({
       title: "Exportando PDF",
       description: "Use a opção 'Salvar como PDF' na janela de impressão que irá abrir."
     });
-    
-    setIsPrinting(true);
     
     // Preparação mais completa para exportação PDF
     setTimeout(() => {
@@ -134,20 +147,25 @@ const MatrixResult = () => {
         // Em navegadores modernos, isso deve abrir diretamente a opção de salvar como PDF
         window.print();
         
-        // Note: window.print() returns void, not a boolean, so we can't check its return value
-        // Instead, we'll rely on our timeout and event listener
-
         // Remove a classe após um tempo
         setTimeout(() => {
           document.body.classList.remove('printing-mode');
         }, 1000);
         
-        // Garantir que o estado de impressão seja redefinido depois de um tempo
+        // Definimos múltiplos timeouts em diferentes momentos para garantir que o estado seja resetado
+        setTimeout(() => {
+          if (isPrinting) setIsPrinting(false);
+        }, 3000);
+        
         setTimeout(() => {
           if (isPrinting) {
             setIsPrinting(false);
+            toast({
+              title: "Processo concluído",
+              description: "Se você não viu a janela de impressão, tente novamente."
+            });
           }
-        }, 6000);
+        }, 8000);
       } catch (error) {
         console.error("Erro ao exportar PDF:", error);
         setIsPrinting(false);
@@ -222,8 +240,8 @@ const MatrixResult = () => {
               className="karmic-button flex items-center"
               disabled={isPrinting}
             >
-              <Download className="mr-2 h-4 w-4" />
-              {isPrinting ? 'Salvando...' : 'Exportar PDF'}
+              <Download className={`mr-2 h-4 w-4 ${isPrinting ? 'animate-spin' : ''}`} />
+              {isPrinting ? 'Preparando PDF...' : 'Exportar PDF'}
             </Button>
             
             <Button 
