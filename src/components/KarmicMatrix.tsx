@@ -21,16 +21,16 @@ const KarmicMatrix: React.FC<KarmicMatrixProps> = ({
   karmicData,
   backgroundImage = "https://darkorange-goldfinch-896244.hostingersite.com/wp-content/uploads/2025/02/Design-sem-nome-1.png"
 }) => {
-  // Define positions of the 8 boxes on the matrix image - todos ajustados conforme instruções
+  // Define positions of the 8 boxes on the matrix image - ajustes ainda mais precisos
   const boxPositions = [
-    { top: '13%', left: '25%', translateX: '-50%', translateY: '-50%' },   // Position 1 - top left square (3) - subir bem para o meio
-    { top: '13%', left: '74%', translateX: '-50%', translateY: '-50%' },   // Position 2 - top right square (1) - subir bem e ir para esquerda
+    { top: '10%', left: '25%', translateX: '-50%', translateY: '-50%' },   // Position 1 - top left square (3) - ajuste mais preciso
+    { top: '10%', left: '76%', translateX: '-50%', translateY: '-50%' },   // Position 2 - top right square (1) - ajuste mais preciso
     { top: '47%', left: '22%', translateX: '-50%', translateY: '-50%' },   // Position 3 - middle left square (9) - manter
     { top: '47%', left: '72%', translateX: '-50%', translateY: '-50%' },   // Position 4 - middle right square (4) - manter
-    { top: '83%', left: '25%', translateX: '-50%', translateY: '-50%' },   // Position 5 - bottom left square (11) - descer para o meio
+    { top: '85%', left: '25%', translateX: '-50%', translateY: '-50%' },   // Position 5 - bottom left square (11) - ajuste mais preciso
     { top: '74%', left: '48%', translateX: '-50%', translateY: '-50%' },   // Position 6 - bottom middle square (9) - manter
-    { top: '83%', left: '72%', translateX: '-50%', translateY: '-50%' },   // Position 7 - bottom right square (3) - descer bem e ir para esquerda
-    { top: '22%', left: '47%', translateX: '-50%', translateY: '-50%' }    // Position 8 - top middle square (11) - subir um pouco e um tico a direita
+    { top: '85%', left: '76%', translateX: '-50%', translateY: '-50%' },   // Position 7 - bottom right square (3) - ajuste mais preciso
+    { top: '20%', left: '48%', translateX: '-50%', translateY: '-50%' }    // Position 8 - top middle square (11) - ajuste mais preciso
   ];
 
   // Map data to positions
