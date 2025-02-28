@@ -123,31 +123,43 @@ const MatrixResult = () => {
       description: "Use a opção 'Salvar como PDF' na janela de impressão que irá abrir."
     });
     
+    setIsPrinting(true);
+    
+    // Preparação mais completa para exportação PDF
     setTimeout(() => {
       try {
         // Adiciona a classe específica para modo de impressão
         document.body.classList.add('printing-mode');
         
-        const printOptions = {
-          destination: 'save-as-pdf'
-        };
-        
         // Em navegadores modernos, isso deve abrir diretamente a opção de salvar como PDF
-        window.print();
+        const printResult = window.print();
+        
+        // Alguns navegadores retornam false se a impressão foi cancelada
+        if (printResult === false) {
+          setTimeout(() => setIsPrinting(false), 1000);
+        }
         
         // Remove a classe após um tempo
         setTimeout(() => {
           document.body.classList.remove('printing-mode');
         }, 1000);
+        
+        // Garantir que o estado de impressão seja redefinido depois de um tempo
+        setTimeout(() => {
+          if (isPrinting) {
+            setIsPrinting(false);
+          }
+        }, 6000);
       } catch (error) {
         console.error("Erro ao exportar PDF:", error);
+        setIsPrinting(false);
         toast({
           title: "Erro ao exportar",
           description: "Houve um problema ao exportar o PDF. Tente imprimir normalmente e escolha 'Salvar como PDF'.",
           variant: "destructive"
         });
       }
-    }, 500);
+    }, 800); // Delay maior para garantir que tudo esteja carregado
   };
   
   const handleLogout = () => {
@@ -213,7 +225,7 @@ const MatrixResult = () => {
               disabled={isPrinting}
             >
               <Download className="mr-2 h-4 w-4" />
-              Exportar PDF
+              {isPrinting ? 'Salvando...' : 'Exportar PDF'}
             </Button>
             
             <Button 
