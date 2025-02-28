@@ -26,7 +26,7 @@ const KarmicMatrix: React.FC<KarmicMatrixProps> = ({
   
   // Pré-carrega a imagem para garantir que ela esteja disponível para impressão e geração de PDF
   useEffect(() => {
-    const preloadImage = async () => {
+    const preloadImage = () => {
       try {
         const img = new Image();
         img.crossOrigin = "anonymous";
@@ -57,7 +57,7 @@ const KarmicMatrix: React.FC<KarmicMatrixProps> = ({
     };
     
     preloadImage();
-  }, [backgroundImage, imageLoaded]);
+  }, [backgroundImage]);
   
   // Vamos listar explicitamente as posições para cada número específico
   const numberPositions = {
