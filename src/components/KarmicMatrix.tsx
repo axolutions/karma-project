@@ -1,6 +1,5 @@
 
 import React, { useEffect, useState } from 'react';
-import { getInterpretation, renderHTML } from '@/lib/interpretations';
 import { motion } from 'framer-motion';
 
 interface KarmicMatrixProps {
@@ -23,6 +22,22 @@ const KarmicMatrix: React.FC<KarmicMatrixProps> = ({
 }) => {
   const [imageLoaded, setImageLoaded] = useState(false);
   const [imgSrc, setImgSrc] = useState(backgroundImage);
+  
+  // Verificar se temos dados kármicos válidos
+  const hasValidData = karmicData && 
+    typeof karmicData === 'object' && 
+    Object.keys(karmicData).length > 0;
+  
+  // Se não tivermos dados válidos, exibir uma mensagem de erro
+  if (!hasValidData) {
+    console.error("Dados kármicos inválidos ou ausentes", karmicData);
+    return (
+      <div className="relative max-w-4xl mx-auto p-8 bg-red-50 border border-red-200 rounded-md text-center">
+        <p className="text-red-500 font-medium">Erro ao carregar os dados da matriz kármica</p>
+        <p className="text-sm text-red-400 mt-2">Tente atualizar a página ou entre em contato com o suporte</p>
+      </div>
+    );
+  }
   
   // Pré-carrega a imagem para garantir que ela esteja disponível para impressão
   useEffect(() => {

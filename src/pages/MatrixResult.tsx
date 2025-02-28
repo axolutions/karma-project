@@ -46,9 +46,9 @@ const MatrixResult = () => {
     
     // Obter todos os mapas do usuário
     const allMaps = getAllUserDataByEmail(email);
-    setUserMaps(allMaps);
     
-    if (allMaps.length === 0) {
+    // Verificar se temos mapas válidos
+    if (!allMaps || allMaps.length === 0) {
       toast({
         title: "Perfil não encontrado",
         description: "Por favor, complete seu perfil primeiro.",
@@ -58,25 +58,49 @@ const MatrixResult = () => {
       return;
     }
     
+    // Filtrar mapas inválidos (sem id ou dados corrompidos)
+    const validMaps = allMaps.filter(map => map && map.id && map.karmicNumbers);
+    
+    if (validMaps.length === 0) {
+      toast({
+        title: "Dados corrompidos",
+        description: "Os dados do seu perfil parecem estar corrompidos. Por favor, crie um novo perfil.",
+        variant: "destructive"
+      });
+      navigate('/');
+      return;
+    }
+    
+    setUserMaps(validMaps);
+    
     // Verificar se o usuário pode criar novos mapas
-    // Em uma implementação real, isso seria baseado em compras ou créditos
-    // Por enquanto, se já tem mapas criados, não pode criar mais
-    checkIfCanCreateNewMap(email, allMaps.length);
+    checkIfCanCreateNewMap(email, validMaps.length);
     
     // Tentar obter o mapa específico definido na sessão
     const currentMatrixId = getCurrentMatrixId();
-    let currentData;
+    let currentData = null;
     
     if (currentMatrixId) {
       currentData = getUserData(email, currentMatrixId);
     }
     
     // Se não encontrar o mapa específico, usar o mais recente
-    if (!currentData) {
-      currentData = allMaps[allMaps.length - 1];
-      if (currentData.id) {
+    if (!currentData || !currentData.id || !currentData.karmicNumbers) {
+      currentData = validMaps[validMaps.length - 1];
+      if (currentData && currentData.id) {
         setCurrentMatrixId(currentData.id);
       }
+    }
+    
+    // Verificação final para garantir que temos dados válidos
+    if (!currentData || !currentData.karmicNumbers) {
+      toast({
+        title: "Erro ao carregar dados",
+        description: "Não foi possível carregar os dados da matriz kármica. Por favor, crie um novo perfil.",
+        variant: "destructive"
+      });
+      navigate('/');
+      return;
     }
     
     setUserData(currentData);
@@ -167,13 +191,19 @@ const MatrixResult = () => {
     if (!email) return;
     
     const selectedMap = getUserData(email, mapId);
-    if (selectedMap) {
+    if (selectedMap && selectedMap.id && selectedMap.karmicNumbers) {
       setCurrentMatrixId(mapId);
       setUserData(selectedMap);
       
       toast({
         title: "Mapa alterado",
         description: `Visualizando mapa de ${selectedMap.name} (${selectedMap.birthDate}).`
+      });
+    } else {
+      toast({
+        title: "Erro ao carregar mapa",
+        description: "Não foi possível carregar o mapa selecionado.",
+        variant: "destructive"
       });
     }
   };
@@ -199,11 +229,18 @@ const MatrixResult = () => {
     }, 300);
   };
   
-  if (!userData) {
+  if (!userData || !userData.karmicNumbers) {
     return (
       <div className="min-h-screen flex items-center justify-center">
         <div className="text-center">
-          <p className="text-karmic-700">Carregando...</p>
+          <p className="text-karmic-700">Carregando dados da matriz kármica...</p>
+          <Button 
+            onClick={() => navigate('/')}
+            variant="link" 
+            className="mt-4 text-karmic-500"
+          >
+            Voltar para a página inicial
+          </Button>
         </div>
       </div>
     );
@@ -242,16 +279,18 @@ const MatrixResult = () => {
                   <DropdownMenuLabel>Selecione um mapa</DropdownMenuLabel>
                   <DropdownMenuSeparator />
                   {userMaps.map((map) => (
-                    <DropdownMenuItem 
-                      key={map.id} 
-                      onClick={() => handleSwitchMap(map.id)}
-                      className={map.id === userData.id ? "bg-karmic-100 font-medium" : ""}
-                    >
-                      {map.name} - {map.birthDate}
-                      <span className="text-xs ml-2 text-karmic-500">
-                        ({new Date(map.createdAt).toLocaleDateString()})
-                      </span>
-                    </DropdownMenuItem>
+                    map && map.id ? (
+                      <DropdownMenuItem 
+                        key={map.id} 
+                        onClick={() => handleSwitchMap(map.id)}
+                        className={map.id === userData.id ? "bg-karmic-100 font-medium" : ""}
+                      >
+                        {map.name} - {map.birthDate}
+                        <span className="text-xs ml-2 text-karmic-500">
+                          ({map.createdAt ? new Date(map.createdAt).toLocaleDateString() : 'Data desconhecida'})
+                        </span>
+                      </DropdownMenuItem>
+                    ) : null
                   ))}
                   <DropdownMenuSeparator />
                   <DropdownMenuItem 
