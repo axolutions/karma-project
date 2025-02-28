@@ -29,8 +29,8 @@ const KarmicMatrix: React.FC<KarmicMatrixProps> = ({
     // Posição 1 - 1 da direita (topo)
     { top: "13%", left: "85%" },
     
-    // Posição 2 - meio esquerda (ajustado para subir bastante)
-    { top: "30%", left: "21%" },
+    // Posição 2 - meio esquerda
+    { top: "47%", left: "21%" },
     
     // Posição 3 - meio direita
     { top: "47%", left: "72%" },
@@ -47,6 +47,16 @@ const KarmicMatrix: React.FC<KarmicMatrixProps> = ({
     // Posição 7 - meio superior
     { top: "20%", left: "47%" }
   ];
+
+  // Verifica cada número e imprime no console para depuração
+  console.log("karmicSeal:", karmicData.karmicSeal);
+  console.log("destinyCall:", karmicData.destinyCall);
+  console.log("karmaPortal:", karmicData.karmaPortal);
+  console.log("karmicInheritance:", karmicData.karmicInheritance);
+  console.log("karmicReprogramming:", karmicData.karmicReprogramming);
+  console.log("cycleProphecy:", karmicData.cycleProphecy);
+  console.log("spiritualMark:", karmicData.spiritualMark);
+  console.log("manifestationEnigma:", karmicData.manifestationEnigma);
 
   // Map data to positions
   const mappedData = [
