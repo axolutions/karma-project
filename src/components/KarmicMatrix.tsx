@@ -23,13 +23,13 @@ const KarmicMatrix: React.FC<KarmicMatrixProps> = ({
 }) => {
   // Define positions of the 8 boxes on the matrix image - adjusted based on feedback
   const boxPositions = [
-    { top: '12%', left: '20%', translateX: '-50%', translateY: '-50%' },   // Position 1 - top left (3)
-    { top: '12%', left: '72%', translateX: '-50%', translateY: '-50%' },   // Position 2 - top right (1)
-    { top: '47%', left: '20%', translateX: '-50%', translateY: '-50%' },   // Position 3 - middle left (9)
+    { top: '10%', left: '19%', translateX: '-50%', translateY: '-50%' },   // Position 1 - top left (3)
+    { top: '10%', left: '72%', translateX: '-50%', translateY: '-50%' },   // Position 2 - top right (1)
+    { top: '47%', left: '22%', translateX: '-50%', translateY: '-50%' },   // Position 3 - middle left (9)
     { top: '46%', left: '72%', translateX: '-50%', translateY: '-50%' },   // Position 4 - middle right (4)
-    { top: '82%', left: '27%', translateX: '-50%', translateY: '-50%' },   // Position 5 - bottom left (11)
+    { top: '84%', left: '29%', translateX: '-50%', translateY: '-50%' },   // Position 5 - bottom left (11)
     { top: '71%', left: '46%', translateX: '-50%', translateY: '-50%' },   // Position 6 - bottom middle (9)
-    { top: '78%', left: '70%', translateX: '-50%', translateY: '-50%' },   // Position 7 - bottom right (3)
+    { top: '82%', left: '68%', translateX: '-50%', translateY: '-50%' },   // Position 7 - bottom right (3)
     { top: '21%', left: '47%', translateX: '-50%', translateY: '-50%' }    // Position 8 - top middle (11)
   ];
 
