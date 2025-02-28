@@ -31,7 +31,8 @@ const Index = () => {
           if (userData && userData.karmicNumbers) {
             console.log("Usuário com matriz kármica, redirecionando...");
             setHasProfile(true);
-            navigate('/matrix');
+            // Comentamos esta linha para evitar o redirecionamento automático
+            // navigate('/matrix');
             return true; // Indica que foi redirecionado
           } else {
             console.log("Usuário logado mas sem perfil completo");
@@ -90,13 +91,27 @@ const Index = () => {
           <h2 className="text-2xl font-serif text-center text-karmic-800 mb-6">
             {userLoggedIn && !hasProfile 
               ? 'Complete seu Perfil'
-              : 'Acesse sua Matriz Kármica'}
+              : (userLoggedIn && hasProfile 
+                ? 'Sua Matriz Kármica'
+                : 'Acesse sua Matriz Kármica')}
           </h2>
           
           {userLoggedIn && !hasProfile ? (
             <ProfileForm onProfileComplete={() => checkAndRedirect()} />
           ) : (
-            <LoginForm onLoginSuccess={() => checkAndRedirect()} />
+            userLoggedIn && hasProfile ? (
+              <div className="text-center">
+                <p className="mb-4 text-karmic-700">Você já tem uma matriz kármica gerada.</p>
+                <button 
+                  onClick={() => navigate('/matrix')} 
+                  className="karmic-button w-full"
+                >
+                  Ver Minha Matriz Kármica
+                </button>
+              </div>
+            ) : (
+              <LoginForm onLoginSuccess={() => checkAndRedirect()} />
+            )
           )}
           
           <div className="mt-6 pt-6 border-t border-karmic-200 text-center">

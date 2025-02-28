@@ -73,16 +73,11 @@ const LoginForm: React.FC<LoginFormProps> = ({ onLoginSuccess }) => {
       
       setTimeout(() => {
         setIsSubmitting(false);
-        if (userData && userData.karmicNumbers) {
-          // User already has a matrix, redirect to results
-          navigate('/matrix');
+        // Chamar o callback em vez de redirecionar diretamente
+        if (onLoginSuccess) {
+          onLoginSuccess();
         } else {
-          // User needs to fill profile
-          if (onLoginSuccess) {
-            onLoginSuccess();
-          } else {
-            window.location.reload();
-          }
+          window.location.reload();
         }
       }, 1000);
     } else {
