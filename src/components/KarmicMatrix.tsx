@@ -24,19 +24,44 @@ const KarmicMatrix: React.FC<KarmicMatrixProps> = ({
   const [imageLoaded, setImageLoaded] = useState(false);
   const [imgSrc, setImgSrc] = useState(backgroundImage);
   
-  // Pré-carrega a imagem para garantir que ela esteja disponível para impressão
+  // Pré-carrega a imagem para garantir que ela esteja disponível para impressão e geração de PDF
   useEffect(() => {
-    const img = new Image();
-    img.onload = () => {
-      setImageLoaded(true);
+    const preloadImage = async () => {
+      try {
+        // Tenta buscar a imagem via fetch primeiro para garantir que está acessível
+        const response = await fetch(backgroundImage, { mode: 'no-cors' });
+        
+        // Mesmo com no-cors, continuamos com o carregamento tradicional
+        const img = new Image();
+        img.crossOrigin = "anonymous";
+        img.onload = () => {
+          setImageLoaded(true);
+          setImgSrc(backgroundImage);
+        };
+        img.onerror = () => {
+          // Fallback para uma imagem local se a externa falhar
+          console.error("Erro ao carregar a imagem da matriz. Usando fallback.");
+          setImgSrc("/placeholder.svg");
+          setImageLoaded(true);
+        };
+        img.src = backgroundImage;
+        
+        // Definimos um timeout para garantir que não ficamos travados esperando o carregamento
+        setTimeout(() => {
+          if (!imageLoaded) {
+            console.warn("Timeout no carregamento da imagem, marcando como carregada de qualquer forma");
+            setImageLoaded(true);
+          }
+        }, 3000);
+      } catch (error) {
+        console.error("Erro ao pré-carregar imagem:", error);
+        setImgSrc("/placeholder.svg");
+        setImageLoaded(true);
+      }
     };
-    img.onerror = () => {
-      // Fallback para uma imagem local se a externa falhar
-      console.error("Erro ao carregar a imagem da matriz. Usando fallback.");
-      setImgSrc("/placeholder.svg");
-    };
-    img.src = backgroundImage;
-  }, [backgroundImage]);
+    
+    preloadImage();
+  }, [backgroundImage, imageLoaded]);
   
   // Vamos listar explicitamente as posições para cada número específico
   const numberPositions = {
