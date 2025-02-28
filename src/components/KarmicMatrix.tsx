@@ -75,15 +75,16 @@ const KarmicMatrix: React.FC<KarmicMatrixProps> = ({
         className="w-full h-auto relative rounded-lg overflow-hidden"
         style={{ 
           minHeight: "400px",
-          backgroundColor: '#F7F0E6', // Beige background to match the image
-          border: '1px solid #E6D7C3',
+          backgroundColor: '#EFDED0', // Warmer beige background that matches the image better
+          border: '1px solid #D5C7B8',
           borderRadius: '8px',
+          boxShadow: 'inset 0 0 20px rgba(180, 160, 140, 0.1)'
         }}
       >
         <img 
           src={hasError ? fallbackImage : backgroundImage} 
           alt="Matriz Kármica 2025"
-          className={`w-full h-auto ${!imageLoaded && !hasError ? 'opacity-50' : 'opacity-100'}`}
+          className={`w-full h-auto ${!imageLoaded && !hasError ? 'opacity-0' : 'opacity-100'} transition-opacity duration-500`}
           style={{ maxWidth: '100%' }}
           onLoad={() => setImageLoaded(true)}
           onError={() => {
@@ -154,7 +155,7 @@ const KarmicMatrix: React.FC<KarmicMatrixProps> = ({
           }}
         >
           <div className="flex items-center justify-center">
-            <span className="bg-white bg-opacity-90 rounded-full w-10 h-10 flex items-center justify-center text-lg font-serif font-bold text-karmic-800 shadow-sm print:shadow-none print:border print:border-karmic-300">
+            <span className="bg-white bg-opacity-75 rounded-full w-10 h-10 flex items-center justify-center text-lg font-serif font-bold text-karmic-800 shadow-sm border border-amber-100 print:shadow-none print:border print:border-karmic-300">
               {item.value}
             </span>
           </div>
