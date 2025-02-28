@@ -27,8 +27,8 @@ const KarmicMatrix: React.FC<KarmicMatrixProps> = ({
     // Para valor específico 11 (karmicSeal) - NÃO MUDAR
     karmicSeal: { top: "23%", left: "25%" },
     
-    // Para valor específico 3 (destinyCall) - REPOSICIONADO MAIS PARA BAIXO E PARA A DIREITA
-    destinyCall: { top: "50%", left: "80%" },
+    // Para valor específico 3 (destinyCall) - REPOSICIONADO MAIS PARA BAIXO E PARA A ESQUERDA
+    destinyCall: { top: "65%", left: "60%" },
     
     // Para valor específico 9 (karmaPortal) - NÃO MUDAR
     karmaPortal: { top: "47%", left: "21%" },
