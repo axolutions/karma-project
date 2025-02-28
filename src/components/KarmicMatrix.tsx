@@ -21,32 +21,33 @@ const KarmicMatrix: React.FC<KarmicMatrixProps> = ({
   karmicData,
   backgroundImage = "https://darkorange-goldfinch-896244.hostingersite.com/wp-content/uploads/2025/02/Design-sem-nome-1.png"
 }) => {
-  // Coordenadas específicas para cada posição
-  const positions = [
-    // Posição 0 - 3 da esquerda (topo) - PROTEGIDO
-    { top: "23%", left: "25%" },
+  // Vamos listar explicitamente as posições para cada número específico
+  // Isso elimina a confusão sobre qual número vai para qual posição
+  const numberPositions = {
+    // Para valor específico 11 (karmicSeal) - NÃO MUDAR
+    karmicSeal: { top: "23%", left: "25%" },
     
-    // Posição 1 - 1 da direita (topo) - PROTEGIDO
-    { top: "13%", left: "85%" },
+    // Para valor específico 3 (destinyCall) - NÃO MUDAR
+    destinyCall: { top: "13%", left: "85%" },
     
-    // Posição 2 - meio esquerda - AJUSTADO PARA SUBIR MUITO
-    { top: "28%", left: "21%" },
+    // Para valor específico 9 (karmaPortal) - AJUSTADO PARA RESTAURAR
+    karmaPortal: { top: "47%", left: "21%" },
     
-    // Posição 3 - meio direita - PROTEGIDO
-    { top: "47%", left: "72%" },
+    // Para valor específico 4 (karmicInheritance) - NÃO MUDAR
+    karmicInheritance: { top: "47%", left: "72%" },
     
-    // Posição 4 - 11 da esquerda (baixo) - PROTEGIDO
-    { top: "89%", left: "25%" },
+    // Para valor específico 3 (karmicReprogramming) - AJUSTADO PARA SUBIR MUITO
+    karmicReprogramming: { top: "20%", left: "25%" },
     
-    // Posição 5 - meio inferior - PROTEGIDO
-    { top: "74%", left: "48%" },
+    // Para valor específico 9 (cycleProphecy) - NÃO MUDAR
+    cycleProphecy: { top: "74%", left: "48%" },
     
-    // Posição 6 - 3 da direita (baixo) - PROTEGIDO
-    { top: "87%", left: "85%" },
+    // Para valor específico 1 (spiritualMark) - NÃO MUDAR
+    spiritualMark: { top: "87%", left: "85%" },
     
-    // Posição 7 - meio superior - PROTEGIDO
-    { top: "20%", left: "47%" }
-  ];
+    // Para valor específico 11 (manifestationEnigma) - NÃO MUDAR
+    manifestationEnigma: { top: "20%", left: "47%" }
+  };
 
   // Verifica cada número e imprime no console para depuração
   console.log("karmicSeal:", karmicData.karmicSeal);
@@ -58,56 +59,16 @@ const KarmicMatrix: React.FC<KarmicMatrixProps> = ({
   console.log("spiritualMark:", karmicData.spiritualMark);
   console.log("manifestationEnigma:", karmicData.manifestationEnigma);
 
-  // Map data to positions
-  const mappedData = [
-    { 
-      position: 0,
-      key: 'karmicSeal',
-      value: karmicData.karmicSeal,
-      title: "Selo Kármico 2025"
-    },
-    { 
-      position: 1,
-      key: 'destinyCall',
-      value: karmicData.destinyCall,
-      title: "Chamado do Destino 2025"
-    },
-    { 
-      position: 2,
-      key: 'karmaPortal',
-      value: karmicData.karmaPortal,
-      title: "Portal do Karma 2025"
-    },
-    { 
-      position: 3,
-      key: 'karmicInheritance',
-      value: karmicData.karmicInheritance,
-      title: "Herança Kármica 2025"
-    },
-    { 
-      position: 4,
-      key: 'karmicReprogramming',
-      value: karmicData.karmicReprogramming,
-      title: "Códex da Reprogramação 2025"
-    },
-    { 
-      position: 5,
-      key: 'cycleProphecy',
-      value: karmicData.cycleProphecy,
-      title: "Profecia dos Ciclos 2025"
-    },
-    { 
-      position: 6,
-      key: 'spiritualMark',
-      value: karmicData.spiritualMark,
-      title: "Marca Espiritual 2025"
-    },
-    { 
-      position: 7,
-      key: 'manifestationEnigma',
-      value: karmicData.manifestationEnigma,
-      title: "Enigma da Manifestação 2025"
-    }
+  // Simplificamos o mapeamento para usar os valores diretamente
+  const numbersToDisplay = [
+    { key: 'karmicSeal', value: karmicData.karmicSeal, title: "Selo Kármico 2025" },
+    { key: 'destinyCall', value: karmicData.destinyCall, title: "Chamado do Destino 2025" },
+    { key: 'karmaPortal', value: karmicData.karmaPortal, title: "Portal do Karma 2025" },
+    { key: 'karmicInheritance', value: karmicData.karmicInheritance, title: "Herança Kármica 2025" },
+    { key: 'karmicReprogramming', value: karmicData.karmicReprogramming, title: "Códex da Reprogramação 2025" },
+    { key: 'cycleProphecy', value: karmicData.cycleProphecy, title: "Profecia dos Ciclos 2025" },
+    { key: 'spiritualMark', value: karmicData.spiritualMark, title: "Marca Espiritual 2025" },
+    { key: 'manifestationEnigma', value: karmicData.manifestationEnigma, title: "Enigma da Manifestação 2025" }
   ];
 
   return (
@@ -119,8 +80,8 @@ const KarmicMatrix: React.FC<KarmicMatrixProps> = ({
         className="w-full h-auto"
       />
       
-      {/* Numbers overlay */}
-      {mappedData.map((item, index) => (
+      {/* Numbers overlay - agora usando posições específicas para cada número */}
+      {numbersToDisplay.map((item, index) => (
         <motion.div
           key={item.key}
           initial={{ opacity: 0, scale: 0.8 }}
@@ -128,8 +89,8 @@ const KarmicMatrix: React.FC<KarmicMatrixProps> = ({
           transition={{ delay: index * 0.1, duration: 0.5 }}
           className="absolute"
           style={{ 
-            top: positions[item.position].top, 
-            left: positions[item.position].left,
+            top: numberPositions[item.key].top, 
+            left: numberPositions[item.key].left,
             transform: "translate(-50%, -50%)"
           }}
         >
