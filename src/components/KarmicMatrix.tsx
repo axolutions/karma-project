@@ -29,13 +29,13 @@ const KarmicMatrix: React.FC<KarmicMatrixProps> = ({
     // Posição 1 - 1 da direita (topo)
     { top: "13%", left: "85%" },
     
-    // Posição 2 - meio esquerda
-    { top: "36%", left: "21%" },
+    // Posição 2 - meio esquerda (ajustado para subir bastante)
+    { top: "30%", left: "21%" },
     
     // Posição 3 - meio direita
     { top: "47%", left: "72%" },
     
-    // Posição 4 - 11 da esquerda (baixo) - AJUSTADO (mais para a direita e mais para baixo)
+    // Posição 4 - 11 da esquerda (baixo)
     { top: "89%", left: "25%" },
     
     // Posição 5 - meio inferior
