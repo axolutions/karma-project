@@ -116,6 +116,8 @@ const MatrixInterpretations: React.FC<MatrixInterpretationsProps> = ({ karmicDat
       for (const key of keys) {
         const number = karmicData[key];
         const interpretation = await getInterpretation(key, number);
+        
+        // Verificar e tratar todos os tipos possíveis de retorno
         if (typeof interpretation === 'string') {
           allInterpretations[key] = interpretation;
         } else if (interpretation && typeof interpretation === 'object' && 'content' in interpretation) {
