@@ -5,7 +5,7 @@ import { getCurrentUser, getUserData, logout } from '@/lib/auth';
 import { useNavigate } from 'react-router-dom';
 import KarmicMatrix from '@/components/KarmicMatrix';
 import MatrixInterpretations from '@/components/MatrixInterpretations';
-import { LogOut, RefreshCw, FileText, Image } from 'lucide-react';
+import { LogOut, RefreshCw, FileText } from 'lucide-react';
 import { toast } from "@/components/ui/use-toast";
 import { motion } from 'framer-motion';
 import { supabaseClient, isInOfflineMode } from '@/lib/supabase';
@@ -65,53 +65,6 @@ const MatrixResult = () => {
     
     loadUserData();
   }, [navigate]);
-  
-  // Função para gerar e baixar apenas a matriz como PNG
-  const handleDownloadMatrix = async () => {
-    try {
-      setSending(true);
-      
-      // Capturar apenas a matriz como imagem
-      const matrixElement = document.querySelector('.karmic-matrix-container');
-      if (!matrixElement) {
-        throw new Error("Não foi possível encontrar a matriz para baixar");
-      }
-      
-      // Pequeno delay para garantir que a imagem carregue
-      await new Promise(resolve => setTimeout(resolve, 1000));
-      
-      const canvas = await html2canvas(matrixElement as HTMLElement, {
-        scale: 2, // Melhor qualidade
-        backgroundColor: "#ffffff",
-        logging: true, // Habilita logs para depuração
-        useCORS: true, // Importante para imagens de outros domínios
-        allowTaint: true // Permite imagens de outros domínios
-      });
-      
-      // Criar um link de download para a imagem
-      const imgData = canvas.toDataURL('image/png');
-      const link = document.createElement('a');
-      link.href = imgData;
-      link.download = `Matriz-Karmica-${userData?.name || 'Pessoal'}.png`;
-      document.body.appendChild(link);
-      link.click();
-      document.body.removeChild(link);
-      
-      toast({
-        title: "Download concluído",
-        description: "Sua Matriz Kármica foi baixada com sucesso!",
-      });
-    } catch (error) {
-      console.error("Erro ao gerar download da matriz:", error);
-      toast({
-        title: "Erro ao gerar download",
-        description: "Não foi possível baixar a matriz. Por favor, tente novamente mais tarde.",
-        variant: "destructive"
-      });
-    } finally {
-      setSending(false);
-    }
-  };
   
   // Nova função para baixar apenas as interpretações como PDF
   const handleDownloadInterpretations = async () => {
@@ -274,15 +227,6 @@ const MatrixResult = () => {
             >
               <FileText className="mr-2 h-4 w-4" />
               Baixar Interpretação
-            </Button>
-            
-            <Button 
-              onClick={handleDownloadMatrix}
-              className="karmic-button flex items-center"
-              disabled={sending}
-            >
-              <Image className="mr-2 h-4 w-4" />
-              Baixar Matriz
             </Button>
             
             <Button 
