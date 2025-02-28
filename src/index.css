@@ -1,198 +1,258 @@
 
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Playfair+Display:wght@400;500;600;700&display=swap');
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
- 
+
 @layer base {
   :root {
-    --background: 0 0% 100%;
-    --foreground: 222.2 84% 4.9%;
- 
-    --muted: 210 40% 96.1%;
-    --muted-foreground: 215.4 16.3% 46.9%;
- 
-    --popover: 0 0% 100%;
-    --popover-foreground: 222.2 84% 4.9%;
- 
+    --background: 30 25% 98%;
+    --foreground: 30 10% 15%;
+
     --card: 0 0% 100%;
-    --card-foreground: 222.2 84% 4.9%;
- 
-    --border: 214.3 31.8% 91.4%;
-    --input: 214.3 31.8% 91.4%;
- 
-    --primary: 222.2 47.4% 11.2%;
-    --primary-foreground: 210 40% 98%;
- 
-    --secondary: 210 40% 96.1%;
-    --secondary-foreground: 222.2 47.4% 11.2%;
- 
-    --accent: 210 40% 96.1%;
-    --accent-foreground: 222.2 47.4% 11.2%;
- 
+    --card-foreground: 30 10% 15%;
+
+    --popover: 0 0% 100%;
+    --popover-foreground: 30 10% 15%;
+
+    --primary: 30 8% 45%;
+    --primary-foreground: 30 33% 98%;
+
+    --secondary: 30 10% 96%;
+    --secondary-foreground: 30 8% 45%;
+
+    --muted: 30 10% 96%;
+    --muted-foreground: 30 8% 45%;
+
+    --accent: 30 10% 90%;
+    --accent-foreground: 30 8% 45%;
+
     --destructive: 0 84.2% 60.2%;
-    --destructive-foreground: 210 40% 98%;
- 
-    --ring: 215 20.2% 65.1%;
- 
+    --destructive-foreground: 30 33% 98%;
+
+    --border: 30 15% 90%;
+    --input: 30 15% 90%;
+    --ring: 30 8% 45%;
+
     --radius: 0.5rem;
-    
-    --karmic-50: 45 100% 96%;
-    --karmic-100: 45 94% 94%;
-    --karmic-200: 40 79% 84%;
-    --karmic-300: 36 73% 70%;
-    --karmic-400: 29 74% 55%;
-    --karmic-500: 23 65% 48%;
-    --karmic-600: 22 66% 39%;
-    --karmic-700: 21 67% 32%;
-    --karmic-800: 21 63% 26%;
-    --karmic-900: 24 44% 22%;
-    --karmic-950: 24 45% 13%;
+
+    --sidebar-background: 0 0% 98%;
+    --sidebar-foreground: 240 5.3% 26.1%;
+    --sidebar-primary: 240 5.9% 10%;
+    --sidebar-primary-foreground: 0 0% 98%;
+    --sidebar-accent: 240 4.8% 95.9%;
+    --sidebar-accent-foreground: 240 5.9% 10%;
+    --sidebar-border: 220 13% 91%;
+    --sidebar-ring: 217.2 91.2% 59.8%;
   }
- 
+
   .dark {
-    --background: 222.2 84% 4.9%;
-    --foreground: 210 40% 98%;
- 
-    --muted: 217.2 32.6% 17.5%;
-    --muted-foreground: 215 20.2% 65.1%;
- 
-    --popover: 222.2 84% 4.9%;
-    --popover-foreground: 210 40% 98%;
- 
-    --card: 222.2 84% 4.9%;
-    --card-foreground: 210 40% 98%;
- 
-    --border: 217.2 32.6% 17.5%;
-    --input: 217.2 32.6% 17.5%;
- 
-    --primary: 210 40% 98%;
-    --primary-foreground: 222.2 47.4% 11.2%;
- 
-    --secondary: 217.2 32.6% 17.5%;
-    --secondary-foreground: 210 40% 98%;
- 
-    --accent: 217.2 32.6% 17.5%;
-    --accent-foreground: 210 40% 98%;
- 
+    --background: 30 15% 10%;
+    --foreground: 30 10% 90%;
+
+    --card: 30 15% 15%;
+    --card-foreground: 30 10% 90%;
+
+    --popover: 30 15% 15%;
+    --popover-foreground: 30 10% 90%;
+
+    --primary: 30 8% 65%;
+    --primary-foreground: 30 15% 10%;
+
+    --secondary: 30 10% 20%;
+    --secondary-foreground: 30 8% 85%;
+
+    --muted: 30 10% 20%;
+    --muted-foreground: 30 8% 65%;
+
+    --accent: 30 10% 25%;
+    --accent-foreground: 30 8% 85%;
+
     --destructive: 0 62.8% 30.6%;
-    --destructive-foreground: 0 85.7% 97.3%;
- 
-    --ring: 217.2 32.6% 17.5%;
+    --destructive-foreground: 30 10% 90%;
+
+    --border: 30 15% 25%;
+    --input: 30 15% 25%;
+    --ring: 30 8% 65%;
+    
+    --sidebar-background: 240 5.9% 10%;
+    --sidebar-foreground: 240 4.8% 95.9%;
+    --sidebar-primary: 224.3 76.3% 48%;
+    --sidebar-primary-foreground: 0 0% 100%;
+    --sidebar-accent: 240 3.7% 15.9%;
+    --sidebar-accent-foreground: 240 4.8% 95.9%;
+    --sidebar-border: 240 3.7% 15.9%;
+    --sidebar-ring: 217.2 91.2% 59.8%;
   }
 }
- 
+
 @layer base {
   * {
     @apply border-border;
   }
+
   body {
-    @apply bg-background text-foreground;
-    font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji';
+    @apply bg-background text-foreground font-sans;
   }
-}
 
-/* Estilos personalizados para o site */
-.karmic-card {
-  @apply bg-white rounded-lg shadow-md p-6 mb-6;
-}
+  h1, h2, h3, h4, h5, h6 {
+    @apply font-serif font-medium tracking-tight;
+  }
 
-.karmic-number {
-  @apply font-serif text-xl font-bold text-karmic-600 w-8 h-8 flex items-center justify-center rounded-full;
-  background-color: hsl(var(--karmic-50));
-}
+  .karmic-card {
+    @apply bg-white backdrop-blur-sm bg-opacity-90 rounded-xl p-6 border border-karmic-200 shadow-sm transition-all duration-300;
+  }
 
-/* Estilos para interpretações kármicas */
-.prose-karmic {
-  @apply prose prose-slate prose-p:text-karmic-700 
-    prose-headings:text-karmic-800 prose-headings:font-serif
-    prose-h3:text-lg prose-h3:font-medium prose-h3:mt-6 prose-h3:mb-3
-    prose-strong:text-karmic-800 prose-strong:font-medium
-    prose-ul:my-4 prose-li:my-1;
-}
+  .karmic-card:hover {
+    @apply shadow-md border-karmic-300;
+  }
 
-.prose-karmic ul {
-  @apply space-y-2 list-disc pl-6 text-karmic-700;
-}
+  .karmic-number {
+    @apply font-serif text-4xl font-bold text-karmic-700;
+  }
 
-.prose-karmic p {
-  @apply my-3 leading-relaxed;
-}
+  .karmic-title {
+    @apply font-serif text-xl font-medium text-karmic-800 mb-2;
+  }
 
-.affirmation-box {
-  @apply my-6 p-4 rounded;
-  background-color: hsl(var(--karmic-50));
-  border-left: 4px solid hsl(var(--karmic-400));
-}
+  .karmic-content {
+    @apply text-karmic-700 text-base leading-relaxed;
+  }
+  
+  .karmic-button {
+    @apply bg-karmic-700 text-white px-6 py-3 rounded-full text-sm font-medium
+    shadow-sm hover:shadow-md transition-all duration-200 hover:bg-karmic-800
+    active:scale-[0.98] focus:outline-none focus:ring-2 focus:ring-karmic-500 focus:ring-offset-2;
+  }
+  
+  .karmic-button-outline {
+    @apply text-karmic-700 bg-transparent border border-karmic-300 px-6 py-3 rounded-full
+    text-sm font-medium shadow-sm hover:shadow-md transition-all duration-200
+    hover:bg-karmic-100 active:scale-[0.98] focus:outline-none focus:ring-2 
+    focus:ring-karmic-500 focus:ring-offset-2;
+  }
+  
+  /* Estilos específicos para interpretações kármicas */
+  .karmic-content p {
+    @apply mb-5 leading-relaxed text-base;
+  }
+  
+  .karmic-content strong {
+    @apply text-karmic-800 font-semibold;
+  }
+  
+  .karmic-subtitle {
+    @apply text-karmic-800 font-serif font-medium text-xl mb-4 mt-6 border-b border-karmic-200 pb-2;
+  }
+  
+  .affirmation-box {
+    @apply bg-karmic-100 border-l-4 border-karmic-600 p-5 my-6 rounded-r-md shadow-sm;
+  }
+  
+  .affirmation-title {
+    @apply text-karmic-800 font-serif font-medium text-lg mb-3;
+  }
+  
+  .affirmation-box p {
+    @apply italic text-karmic-700 font-medium;
+  }
+  
+  /* Personalização para cada número do selo kármico */
+  .karmic-content ul {
+    @apply pl-6 space-y-2 mb-5 mt-3;
+  }
+  
+  .karmic-content ul li {
+    @apply list-disc list-outside text-karmic-700 leading-relaxed mb-2;
+  }
+  
+  .karmic-content h4 {
+    @apply text-karmic-700 font-medium text-lg mt-5 mb-3;
+  }
 
-.affirmation-title {
-  @apply text-lg font-serif font-medium text-karmic-700 mb-2;
-}
-
-.karmic-subtitle {
-  @apply text-lg font-serif font-medium text-karmic-700 mt-6 mb-3;
-}
-
-/* Estilos para emojis e elementos especiais nas interpretações */
-.prose-karmic img.emoji {
-  @apply inline-block h-5 w-5 align-text-bottom mx-0.5;
-}
-
-/* Garante que o HTML renderizado exiba corretamente */
-.prose-karmic {
-  white-space: pre-wrap;
-}
-
-/* Fazer com que emojis e símbolos sejam exibidos corretamente */
-.karmic-content * {
-  font-family: "Merriweather", serif, "Segoe UI Emoji", "Segoe UI Symbol", "Apple Color Emoji";
-}
-
-/* Estilos adicionais para corrigir problemas de formatação */
-.prose-karmic h1, 
-.prose-karmic h2, 
-.prose-karmic h3 {
-  @apply font-serif text-karmic-800 font-medium mt-6 mb-3;
-}
-
-.prose-karmic h1 {
-  @apply text-2xl;
-}
-
-.prose-karmic h2 {
-  @apply text-xl;
-}
-
-.prose-karmic h3 {
-  @apply text-lg;
-}
-
-/* Corrigir a exibição dos emojis */
-.karmic-content {
-  @apply font-normal text-base leading-relaxed;
-}
-
-/* Garantir que os emojis apareçam corretamente */
-.emoji-wrapper {
-  display: inline-block;
-  font-family: "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol", sans-serif;
-}
-
-/* Ajustes para expandir o conteúdo corretamente */
-.interpretation-content {
-  @apply mt-4 text-karmic-700;
-}
-
-/* Melhorar o estilo dos cards de interpretação */
-.matrix-interpretations .karmic-card {
-  @apply border border-karmic-100 hover:border-karmic-200 transition-colors duration-200;
-}
-
-/* Melhorar o estilo dos títulos de interpretação */
-.matrix-interpretations .karmic-card h3 {
-  @apply text-karmic-700 font-medium;
-}
-
-/* Melhorar botões de expansão */
-.interpretation-toggle {
-  @apply text-karmic-600 hover:text-karmic-800;
+  /* Estilos adicionais para melhorar a legibilidade */
+  .prose-karmic {
+    @apply prose-headings:text-karmic-800 
+           prose-headings:font-serif 
+           prose-h3:text-xl
+           prose-h3:border-b 
+           prose-h3:border-karmic-200 
+           prose-h3:pb-2
+           prose-h3:mb-4
+           prose-h3:mt-6
+           prose-h4:text-karmic-700
+           prose-h4:font-medium
+           prose-h4:mt-5 
+           prose-h4:mb-3
+           prose-p:text-karmic-700
+           prose-p:mb-4
+           prose-p:leading-relaxed
+           prose-p:text-base
+           prose-strong:text-karmic-800
+           prose-strong:font-semibold
+           prose-ul:pl-6
+           prose-ul:my-4
+           prose-li:text-karmic-700
+           prose-li:mb-2;
+  }
+  
+  /* Estilos específicos para impressão */
+  @media print {
+    html, body {
+      width: 100%;
+      margin: 0;
+      padding: 0;
+      background-color: white;
+      -webkit-print-color-adjust: exact;
+      print-color-adjust: exact;
+    }
+    
+    .karmic-card {
+      break-inside: avoid;
+      page-break-inside: avoid;
+      border: 1px solid #EAE6E1;
+      border-radius: 10px;
+      margin-bottom: 20px;
+      background-color: white !important;
+      box-shadow: none !important;
+    }
+    
+    .affirmation-box {
+      background-color: #F7F4F2 !important;
+      border-left: 4px solid #776F68 !important;
+    }
+    
+    /* Garantir que os textos fiquem com cores corretas na impressão */
+    .karmic-content p, .karmic-content li {
+      color: #5D574F !important;
+    }
+    
+    .karmic-content strong, .karmic-subtitle, .affirmation-title {
+      color: #40392F !important;
+    }
+    
+    /* Evitar que elementos quebrem entre páginas */
+    h1, h2, h3, h4, h5, h6, img, .karmic-number, .affirmation-box {
+      break-after: avoid;
+      break-before: avoid;
+      page-break-after: avoid;
+      page-break-before: avoid;
+    }
+    
+    /* Ajustar margem e padding */
+    .container {
+      max-width: 100% !important;
+      padding: 0;
+    }
+    
+    /* Melhorar contraste */
+    * {
+      font-weight: normal;
+    }
+    
+    strong, b, h1, h2, h3, h4, h5, h6 {
+      font-weight: bold !important;
+    }
+  }
 }

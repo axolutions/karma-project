@@ -1,201 +1,198 @@
+
 import React, { useEffect, useState } from 'react';
 import { Button } from "@/components/ui/button";
-import { getCurrentUser, getUserData, logout } from '@/lib/auth';
+import { 
+  getCurrentUser, 
+  getUserData, 
+  getAllUserDataByEmail, 
+  getCurrentMatrixId, 
+  setCurrentMatrixId, 
+  logout,
+  isAuthorizedEmail
+} from '@/lib/auth';
 import { useNavigate } from 'react-router-dom';
 import KarmicMatrix from '@/components/KarmicMatrix';
 import MatrixInterpretations from '@/components/MatrixInterpretations';
-import { LogOut, RefreshCw, FileText } from 'lucide-react';
+import { Printer, LogOut, RefreshCw, ChevronDown, Plus, ShoppingCart } from 'lucide-react';
 import { toast } from "@/components/ui/use-toast";
 import { motion } from 'framer-motion';
-import { supabaseClient, isInOfflineMode } from '@/lib/supabase';
-import html2canvas from 'html2canvas';
-import jsPDF from 'jspdf';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 
 const MatrixResult = () => {
   const [userData, setUserData] = useState<any>(null);
+  const [userMaps, setUserMaps] = useState<any[]>([]);
   const [refreshing, setRefreshing] = useState(false);
-  const [loading, setLoading] = useState(true);
-  const [sending, setSending] = useState(false);
+  const [isPrinting, setIsPrinting] = useState(false);
+  const [canCreateNewMap, setCanCreateNewMap] = useState(false);
   const navigate = useNavigate();
   
   useEffect(() => {
-    const loadUserData = async () => {
-      setLoading(true);
-      try {
-        const email = getCurrentUser();
-        
-        if (!email) {
-          toast({
-            title: "Sessão expirada",
-            description: "Por favor, faça login novamente.",
-            variant: "destructive"
-          });
-          navigate('/');
-          return;
-        }
-        
-        const data = getUserData(email);
-        
-        if (!data || !data.karmicNumbers) {
-          toast({
-            title: "Perfil incompleto",
-            description: "Por favor, complete seu perfil com uma data de nascimento válida.",
-            variant: "destructive"
-          });
-          navigate('/');
-          return;
-        }
-        
-        // Small delay to ensure everything loads correctly
-        setTimeout(() => {
-          setUserData(data);
-          setLoading(false);
-        }, 300);
-      } catch (error) {
-        console.error("Erro ao carregar dados do usuário:", error);
+    console.log("MatrixResult - Iniciando carregamento de dados");
+    loadUserData();
+  }, []);
+  
+  const loadUserData = () => {
+    try {
+      const email = getCurrentUser();
+      if (!email) {
+        console.log("Nenhum usuário logado, redirecionando para a página inicial");
+        navigate('/');
+        return;
+      }
+      
+      console.log("Carregando dados para o email:", email);
+      
+      // Obter todos os mapas do usuário
+      let allMaps = getAllUserDataByEmail(email);
+      console.log("Dados brutos recebidos:", JSON.stringify(allMaps));
+      
+      // Se não for um array, tenta converter para array
+      if (allMaps && !Array.isArray(allMaps)) {
+        console.log("Convertendo objeto para array");
+        allMaps = [allMaps];
+      }
+      
+      // Verificar se temos mapas válidos
+      if (!allMaps || !Array.isArray(allMaps) || allMaps.length === 0) {
+        console.log("Nenhum mapa encontrado");
         toast({
-          title: "Erro ao carregar dados",
-          description: "Houve um problema ao carregar seus dados. Por favor, tente novamente.",
+          title: "Perfil não encontrado",
+          description: "Por favor, complete seu perfil primeiro.",
           variant: "destructive"
         });
-        setLoading(false);
-      }
-    };
-    
-    loadUserData();
-  }, [navigate]);
-  
-  // Function to download just interpretations as PDF
-  const handleDownloadInterpretations = async () => {
-    try {
-      setSending(true);
-      toast({
-        title: "Preparando PDF",
-        description: "Aguarde enquanto geramos o PDF das interpretações..."
-      });
-      
-      // Expand all interpretation cards first to capture their content
-      const cards = document.querySelectorAll('.karmic-card');
-      cards.forEach((card) => {
-        const toggleButton = card.querySelector('.interpretation-toggle');
-        const content = card.querySelector('.interpretation-content');
-        
-        if (content && content.classList.contains('hidden')) {
-          // If content is hidden, click the toggle to expand it
-          (toggleButton as HTMLElement)?.click();
-        }
-      });
-      
-      // Wait for the cards to expand
-      await new Promise(resolve => setTimeout(resolve, 500));
-      
-      // Create PDF
-      const pdf = new jsPDF({
-        orientation: 'portrait',
-        unit: 'mm',
-        format: 'a4',
-      });
-      
-      // Add title and user info
-      pdf.setFontSize(18);
-      pdf.text("Matriz Kármica Pessoal 2025", 105, 20, { align: 'center' });
-      pdf.setFontSize(12);
-      pdf.text(`Nome: ${userData?.name || 'Cliente'}`, 20, 30);
-      pdf.text(`Data de Nascimento: ${userData?.birthDate || 'Não informada'}`, 20, 38);
-      
-      // Get the interpretations container
-      const interpretationsContainer = document.querySelector('.matrix-interpretations');
-      if (!interpretationsContainer) {
-        throw new Error("Não foi possível encontrar o conteúdo das interpretações");
+        navigate('/');
+        return;
       }
       
-      // Capture each card individually to handle them better in the PDF
-      const interpretationCards = document.querySelectorAll('.karmic-card');
-      let currentY = 50; // Start position after the header
+      // Garantir que allMaps seja um array válido
+      const validMaps = Array.isArray(allMaps) ? 
+        allMaps.filter(map => map && typeof map === 'object') : [];
       
-      for (let i = 0; i < interpretationCards.length; i++) {
-        try {
-          const card = interpretationCards[i] as HTMLElement;
-          
-          // If we're not on the first card, check if we need a new page
-          if (i > 0) {
-            if (currentY > 250) { // Add new page if close to bottom
-              pdf.addPage();
-              currentY = 20; // Reset Y position on new page
-            } else {
-              currentY += 10; // Add spacing between cards
-            }
-          }
-          
-          // Capture the title section
-          const titleSection = card.querySelector('.flex.items-center') as HTMLElement;
-          const title = titleSection?.querySelector('h3')?.textContent || `Interpretação ${i+1}`;
-          
-          // Add title
-          pdf.setFontSize(14);
-          pdf.text(title, 20, currentY);
-          currentY += 8;
-          
-          // Capture the content section (which should be visible now)
-          const contentSection = card.querySelector('.interpretation-content > div') as HTMLElement;
-          if (contentSection) {
-            // Use html2canvas to capture content with proper formatting
-            const canvas = await html2canvas(contentSection, {
-              scale: 2,
-              useCORS: true,
-              allowTaint: true,
-              backgroundColor: '#fff8e1', // Light amber background to match the theme
-            });
-            
-            // Add the captured content to PDF
-            const imgData = canvas.toDataURL('image/jpeg', 0.95);
-            const imgWidth = 170; // Width of the image in the PDF
-            const imgHeight = (canvas.height * imgWidth) / canvas.width;
-            
-            pdf.addImage(imgData, 'JPEG', 20, currentY, imgWidth, imgHeight);
-            currentY += imgHeight + 5;
-            
-            // If content is too big and goes off-page, add a page break
-            if (currentY > 270) {
-              pdf.addPage();
-              currentY = 20;
-            }
-          }
-        } catch (cardError) {
-          console.error(`Erro ao processar cartão ${i}:`, cardError);
-          // Continue to next card if one fails
+      console.log("Mapas válidos:", validMaps);
+      
+      if (validMaps.length === 0) {
+        console.log("Nenhum mapa válido encontrado");
+        toast({
+          title: "Dados corrompidos",
+          description: "Os dados do seu perfil parecem estar corrompidos. Por favor, crie um novo perfil.",
+          variant: "destructive"
+        });
+        navigate('/');
+        return;
+      }
+      
+      setUserMaps(validMaps);
+      
+      // Verificar se o usuário pode criar novos mapas
+      checkIfCanCreateNewMap(email, validMaps.length);
+      
+      // Tentar obter o mapa específico definido na sessão
+      const currentMatrixId = getCurrentMatrixId();
+      console.log("ID da matriz atual:", currentMatrixId);
+      
+      let currentData = null;
+      
+      if (currentMatrixId) {
+        currentData = getUserData(email, currentMatrixId);
+        console.log("Dados da matriz obtidos por ID:", currentData);
+      }
+      
+      // Se não encontrar o mapa específico, usar o mais recente
+      if (!currentData || !currentData.id) {
+        console.log("Usando o mapa mais recente");
+        currentData = validMaps[validMaps.length - 1];
+        if (currentData && currentData.id) {
+          setCurrentMatrixId(currentData.id);
         }
       }
       
-      // Save the PDF
-      pdf.save(`Matriz_Karmica_${userData?.name || 'Pessoal'}.pdf`);
+      // Garantir que temos números kármicos, mesmo que vazios
+      if (!currentData.karmicNumbers) {
+        console.log("Números kármicos ausentes, criando objeto vazio");
+        currentData.karmicNumbers = {
+          karmicSeal: 0,
+          destinyCall: 0,
+          karmaPortal: 0,
+          karmicInheritance: 0,
+          karmicReprogramming: 0,
+          cycleProphecy: 0,
+          spiritualMark: 0,
+          manifestationEnigma: 0
+        };
+      }
       
-      // Collapse cards back if needed
-      cards.forEach((card) => {
-        const toggleButton = card.querySelector('.interpretation-toggle');
-        const content = card.querySelector('.interpretation-content');
-        
-        // Keep only the first one expanded
-        if (content && !content.classList.contains('hidden') && card !== cards[0]) {
-          // If content is visible, click the toggle to collapse it
-          (toggleButton as HTMLElement)?.click();
-        }
-      });
-      
-      toast({
-        title: "PDF gerado com sucesso",
-        description: "Seu arquivo PDF com as interpretações da matriz foi baixado."
-      });
+      console.log("Definindo userData com:", currentData);
+      setUserData(currentData);
     } catch (error) {
-      console.error("Erro ao gerar PDF:", error);
+      console.error("Erro ao carregar dados:", error);
       toast({
-        title: "Erro ao gerar PDF",
-        description: "Não foi possível gerar o PDF. Por favor, tente novamente.",
+        title: "Erro ao carregar dados",
+        description: "Ocorreu um erro inesperado. Por favor, tente novamente.",
         variant: "destructive"
       });
-    } finally {
-      setSending(false);
+      navigate('/');
     }
+  };
+  
+  const checkIfCanCreateNewMap = (email: string, mapCount: number) => {
+    // Aqui verificamos se o usuário pode criar um novo mapa
+    if (mapCount > 0 && isAuthorizedEmail(email)) {
+      // Simples verificação: se já tem mapas, não pode criar mais
+      setCanCreateNewMap(false);
+    } else {
+      setCanCreateNewMap(true);
+    }
+  };
+  
+  // Detecta quando a impressão é concluída ou cancelada
+  useEffect(() => {
+    if (isPrinting) {
+      // Adicionar evento para quando o modal de impressão for fechado
+      const handleAfterPrint = () => {
+        setIsPrinting(false);
+        console.log("Impressão concluída ou cancelada");
+      };
+      
+      window.addEventListener('afterprint', handleAfterPrint);
+      
+      return () => {
+        window.removeEventListener('afterprint', handleAfterPrint);
+      };
+    }
+  }, [isPrinting]);
+  
+  const handlePrint = () => {
+    setIsPrinting(true);
+    
+    // Garantir que todos os estilos e imagens sejam carregados antes de imprimir
+    setTimeout(() => {
+      try {
+        window.print();
+        
+        // Em alguns navegadores, o evento afterprint pode não ser disparado
+        // Então definimos um timeout de segurança
+        setTimeout(() => {
+          if (isPrinting) {
+            setIsPrinting(false);
+          }
+        }, 5000);
+      } catch (error) {
+        console.error("Erro ao imprimir:", error);
+        setIsPrinting(false);
+        toast({
+          title: "Erro ao imprimir",
+          description: "Houve um problema ao gerar o PDF. Tente novamente.",
+          variant: "destructive"
+        });
+      }
+    }, 300);
   };
   
   const handleLogout = () => {
@@ -214,37 +211,146 @@ const MatrixResult = () => {
       description: "Recarregando sua Matriz Kármica..."
     });
     
-    // Simulate a small delay and then reload
+    // Simular um pequeno delay e então recarregar
     setTimeout(() => {
       window.location.reload();
     }, 500);
   };
   
-  if (loading) {
+  const handleSwitchMap = (mapId: string) => {
+    const email = getCurrentUser();
+    if (!email) return;
+    
+    const selectedMap = getUserData(email, mapId);
+    if (selectedMap && selectedMap.id) {
+      setCurrentMatrixId(mapId);
+      setUserData(selectedMap);
+      
+      toast({
+        title: "Mapa alterado",
+        description: `Visualizando mapa de ${selectedMap.name} (${selectedMap.birthDate}).`
+      });
+    } else {
+      toast({
+        title: "Erro ao carregar mapa",
+        description: "Não foi possível carregar o mapa selecionado.",
+        variant: "destructive"
+      });
+    }
+  };
+  
+  const handleCreateNewMap = () => {
+    if (!canCreateNewMap) {
+      toast({
+        title: "Limite atingido",
+        description: "Você já atingiu o limite de mapas que pode criar. Adquira um novo acesso para criar mais mapas.",
+        variant: "destructive"
+      });
+      return;
+    }
+    
+    navigate('/');
+    
+    // Pequeno delay para exibir a toast
+    setTimeout(() => {
+      toast({
+        title: "Criar novo mapa",
+        description: "Preencha os dados para gerar um novo mapa kármico."
+      });
+    }, 300);
+  };
+  
+  // Mostrar estado de carregamento se ainda não temos dados
+  if (!userData) {
+    console.log("Ainda não temos dados, exibindo carregamento");
     return (
-      <div className="min-h-screen flex items-center justify-center bg-gradient-to-b from-karmic-100 to-white">
+      <div className="min-h-screen flex items-center justify-center">
         <div className="text-center">
-          <RefreshCw className="h-8 w-8 text-karmic-600 animate-spin mx-auto mb-4" />
-          <p className="text-karmic-700 text-lg">Carregando sua Matriz Kármica...</p>
+          <p className="text-karmic-700">Carregando dados da matriz kármica...</p>
+          <Button 
+            onClick={() => navigate('/')}
+            variant="link" 
+            className="mt-4 text-karmic-500"
+          >
+            Voltar para a página inicial
+          </Button>
         </div>
       </div>
     );
   }
   
+  console.log("Renderizando matriz com dados:", userData);
+  console.log("Números kármicos:", userData.karmicNumbers);
+  
+  // Formatar data de criação
+  const createdDate = userData.createdAt ? new Date(userData.createdAt).toLocaleDateString() : '';
+  
+  // Garantir que temos números kármicos para mostrar
+  const karmicNumbers = userData.karmicNumbers || {};
+  
   return (
     <div className="min-h-screen bg-gradient-to-b from-karmic-100 to-white py-12 print:bg-white print:py-0">
       <div className="container max-w-4xl mx-auto px-4">
-        <div className="flex flex-col md:flex-row justify-between items-center mb-8 print:hidden">
-          <div className="mb-4 md:mb-0">
+        <div className="flex justify-between items-center mb-8 print:hidden">
+          <div>
             <h1 className="text-2xl md:text-3xl font-serif font-medium text-karmic-800">
               Matriz Kármica Pessoal 2025
             </h1>
             <p className="text-karmic-600">
-              Olá, <span className="font-medium">{userData?.name || "Visitante"}</span>
+              Olá, <span className="font-medium">{userData.name}</span>
+              {userMaps.length > 1 && (
+                <span className="text-xs ml-2 text-karmic-500">
+                  (Você possui {userMaps.length} mapas kármicos)
+                </span>
+              )}
             </p>
           </div>
           
-          <div className="flex flex-wrap gap-2 justify-center">
+          <div className="flex space-x-3">
+            {userMaps.length > 1 && (
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button variant="outline" className="karmic-button-outline">
+                    Meus Mapas <ChevronDown className="ml-2 h-4 w-4" />
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="end" className="w-64">
+                  <DropdownMenuLabel>Selecione um mapa</DropdownMenuLabel>
+                  <DropdownMenuSeparator />
+                  {userMaps.map((map, index) => (
+                    map && map.id ? (
+                      <DropdownMenuItem 
+                        key={map.id || index} 
+                        onClick={() => handleSwitchMap(map.id)}
+                        className={map.id === userData.id ? "bg-karmic-100 font-medium" : ""}
+                      >
+                        {map.name} - {map.birthDate}
+                        <span className="text-xs ml-2 text-karmic-500">
+                          ({map.createdAt ? new Date(map.createdAt).toLocaleDateString() : 'Data desconhecida'})
+                        </span>
+                      </DropdownMenuItem>
+                    ) : null
+                  ))}
+                  <DropdownMenuSeparator />
+                  <DropdownMenuItem 
+                    onClick={handleCreateNewMap} 
+                    className={canCreateNewMap ? "text-karmic-700" : "text-gray-400 cursor-not-allowed"}
+                    disabled={!canCreateNewMap}
+                  >
+                    {!canCreateNewMap ? (
+                      <>
+                        <ShoppingCart className="mr-2 h-4 w-4" /> Adquira novo acesso
+                      </>
+                    ) : (
+                      <>
+                        <Plus className="mr-2 h-4 w-4" /> Criar novo mapa
+                      </>
+                    )}
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
+            )}
+            
             <Button 
               onClick={handleRefresh}
               variant="outline"
@@ -256,13 +362,12 @@ const MatrixResult = () => {
             </Button>
             
             <Button 
-              onClick={handleDownloadInterpretations}
-              variant="outline"
-              className="karmic-button-outline flex items-center"
-              disabled={sending}
+              onClick={handlePrint}
+              className="karmic-button flex items-center"
+              disabled={isPrinting}
             >
-              <FileText className="mr-2 h-4 w-4" />
-              {sending ? "Gerando PDF..." : "Baixar Interpretação"}
+              <Printer className={`mr-2 h-4 w-4 ${isPrinting ? 'animate-spin' : ''}`} />
+              {isPrinting ? 'Gerando PDF...' : 'Imprimir / PDF'}
             </Button>
             
             <Button 
@@ -285,18 +390,19 @@ const MatrixResult = () => {
           <h2 className="text-xl md:text-2xl font-serif font-medium text-karmic-800 mb-2">
             Sua Matriz Kármica
           </h2>
-          <p className="text-karmic-600 mb-6 print:mb-3">
-            Data de Nascimento: <span className="font-medium">{userData?.birthDate || "Não informada"}</span>
+          <p className="text-karmic-600 mb-2 print:mb-1">
+            Data de Nascimento: <span className="font-medium">{userData.birthDate}</span>
           </p>
+          {createdDate && (
+            <p className="text-karmic-500 text-xs mb-6 print:mb-3">
+              Matriz gerada em: {createdDate}
+            </p>
+          )}
           
-          <div className="karmic-matrix-container relative">
-            <KarmicMatrix karmicData={userData?.karmicNumbers} />
-          </div>
+          <KarmicMatrix karmicData={karmicNumbers} />
         </motion.div>
         
-        <div className="matrix-interpretations">
-          <MatrixInterpretations karmicData={userData?.karmicNumbers} />
-        </div>
+        <MatrixInterpretations karmicData={karmicNumbers} />
       </div>
     </div>
   );

@@ -1,4 +1,5 @@
-import React, { useState, useEffect, useRef } from 'react';
+
+import React, { useState, useEffect } from 'react';
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
@@ -8,14 +9,9 @@ import {
   setInterpretation, 
   deleteInterpretation,
   getCategoryDisplayName,
-  getAllCategories,
-  exportInterpretations,
-  importInterpretations,
-  forceSyncToSupabase,
-  getAllInterpretations
+  getAllCategories
 } from '@/lib/interpretations';
-import { checkConnection } from '@/lib/supabase';
-import { Save, Trash, Bold, Italic, List, Type, Quote, Cloud, Download, Upload, CloudOff, RefreshCw, Info } from 'lucide-react';
+import { Save, Trash, Bold, Italic, List, Type, Quote } from 'lucide-react';
 
 const InterpretationEditor: React.FC = () => {
   const [selectedCategory, setSelectedCategory] = useState("karmicSeal");
@@ -24,63 +20,21 @@ const InterpretationEditor: React.FC = () => {
   const [content, setContent] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [previewMode, setPreviewMode] = useState(false);
-  const [interpretationsCount, setInterpretationsCount] = useState(0);
-  const [isConnected, setIsConnected] = useState<boolean | null>(null);
-  const [debugInfo, setDebugInfo] = useState("");
-  const fileInputRef = useRef<HTMLInputElement>(null);
   
   const possibleNumbers = ["1", "2", "3", "4", "5", "6", "7", "8", "9", "11", "22", "33", "44"];
   const categories = getAllCategories();
   
   useEffect(() => {
-    // Verificar status da conexão com Supabase
-    const verifyConnection = async () => {
-      const status = await checkConnection();
-      setIsConnected(status);
-    };
-    
-    verifyConnection();
-    
-    // Carregar a interpretação selecionada
     loadInterpretation();
-    
-    // Atualizar contagem de interpretações
-    updateInterpretationsCount();
-    
-    // Verificar conexão a cada 30 segundos
-    const interval = setInterval(verifyConnection, 30000);
-    return () => clearInterval(interval);
   }, [selectedCategory, selectedNumber]);
   
-  const loadInterpretation = async () => {
-    const interpretation = await getInterpretation(selectedCategory, parseInt(selectedNumber));
+  const loadInterpretation = () => {
+    const interpretation = getInterpretation(selectedCategory, parseInt(selectedNumber));
     setTitle(interpretation.title);
     setContent(interpretation.content);
-    
-    // Add debug info about loaded interpretation
-    console.log("Loaded interpretation:", interpretation);
   };
   
-  const updateInterpretationsCount = () => {
-    const allInterpretations = getAllInterpretations();
-    const count = allInterpretations.length;
-    setInterpretationsCount(count);
-    
-    // Generate debug info about stored interpretations
-    const debugText = generateDebugInfo(exportInterpretations());
-    setDebugInfo(debugText);
-  };
-  
-  const generateDebugInfo = (interpretations: any) => {
-    const keys = Object.keys(interpretations);
-    if (keys.length === 0) {
-      return "Nenhuma interpretação encontrada no armazenamento.";
-    }
-    
-    return `${keys.length} interpretações encontradas:\n${keys.slice(0, 10).join('\n')}${keys.length > 10 ? '\n...(e mais)' : ''}`;
-  };
-  
-  const handleSave = async () => {
+  const handleSave = () => {
     setIsLoading(true);
     
     if (!title.trim()) {
@@ -106,35 +60,17 @@ const InterpretationEditor: React.FC = () => {
     // Formata o conteúdo para garantir que esteja corretamente estruturado em HTML
     const formattedContent = formatContentForSaving(content);
     
-    try {
-      await setInterpretation(
-        selectedCategory, 
-        parseInt(selectedNumber), 
-        title, 
-        formattedContent
-      );
-      
-      setTimeout(() => {
-        setIsLoading(false);
-        updateInterpretationsCount();
-        
-        // Show stored data in console for debugging
-        const allInterpretations = exportInterpretations();
-        console.log("All stored interpretations after save:", allInterpretations);
-      }, 300);
-    } catch (error) {
-      console.error("Erro ao salvar interpretação:", error);
-      toast({
-        title: "Erro ao salvar",
-        description: "Ocorreu um erro ao salvar a interpretação. Tente novamente.",
-        variant: "destructive"
-      });
+    setInterpretation(
+      selectedCategory, 
+      parseInt(selectedNumber), 
+      title, 
+      formattedContent
+    );
+    
+    setTimeout(() => {
       setIsLoading(false);
-    }
+    }, 500);
   };
-  
-  // Constante para texto padrão
-  const DEFAULT_INTERPRETATION = "Interpretação não disponível para este número. Por favor, contate o administrador para adicionar este conteúdo.";
   
   // Função para garantir que o conteúdo está bem formatado em HTML
   const formatContentForSaving = (rawContent: string) => {
@@ -152,159 +88,12 @@ const InterpretationEditor: React.FC = () => {
     return formattedContent;
   };
   
-  const handleDelete = async () => {
+  const handleDelete = () => {
     if (window.confirm(`Tem certeza que deseja excluir esta interpretação?`)) {
-      setIsLoading(true);
-      
-      try {
-        await deleteInterpretation(selectedCategory, parseInt(selectedNumber));
-        setTitle("");
-        setContent("");
-        updateInterpretationsCount();
-      } catch (error) {
-        console.error("Erro ao excluir interpretação:", error);
-        toast({
-          title: "Erro ao excluir",
-          description: "Ocorreu um erro ao excluir a interpretação. Tente novamente.",
-          variant: "destructive"
-        });
-      } finally {
-        setIsLoading(false);
-      }
+      deleteInterpretation(selectedCategory, parseInt(selectedNumber));
+      setTitle("");
+      setContent("");
     }
-  };
-  
-  const handleForceSync = async () => {
-    if (window.confirm("Deseja sincronizar todas as interpretações com a nuvem? Isso garantirá que todos os dados estejam salvos no Supabase.")) {
-      setIsLoading(true);
-      
-      try {
-        const success = await forceSyncToSupabase();
-        
-        if (success) {
-          toast({
-            title: "Sincronização concluída",
-            description: `${interpretationsCount} interpretações sincronizadas com a nuvem.`
-          });
-        } else {
-          toast({
-            title: "Erro na sincronização",
-            description: "Não foi possível sincronizar com a nuvem. Verifique sua conexão.",
-            variant: "destructive"
-          });
-        }
-      } catch (error) {
-        console.error("Erro ao sincronizar:", error);
-        toast({
-          title: "Erro na sincronização",
-          description: "Ocorreu um erro ao sincronizar com a nuvem.",
-          variant: "destructive"
-        });
-      } finally {
-        setIsLoading(false);
-      }
-    }
-  };
-  
-  const handleExport = () => {
-    try {
-      const data = exportInterpretations();
-      
-      if (Object.keys(data).length === 0) {
-        toast({
-          title: "Nada para exportar",
-          description: "Não há interpretações para exportar.",
-          variant: "destructive"
-        });
-        return;
-      }
-      
-      const dataStr = JSON.stringify(data, null, 2);
-      const dataUri = `data:application/json;charset=utf-8,${encodeURIComponent(dataStr)}`;
-      
-      const exportName = `interpretacoes-karmicas-${new Date().toISOString().split('T')[0]}.json`;
-      
-      const linkElement = document.createElement('a');
-      linkElement.setAttribute('href', dataUri);
-      linkElement.setAttribute('download', exportName);
-      linkElement.click();
-      
-      toast({
-        title: "Exportação concluída",
-        description: `${Object.keys(data).length} interpretações exportadas com sucesso.`
-      });
-    } catch (error) {
-      console.error("Erro ao exportar:", error);
-      toast({
-        title: "Erro na exportação",
-        description: "Não foi possível exportar as interpretações.",
-        variant: "destructive"
-      });
-    }
-  };
-  
-  const handleImportClick = () => {
-    if (fileInputRef.current) {
-      fileInputRef.current.click();
-    }
-  };
-  
-  const handleImportFile = async (event: React.ChangeEvent<HTMLInputElement>) => {
-    const file = event.target.files?.[0];
-    if (!file) return;
-    
-    const reader = new FileReader();
-    
-    reader.onload = async (e) => {
-      try {
-        setIsLoading(true);
-        
-        const content = e.target?.result as string;
-        const data = JSON.parse(content);
-        
-        if (window.confirm(`Deseja importar ${Object.keys(data).length} interpretações? Isso manterá as interpretações atuais e adicionará as novas.`)) {
-          const success = await importInterpretations(data);
-          
-          if (success) {
-            toast({
-              title: "Importação concluída",
-              description: `${Object.keys(data).length} interpretações importadas com sucesso.`
-            });
-            loadInterpretation();
-            updateInterpretationsCount();
-          } else {
-            toast({
-              title: "Importação falhou",
-              description: "Não foi possível importar as interpretações. Verifique o formato do arquivo.",
-              variant: "destructive"
-            });
-          }
-        }
-      } catch (error) {
-        console.error("Erro ao importar arquivo:", error);
-        toast({
-          title: "Erro na importação",
-          description: "O arquivo selecionado contém dados inválidos.",
-          variant: "destructive"
-        });
-      } finally {
-        setIsLoading(false);
-        
-        // Limpar input para permitir selecionar o mesmo arquivo novamente
-        event.target.value = '';
-      }
-    };
-    
-    reader.onerror = () => {
-      toast({
-        title: "Erro na leitura",
-        description: "Não foi possível ler o arquivo selecionado.",
-        variant: "destructive"
-      });
-      setIsLoading(false);
-    };
-    
-    reader.readAsText(file);
   };
   
   const insertTag = (openTag: string, closeTag: string) => {
@@ -358,125 +147,8 @@ const InterpretationEditor: React.FC = () => {
     return processedHTML;
   };
   
-  // Função para listar todas as interpretações armazenadas
-  const handleShowAllInterpretations = () => {
-    const allInterpretations = getAllInterpretations();
-    console.log("Todas as interpretações armazenadas:", allInterpretations);
-    
-    toast({
-      title: "Interpretações carregadas no console",
-      description: `${allInterpretations.length} interpretações foram listadas no console do navegador (F12).`
-    });
-  };
-  
-  const checkLocalStorage = () => {
-    try {
-      const saved = localStorage.getItem('karmicInterpretations');
-      console.log("localStorage 'karmicInterpretations':", saved ? JSON.parse(saved) : null);
-      
-      toast({
-        title: "LocalStorage verificado",
-        description: "Conteúdo do localStorage exibido no console do navegador (F12)."
-      });
-    } catch (error) {
-      console.error("Erro ao verificar localStorage:", error);
-      toast({
-        title: "Erro ao verificar localStorage",
-        description: "Não foi possível acessar o localStorage. Verifique o console para mais detalhes.",
-        variant: "destructive"
-      });
-    }
-  };
-  
   return (
     <div className="space-y-6">
-      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6">
-        <div>
-          <h2 className="text-xl font-medium text-karmic-800">Editor de Interpretações</h2>
-          <div className="flex items-center text-sm text-karmic-600 mt-1">
-            {isConnected === null ? (
-              <RefreshCw className="h-3.5 w-3.5 mr-1.5 animate-spin text-gray-400" />
-            ) : isConnected ? (
-              <Cloud className="h-3.5 w-3.5 mr-1.5 text-green-500" />
-            ) : (
-              <CloudOff className="h-3.5 w-3.5 mr-1.5 text-red-500" />
-            )}
-            
-            <span>
-              {isConnected === null 
-                ? "Verificando conexão..." 
-                : isConnected 
-                  ? `${interpretationsCount} interpretações salvas na nuvem` 
-                  : "Sem conexão com a nuvem - dados serão salvos localmente"}
-            </span>
-          </div>
-        </div>
-        
-        <div className="flex flex-wrap gap-2">
-          <Button 
-            variant="outline" 
-            size="sm"
-            onClick={handleForceSync}
-            disabled={isLoading || !isConnected}
-            className="text-blue-600 border-blue-300 hover:bg-blue-50"
-          >
-            <Cloud className="h-4 w-4 mr-1" /> Sincronizar
-          </Button>
-          
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={handleExport}
-            className="text-green-600 border-green-300 hover:bg-green-50"
-          >
-            <Download className="h-4 w-4 mr-1" /> Exportar
-          </Button>
-          
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={handleImportClick}
-            className="text-amber-600 border-amber-300 hover:bg-amber-50"
-          >
-            <Upload className="h-4 w-4 mr-1" /> Importar
-          </Button>
-          
-          <input
-            type="file"
-            ref={fileInputRef}
-            onChange={handleImportFile}
-            accept=".json"
-            className="hidden"
-          />
-        </div>
-      </div>
-      
-      {/* Debug info panel */}
-      <div className="bg-gray-50 border rounded-md p-3 text-xs font-mono overflow-x-auto">
-        <div className="flex justify-between items-center mb-2">
-          <span className="font-medium">Diagnóstico de Armazenamento</span>
-          <div className="space-x-2">
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={handleShowAllInterpretations}
-              className="h-7 text-xs"
-            >
-              <Info className="h-3.5 w-3.5 mr-1" /> Ver no Console
-            </Button>
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={checkLocalStorage}
-              className="h-7 text-xs"
-            >
-              <Info className="h-3.5 w-3.5 mr-1" /> Ver LocalStorage
-            </Button>
-          </div>
-        </div>
-        <pre className="whitespace-pre-wrap">{debugInfo}</pre>
-      </div>
-      
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         <div>
           <label htmlFor="category" className="text-sm font-medium text-karmic-700 block mb-2">
@@ -611,7 +283,6 @@ const InterpretationEditor: React.FC = () => {
           variant="outline"
           className="text-red-500 border-red-300 hover:bg-red-50 hover:text-red-600"
           onClick={handleDelete}
-          disabled={isLoading}
         >
           <Trash className="h-4 w-4 mr-1" /> Excluir
         </Button>
@@ -622,7 +293,7 @@ const InterpretationEditor: React.FC = () => {
           onClick={handleSave}
           disabled={isLoading}
         >
-          <Save className="h-4 w-4 mr-1" /> {isLoading ? "Salvando..." : "Salvar"}
+          <Save className="h-4 w-4 mr-1" /> Salvar
         </Button>
       </div>
     </div>

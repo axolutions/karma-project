@@ -4,16 +4,11 @@ import { toast } from "@/components/ui/use-toast";
 // Temporary storage for authorized emails
 // In a real app, this would be in a database
 let authorizedEmails: string[] = [
-  "projetovmtd8@gmail.com"
+  "test@example.com",
+  "cliente@teste.com",
+  "user@example.com",
+  "teste@teste.com" // Adicionamos o email diretamente aqui também
 ];
-
-// Admin emails list
-let adminEmails: string[] = [
-  "projetovmtd8@gmail.com"
-];
-
-// Admin password - in a real app, this would be hashed and stored in a database
-const ADMIN_PASSWORD = "karmic2024"; // Esta é a senha que você deve fornecer ao usuário
 
 // Temporary storage for user data
 // In a real app, this would be in a database
@@ -23,33 +18,22 @@ interface UserData {
   birthDate: string;
   karmicNumbers: any;
   createdAt: Date;
+  id?: string; // ID único para cada registro
 }
 
-const userDatabase: Record<string, UserData> = {};
-
-export function isAdmin(email: string): boolean {
-  if (!email) return false;
-  const normalizedEmail = email.toLowerCase().trim();
-  return adminEmails.includes(normalizedEmail);
-}
+// Inicialização do banco de dados em memória
+const userDatabase: Record<string, UserData[]> = {};
 
 export function isAuthorizedEmail(email: string): boolean {
-  if (!email) return false;
-  const normalizedEmail = email.toLowerCase().trim();
-  console.log("Verificando autorização para:", normalizedEmail);
-  console.log("Lista atual de emails:", authorizedEmails);
-  
-  return authorizedEmails.includes(normalizedEmail);
+  return authorizedEmails.includes(email.toLowerCase());
 }
 
 export function addAuthorizedEmail(email: string): boolean {
-  const normalizedEmail = email.toLowerCase().trim();
-  
-  if (authorizedEmails.includes(normalizedEmail)) {
+  if (authorizedEmails.includes(email.toLowerCase())) {
     return false;
   }
   
-  authorizedEmails.push(normalizedEmail);
+  authorizedEmails.push(email.toLowerCase());
   
   // Save to localStorage immediately after adding
   localStorage.setItem('karmicAuthorizedEmails', JSON.stringify(authorizedEmails));
@@ -58,9 +42,7 @@ export function addAuthorizedEmail(email: string): boolean {
 }
 
 export function removeAuthorizedEmail(email: string): boolean {
-  const normalizedEmail = email.toLowerCase().trim();
-  const index = authorizedEmails.indexOf(normalizedEmail);
-  
+  const index = authorizedEmails.indexOf(email.toLowerCase());
   if (index > -1) {
     authorizedEmails.splice(index, 1);
     
@@ -76,73 +58,130 @@ export function getAllAuthorizedEmails(): string[] {
   return [...authorizedEmails];
 }
 
-export function saveUserData(userData: Omit<UserData, 'createdAt'>): void {
-  const normalizedEmail = userData.email.toLowerCase().trim();
-  
-  userDatabase[normalizedEmail] = {
-    ...userData,
-    email: normalizedEmail, // Garantir que o email no banco de dados esteja normalizado
-    createdAt: new Date()
-  };
-  
-  // Save to localStorage for persistence between sessions
-  localStorage.setItem('karmicUserData', JSON.stringify(userDatabase));
+// Função para gerar um ID único baseado em timestamp e número aleatório
+function generateUniqueId(): string {
+  return `${Date.now()}-${Math.random().toString(36).substring(2, 9)}`;
 }
 
-export function getUserData(email: string): UserData | null {
-  if (!email) return null;
+export function saveUserData(userData: Omit<UserData, 'createdAt' | 'id'>): string {
+  console.log("Salvando dados do usuário:", userData);
   
-  const normalizedEmail = email.toLowerCase().trim();
+  try {
+    const email = userData.email.toLowerCase();
+    const newRecord = {
+      ...userData,
+      id: generateUniqueId(),
+      createdAt: new Date()
+    };
+    
+    // Inicializar o array para este email se não existir
+    if (!userDatabase[email]) {
+      userDatabase[email] = [];
+    }
+    
+    // Adicionar o novo registro ao array
+    userDatabase[email].push(newRecord);
+    
+    // Save to localStorage for persistence between sessions
+    localStorage.setItem('karmicUserData', JSON.stringify(userDatabase));
+    console.log("Dados salvos com sucesso. ID gerado:", newRecord.id);
+    console.log("Database após salvar:", userDatabase);
+    
+    return newRecord.id; // Retornar o ID para referência futura
+  } catch (error) {
+    console.error("Erro ao salvar dados do usuário:", error);
+    throw new Error("Falha ao salvar dados do usuário");
+  }
+}
+
+export function getUserData(email: string, id?: string): UserData | null {
+  // Debug logging
+  console.log("Obtendo dados do usuário. Email:", email, "ID:", id);
+  console.log("Estado atual do DB:", userDatabase);
   
   // Check if we need to load from localStorage
   if (Object.keys(userDatabase).length === 0) {
-    const savedData = localStorage.getItem('karmicUserData');
-    if (savedData) {
-      try {
-        const parsed = JSON.parse(savedData);
-        Object.assign(userDatabase, parsed);
-      } catch (error) {
-        console.error("Error parsing saved user data:", error);
-      }
-    }
+    loadDatabaseFromStorage();
   }
   
-  return userDatabase[normalizedEmail] || null;
+  const userRecords = userDatabase[email.toLowerCase()];
+  
+  if (!userRecords || userRecords.length === 0) {
+    console.log("Nenhum registro encontrado para o email:", email);
+    return null;
+  }
+  
+  // Log available records
+  console.log("Registros disponíveis para", email, ":", userRecords.map(r => r.id));
+  
+  // Se um ID específico for fornecido, retornar esse registro específico
+  if (id) {
+    const specificRecord = userRecords.find(record => record.id === id);
+    console.log("Registro específico encontrado:", specificRecord);
+    return specificRecord || null;
+  }
+  
+  // Caso contrário, retornar o registro mais recente
+  console.log("Retornando o registro mais recente:", userRecords[userRecords.length - 1]);
+  return userRecords[userRecords.length - 1];
+}
+
+export function getAllUserDataByEmail(email: string): UserData[] {
+  // Check if we need to load from localStorage
+  if (Object.keys(userDatabase).length === 0) {
+    loadDatabaseFromStorage();
+  }
+  
+  return userDatabase[email.toLowerCase()] || [];
 }
 
 export function loadDatabaseFromStorage(): void {
+  console.log("Carregando database do localStorage");
+  
   const savedEmails = localStorage.getItem('karmicAuthorizedEmails');
   if (savedEmails) {
     try {
       authorizedEmails = JSON.parse(savedEmails);
-      console.log("Emails carregados do localStorage:", authorizedEmails);
+      console.log("Emails autorizados carregados:", authorizedEmails);
     } catch (error) {
-      console.error("Error parsing saved emails:", error);
+      console.error("Erro ao carregar emails salvos:", error);
     }
   } else {
     // Se não houver emails salvos, salva a lista inicial
     localStorage.setItem('karmicAuthorizedEmails', JSON.stringify(authorizedEmails));
-    console.log("Lista inicial de emails salva no localStorage:", authorizedEmails);
+    console.log("Lista inicial de emails salvos no localStorage");
   }
   
   const savedUserData = localStorage.getItem('karmicUserData');
   if (savedUserData) {
     try {
-      Object.assign(userDatabase, JSON.parse(savedUserData));
+      const parsed = JSON.parse(savedUserData);
+      console.log("Dados de usuário carregados do localStorage:", parsed);
+      
+      // Limpar o banco de dados atual
+      Object.keys(userDatabase).forEach(key => {
+        delete userDatabase[key];
+      });
+      
+      // Copiar os dados do localStorage
+      Object.keys(parsed).forEach(email => {
+        userDatabase[email] = parsed[email];
+      });
+      
+      console.log("Banco de dados carregado com sucesso:", userDatabase);
     } catch (error) {
-      console.error("Error parsing saved user data:", error);
+      console.error("Erro ao carregar dados de usuário salvos:", error);
     }
+  } else {
+    console.log("Nenhum dado de usuário encontrado no localStorage");
   }
 }
 
-// Initialize from localStorage when module loads
-loadDatabaseFromStorage();
-
 // Authentication functions
-export function login(email: string, password?: string): boolean {
-  const normalizedEmail = email.toLowerCase().trim();
+export function login(email: string): boolean {
+  console.log("Tentativa de login para:", email);
   
-  if (!isAuthorizedEmail(normalizedEmail)) {
+  if (!isAuthorizedEmail(email)) {
     toast({
       title: "Acesso negado",
       description: "Este email não está autorizado a acessar o sistema.",
@@ -151,19 +190,9 @@ export function login(email: string, password?: string): boolean {
     return false;
   }
   
-  // Para o email de administrador, verificar a senha
-  if (isAdmin(normalizedEmail) && password !== ADMIN_PASSWORD) {
-    toast({
-      title: "Senha incorreta",
-      description: "A senha fornecida está incorreta.",
-      variant: "destructive"
-    });
-    return false;
-  }
-  
   // Store in session
-  sessionStorage.setItem('karmicCurrentUser', normalizedEmail);
-  console.log("Usuário logado:", normalizedEmail);
+  sessionStorage.setItem('karmicCurrentUser', email.toLowerCase());
+  console.log("Login realizado com sucesso para:", email);
   return true;
 }
 
@@ -173,42 +202,23 @@ export function getCurrentUser(): string | null {
 
 export function logout(): void {
   sessionStorage.removeItem('karmicCurrentUser');
-  console.log("Usuário deslogado");
+  sessionStorage.removeItem('karmicCurrentMatrixId');
+  console.log("Logout realizado");
 }
 
 export function isLoggedIn(): boolean {
   return getCurrentUser() !== null;
 }
 
-// Função específica para verificar o login do admin com senha
-export function adminLogin(email: string, password: string): boolean {
-  const normalizedEmail = email.toLowerCase().trim();
-  
-  if (!isAdmin(normalizedEmail)) {
-    toast({
-      title: "Acesso negado",
-      description: "Este email não está autorizado como administrador.",
-      variant: "destructive"
-    });
-    return false;
-  }
-  
-  if (password !== ADMIN_PASSWORD) {
-    toast({
-      title: "Senha incorreta",
-      description: "A senha fornecida está incorreta.",
-      variant: "destructive"
-    });
-    return false;
-  }
-  
-  // Store in session
-  sessionStorage.setItem('karmicCurrentUser', normalizedEmail);
-  sessionStorage.setItem('karmicAdminLogged', 'true');
-  console.log("Administrador logado:", normalizedEmail);
-  return true;
+export function setCurrentMatrixId(id: string): void {
+  console.log("Definindo ID da matriz atual:", id);
+  sessionStorage.setItem('karmicCurrentMatrixId', id);
 }
 
-export function isAdminLoggedIn(): boolean {
-  return sessionStorage.getItem('karmicAdminLogged') === 'true';
+export function getCurrentMatrixId(): string | null {
+  return sessionStorage.getItem('karmicCurrentMatrixId');
 }
+
+// Initialize from localStorage when module loads
+console.log("Inicializando módulo de autenticação");
+loadDatabaseFromStorage();

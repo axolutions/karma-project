@@ -6,42 +6,36 @@ import { toast } from "@/components/ui/use-toast";
 import { 
   getAllAuthorizedEmails, 
   addAuthorizedEmail, 
-  removeAuthorizedEmail 
+  removeAuthorizedEmail,
+  getAllUserDataByEmail
 } from '@/lib/auth';
-import { X, Plus, RefreshCw } from 'lucide-react';
+import { X, Plus, Map } from 'lucide-react';
 
 const EmailManager: React.FC = () => {
   const [emails, setEmails] = useState<string[]>([]);
   const [newEmail, setNewEmail] = useState('');
-  const [isLoading, setIsLoading] = useState(false);
+  const [emailStats, setEmailStats] = useState<Record<string, number>>({});
   
   useEffect(() => {
     refreshEmails();
   }, []);
   
   const refreshEmails = () => {
-    setIsLoading(true);
+    const authorizedEmails = getAllAuthorizedEmails();
+    setEmails(authorizedEmails);
     
-    try {
-      const currentEmails = getAllAuthorizedEmails();
-      console.log("Emails carregados:", currentEmails);
-      setEmails(currentEmails);
-    } catch (error) {
-      console.error("Erro ao carregar emails:", error);
-      toast({
-        title: "Erro ao carregar emails",
-        description: "Não foi possível carregar a lista de emails autorizados.",
-        variant: "destructive"
-      });
-    } finally {
-      setIsLoading(false);
-    }
+    // Calcular estatísticas - quantos mapas cada email possui
+    const stats: Record<string, number> = {};
+    authorizedEmails.forEach(email => {
+      const userMaps = getAllUserDataByEmail(email);
+      stats[email] = userMaps.length;
+    });
+    
+    setEmailStats(stats);
   };
   
   const handleAddEmail = () => {
-    const trimmedEmail = newEmail.trim().toLowerCase();
-    
-    if (!trimmedEmail) {
+    if (!newEmail.trim()) {
       toast({
         title: "Email obrigatório",
         description: "Por favor, insira um email para adicionar.",
@@ -50,7 +44,7 @@ const EmailManager: React.FC = () => {
       return;
     }
     
-    if (!isValidEmail(trimmedEmail)) {
+    if (!isValidEmail(newEmail)) {
       toast({
         title: "Email inválido",
         description: "Por favor, insira um email válido.",
@@ -59,65 +53,67 @@ const EmailManager: React.FC = () => {
       return;
     }
     
-    setIsLoading(true);
+    // Verificar se o email já existe na lista
+    const emailExists = emails.includes(newEmail.toLowerCase());
     
-    try {
-      const success = addAuthorizedEmail(trimmedEmail);
+    // Se o email já existe, perguntar se deseja conceder um novo acesso
+    if (emailExists) {
+      const existingMaps = getAllUserDataByEmail(newEmail.toLowerCase());
       
-      if (success) {
-        toast({
-          title: "Email adicionado",
-          description: `O email ${trimmedEmail} foi adicionado com sucesso.`
-        });
-        setNewEmail('');
-        refreshEmails();
-      } else {
-        toast({
-          title: "Email já existe",
-          description: `O email ${trimmedEmail} já está na lista.`,
-          variant: "destructive"
-        });
+      if (existingMaps.length > 0) {
+        const confirmAdd = confirm(
+          `O email ${newEmail} já está na lista e possui ${existingMaps.length} mapa(s) criado(s). ` +
+          `Adicioná-lo novamente concederá permissão para criar um novo mapa. Deseja continuar?`
+        );
+        
+        if (!confirmAdd) {
+          return;
+        }
+        
+        // Se confirmou, remova primeiro para depois adicionar novamente
+        // Isso simula a renovação do acesso
+        removeAuthorizedEmail(newEmail);
       }
-    } catch (error) {
-      console.error("Erro ao adicionar email:", error);
+    }
+    
+    // Adicionar o email à lista de autorizados
+    const success = addAuthorizedEmail(newEmail);
+    
+    if (success) {
+      toast({
+        title: "Email adicionado",
+        description: `O email ${newEmail} foi adicionado com sucesso.`
+      });
+      setNewEmail('');
+      refreshEmails();
+    } else {
+      // Este caso só ocorrerá se houver algum problema na função addAuthorizedEmail
       toast({
         title: "Erro ao adicionar email",
-        description: "Ocorreu um erro ao tentar adicionar o email.",
+        description: `Não foi possível adicionar ${newEmail} à lista.`,
         variant: "destructive"
       });
-    } finally {
-      setIsLoading(false);
     }
   };
   
   const handleRemoveEmail = (email: string) => {
-    setIsLoading(true);
+    // Verificar se o email possui mapas criados
+    const mapsCount = emailStats[email] || 0;
     
-    try {
-      const success = removeAuthorizedEmail(email);
-      
-      if (success) {
-        toast({
-          title: "Email removido",
-          description: `O email ${email} foi removido com sucesso.`
-        });
-        refreshEmails();
-      } else {
-        toast({
-          title: "Erro ao remover",
-          description: `Não foi possível remover o email ${email}.`,
-          variant: "destructive"
-        });
+    if (mapsCount > 0) {
+      if (!confirm(`Este email possui ${mapsCount} mapas criados. Remover este email impedirá o acesso a esses mapas. Deseja continuar?`)) {
+        return;
       }
-    } catch (error) {
-      console.error("Erro ao remover email:", error);
+    }
+    
+    const success = removeAuthorizedEmail(email);
+    
+    if (success) {
       toast({
-        title: "Erro ao remover email",
-        description: "Ocorreu um erro ao tentar remover o email.",
-        variant: "destructive"
+        title: "Email removido",
+        description: `O email ${email} foi removido com sucesso.`
       });
-    } finally {
-      setIsLoading(false);
+      refreshEmails();
     }
   };
   
@@ -146,61 +142,60 @@ const EmailManager: React.FC = () => {
             value={newEmail}
             onChange={(e) => setNewEmail(e.target.value)}
             onKeyPress={handleKeyPress}
-            disabled={isLoading}
           />
         </div>
         <Button 
           type="button" 
           onClick={handleAddEmail}
           className="bg-karmic-600 hover:bg-karmic-700"
-          disabled={isLoading}
         >
-          {isLoading ? <RefreshCw className="h-4 w-4 animate-spin" /> : <Plus className="h-4 w-4 mr-1" />}
-          {isLoading ? 'Processando...' : 'Adicionar'}
+          <Plus className="h-4 w-4 mr-1" /> Adicionar
         </Button>
       </div>
       
-      <div className="flex justify-between items-center">
-        <h3 className="text-lg font-medium text-karmic-800">Emails Autorizados</h3>
-        <Button 
-          variant="ghost" 
-          size="sm" 
-          onClick={refreshEmails}
-          disabled={isLoading}
-          className="text-karmic-600 hover:text-karmic-700"
-        >
-          <RefreshCw className={`h-4 w-4 mr-1 ${isLoading ? 'animate-spin' : ''}`} />
-          Atualizar
-        </Button>
-      </div>
-      
-      {isLoading ? (
-        <div className="flex justify-center py-6">
-          <RefreshCw className="h-6 w-6 text-karmic-500 animate-spin" />
-        </div>
-      ) : emails.length === 0 ? (
-        <p className="text-karmic-500 italic">Nenhum email autorizado cadastrado.</p>
-      ) : (
-        <ul className="space-y-2">
-          {emails.map(email => (
-            <li 
-              key={email} 
-              className="flex justify-between items-center p-3 bg-karmic-100 rounded-md"
-            >
-              <span>{email}</span>
-              <Button 
-                size="sm" 
-                variant="ghost" 
-                className="text-karmic-600 hover:text-red-500 hover:bg-transparent"
-                onClick={() => handleRemoveEmail(email)}
-                disabled={isLoading}
+      <div>
+        <h3 className="text-lg font-medium text-karmic-800 mb-3">Emails Autorizados</h3>
+        {emails.length === 0 ? (
+          <p className="text-karmic-500 italic">Nenhum email autorizado cadastrado.</p>
+        ) : (
+          <ul className="space-y-2">
+            {emails.map(email => (
+              <li 
+                key={email} 
+                className="flex justify-between items-center p-3 bg-karmic-100 rounded-md"
               >
-                <X className="h-4 w-4" />
-              </Button>
-            </li>
-          ))}
+                <div className="flex items-center">
+                  <span>{email}</span>
+                  {emailStats[email] > 0 && (
+                    <div className="ml-3 flex items-center text-xs bg-karmic-200 text-karmic-700 px-2 py-1 rounded-full">
+                      <Map className="h-3 w-3 mr-1" />
+                      {emailStats[email]} {emailStats[email] === 1 ? 'mapa' : 'mapas'}
+                    </div>
+                  )}
+                </div>
+                <Button 
+                  size="sm" 
+                  variant="ghost" 
+                  className="text-karmic-600 hover:text-red-500 hover:bg-transparent"
+                  onClick={() => handleRemoveEmail(email)}
+                >
+                  <X className="h-4 w-4" />
+                </Button>
+              </li>
+            ))}
+          </ul>
+        )}
+      </div>
+      
+      <div className="mt-4 p-3 bg-karmic-50 border border-karmic-200 rounded-md">
+        <h4 className="text-sm font-medium text-karmic-700 mb-2">Observações sobre emails</h4>
+        <ul className="text-xs space-y-1 text-karmic-600 list-disc pl-4">
+          <li>Cada email adicionado dá direito a criar um mapa kármico</li>
+          <li>Para conceder acesso a um novo mapa, adicione o mesmo email novamente</li>
+          <li>Quando um email é adicionado novamente, ele recebe permissão para criar um novo mapa</li>
+          <li>Remover um email impedirá que o usuário acesse todos os mapas criados com esse email</li>
         </ul>
-      )}
+      </div>
     </div>
   );
 };

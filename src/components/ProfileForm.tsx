@@ -2,37 +2,52 @@
 import React, { useState, useEffect } from 'react';
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import { MoveRight } from "lucide-react";
+import { MoveRight, ShoppingCart } from "lucide-react";
 import { calculateAllKarmicNumbers } from '@/lib/calculations';
 import { toast } from "@/components/ui/use-toast";
-import { saveUserData, getCurrentUser, getUserData } from '@/lib/auth';
+import { saveUserData, getCurrentUser, getAllUserDataByEmail, setCurrentMatrixId, isAuthorizedEmail } from '@/lib/auth';
 import { useNavigate } from 'react-router-dom';
 
-interface ProfileFormProps {
-  onProfileComplete?: () => void;
-}
-
-const ProfileForm: React.FC<ProfileFormProps> = ({ onProfileComplete }) => {
+const ProfileForm: React.FC = () => {
   const [name, setName] = useState('');
   const [birthDate, setBirthDate] = useState('');
   const [isValid, setIsValid] = useState(true);
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [existingProfile, setExistingProfile] = useState(false);
+  const [existingMaps, setExistingMaps] = useState<any[]>([]);
+  const [canCreateNewMap, setCanCreateNewMap] = useState(true);
   const navigate = useNavigate();
   
   useEffect(() => {
-    // Verificar apenas uma vez se o usuário já tem perfil
+    // Verificar se o usuário já tem um perfil gerado
     const currentUser = getCurrentUser();
     if (currentUser) {
-      const userData = getUserData(currentUser);
-      if (userData && userData.karmicNumbers) {
-        // Usuário já possui perfil, redirecionar para a matriz
-        console.log("ProfileForm: Perfil já existe, redirecionando...");
-        setExistingProfile(true);
-        navigate('/matrix');
+      console.log("ProfileForm: Usuário atual:", currentUser);
+      const userMaps = getAllUserDataByEmail(currentUser);
+      console.log("ProfileForm: Mapas encontrados:", userMaps);
+      
+      setExistingMaps(userMaps || []);
+      
+      // Se houver mapas existentes, preencher o nome com o do último mapa
+      if (userMaps && userMaps.length > 0) {
+        setName(userMaps[userMaps.length - 1].name || '');
+        
+        // Verificar se o usuário pode criar um novo mapa
+        checkIfCanCreateNewMap(currentUser, userMaps.length);
       }
+    } else {
+      console.log("ProfileForm: Nenhum usuário logado");
     }
-  }, []); // eslint-disable-line react-hooks/exhaustive-deps
+  }, []);
+  
+  const checkIfCanCreateNewMap = (email: string, mapCount: number) => {
+    // Aqui verificamos se o usuário pode criar um novo mapa
+    if (mapCount > 0 && isAuthorizedEmail(email)) {
+      // Simples verificação: se já tem mapas, não pode criar mais
+      setCanCreateNewMap(false);
+    } else {
+      setCanCreateNewMap(true);
+    }
+  };
   
   const formatDate = (value: string) => {
     // Filter out non-numeric characters except /
@@ -85,33 +100,25 @@ const ProfileForm: React.FC<ProfileFormProps> = ({ onProfileComplete }) => {
     }
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    setIsSubmitting(true);
+    console.log("ProfileForm: Iniciando envio do formulário");
     
-    // Verificar novamente se o usuário já tem perfil (dupla checagem)
-    const currentUser = getCurrentUser();
-    if (!currentUser) {
+    // Se não pode criar novo mapa, mostrar mensagem e não prosseguir
+    if (existingMaps.length > 0 && !canCreateNewMap) {
       toast({
-        title: "Erro de sessão",
-        description: "Sua sessão expirou. Por favor, faça login novamente.",
+        title: "Limite atingido",
+        description: "Você já atingiu o limite de mapas que pode criar. Adquira um novo acesso para criar mais mapas.",
         variant: "destructive"
       });
-      setIsSubmitting(false);
       return;
     }
     
-    const userData = getUserData(currentUser);
-    if (userData && userData.karmicNumbers) {
-      toast({
-        title: "Matriz já gerada",
-        description: "Você já possui uma Matriz Kármica. Redirecionando para visualização.",
-      });
-      setIsSubmitting(false);
-      navigate('/matrix');
-      return;
-    }
+    // Marcar como enviando para desativar o botão
+    setIsSubmitting(true);
+    console.log("ProfileForm: Formulário em processamento");
     
+    // Validar nome
     if (!name.trim()) {
       toast({
         title: "Nome obrigatório",
@@ -122,6 +129,7 @@ const ProfileForm: React.FC<ProfileFormProps> = ({ onProfileComplete }) => {
       return;
     }
     
+    // Validar data
     if (!birthDate || !validateDate(birthDate)) {
       toast({
         title: "Data inválida",
@@ -133,45 +141,62 @@ const ProfileForm: React.FC<ProfileFormProps> = ({ onProfileComplete }) => {
       return;
     }
     
-    // Calculate karmic numbers
-    const karmicNumbers = calculateAllKarmicNumbers(birthDate);
-    
-    // Save user data
-    saveUserData({
-      email: currentUser,
-      name,
-      birthDate,
-      karmicNumbers
-    });
-    
-    toast({
-      title: "Perfil salvo com sucesso",
-      description: "Sua Matriz Kármica Pessoal 2025 foi gerada com sucesso.",
-    });
-    
-    // Dar tempo para o toast ser exibido
-    setTimeout(() => {
+    // Get current user email
+    const email = getCurrentUser();
+    if (!email) {
+      toast({
+        title: "Erro de sessão",
+        description: "Sua sessão expirou. Por favor, faça login novamente.",
+        variant: "destructive"
+      });
       setIsSubmitting(false);
+      return;
+    }
+    
+    try {
+      console.log("ProfileForm: Calculando números kármicos para data:", birthDate);
+      // Calculate karmic numbers
+      const karmicNumbers = calculateAllKarmicNumbers(birthDate);
+      console.log("ProfileForm: Números kármicos calculados:", karmicNumbers);
       
-      // Notificar o componente pai que o perfil foi completado
-      if (onProfileComplete) {
-        onProfileComplete();
-      } else {
+      // Save user data
+      console.log("ProfileForm: Salvando dados do usuário");
+      const newMapId = saveUserData({
+        email,
+        name,
+        birthDate,
+        karmicNumbers
+      });
+      
+      console.log("ProfileForm: Mapa criado com ID:", newMapId);
+      
+      // Definir o ID do mapa atual para visualização
+      setCurrentMatrixId(newMapId);
+      
+      toast({
+        title: "Mapa criado com sucesso",
+        description: "Sua Matriz Kármica Pessoal 2025 foi gerada com sucesso.",
+      });
+      
+      // Dar tempo para o toast ser exibido antes de redirecionar
+      console.log("ProfileForm: Redirecionando para matriz em 1 segundo...");
+      setTimeout(() => {
+        console.log("ProfileForm: Redirecionando agora!");
+        setIsSubmitting(false);
         navigate('/matrix');
-      }
-    }, 1000);
+      }, 1000);
+    } catch (error) {
+      console.error("ProfileForm: Erro ao gerar mapa:", error);
+      toast({
+        title: "Erro ao criar mapa",
+        description: "Ocorreu um erro ao processar seus dados. Por favor, tente novamente.",
+        variant: "destructive"
+      });
+      setIsSubmitting(false);
+    }
   };
-
-  // Se o usuário já tem um perfil, não mostrar o formulário
-  if (existingProfile) {
-    return (
-      <div className="flex flex-col items-center justify-center space-y-4 py-8">
-        <p className="text-center text-karmic-700">
-          Redirecionando para sua Matriz Kármica Pessoal...
-        </p>
-      </div>
-    );
-  }
+  
+  console.log("ProfileForm: Renderizando com isSubmitting =", isSubmitting);
 
   return (
     <form onSubmit={handleSubmit} className="space-y-4 max-w-md mx-auto">
@@ -210,14 +235,55 @@ const ProfileForm: React.FC<ProfileFormProps> = ({ onProfileComplete }) => {
         )}
       </div>
       
+      {existingMaps.length > 0 && (
+        <div className="p-3 bg-karmic-100 rounded-md">
+          <p className="text-sm text-karmic-700 mb-2 font-medium">
+            Você já possui {existingMaps.length} {existingMaps.length === 1 ? 'mapa' : 'mapas'} criado{existingMaps.length === 1 ? '' : 's'}:
+          </p>
+          <ul className="text-xs space-y-1 text-karmic-600">
+            {existingMaps.map((map, index) => (
+              <li key={map?.id || index}>
+                • {map?.name || 'Nome indisponível'} - {map?.birthDate || 'Data indisponível'} 
+                {map?.createdAt ? ` (criado em: ${new Date(map.createdAt).toLocaleDateString()})` : ''}
+              </li>
+            ))}
+          </ul>
+          
+          {!canCreateNewMap && (
+            <div className="mt-3 p-2 bg-amber-50 border border-amber-200 rounded-md text-amber-700 text-xs">
+              <p className="font-medium flex items-center">
+                <ShoppingCart className="h-3 w-3 mr-1" />
+                Você atingiu o limite de mapas que pode criar.
+              </p>
+              <p className="mt-1">
+                Para criar um novo mapa, você precisa adquirir um novo acesso ou entrar em contato com o administrador.
+              </p>
+            </div>
+          )}
+        </div>
+      )}
+      
       <Button 
         type="submit" 
         className="karmic-button w-full group"
-        disabled={isSubmitting}
+        disabled={isSubmitting || (existingMaps.length > 0 && !canCreateNewMap)}
       >
-        {isSubmitting ? 'Processando...' : 'Gerar Minha Matriz Kármica 2025'}
+        {isSubmitting ? 'Processando...' : existingMaps.length > 0 ? 'Gerar Novo Mapa Kármico 2025' : 'Gerar Minha Matriz Kármica 2025'}
         <MoveRight className="ml-2 h-4 w-4 transition-transform group-hover:translate-x-1" />
       </Button>
+      
+      {existingMaps.length > 0 && !canCreateNewMap && (
+        <div className="text-center">
+          <Button 
+            type="button" 
+            variant="link" 
+            onClick={() => navigate('/matrix')}
+            className="text-karmic-600 hover:text-karmic-800"
+          >
+            Voltar para meu mapa atual
+          </Button>
+        </div>
+      )}
     </form>
   );
 };
