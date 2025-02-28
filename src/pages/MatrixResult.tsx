@@ -12,7 +12,7 @@ import {
 import { useNavigate } from 'react-router-dom';
 import KarmicMatrix from '@/components/KarmicMatrix';
 import MatrixInterpretations from '@/components/MatrixInterpretations';
-import { Printer, LogOut, RefreshCw, ChevronDown, Plus, ShoppingCart, FileDown } from 'lucide-react';
+import { LogOut, RefreshCw, ChevronDown, Plus, ShoppingCart, FileDown } from 'lucide-react';
 import { toast } from "@/components/ui/use-toast";
 import { motion } from 'framer-motion';
 import { generateInterpretationsHTML } from '@/lib/interpretations';
@@ -415,24 +415,13 @@ const MatrixResult = () => {
               Atualizar
             </Button>
             
-            <DropdownMenu>
-              <DropdownMenuTrigger asChild>
-                <Button className="karmic-button flex items-center" disabled={isPrinting}>
-                  <FileDown className="mr-2 h-4 w-4" />
-                  Exportar Interpretações
-                </Button>
-              </DropdownMenuTrigger>
-              <DropdownMenuContent align="end">
-                <DropdownMenuItem onClick={handleDownloadPDF}>
-                  <FileDown className="mr-2 h-4 w-4" />
-                  Baixar interpretações (HTML)
-                </DropdownMenuItem>
-                <DropdownMenuItem onClick={handlePrint}>
-                  <Printer className="mr-2 h-4 w-4" />
-                  Imprimir mapa completo
-                </DropdownMenuItem>
-              </DropdownMenuContent>
-            </DropdownMenu>
+            <Button 
+              onClick={handleDownloadPDF}
+              className="karmic-button flex items-center"
+            >
+              <FileDown className="mr-2 h-4 w-4" />
+              Baixar Interpretações
+            </Button>
             
             <Button 
               onClick={handleLogout}
