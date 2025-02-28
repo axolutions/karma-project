@@ -83,6 +83,7 @@ export async function checkConnection(): Promise<boolean> {
     // Se chegou aqui, estamos online
     isOfflineMode = false;
     connectionErrorCount = 0; // Resetar contador de erros
+    console.log("Conexão com Supabase estabelecida com sucesso!");
     return true;
   } catch (e) {
     console.error("Erro ao conectar com Supabase:", e);
@@ -153,20 +154,29 @@ export async function setupDatabase(): Promise<boolean> {
   }
 }
 
+// Função para diagnosticar e testar a conexão de rede
+async function checkInternetConnection(): Promise<boolean> {
+  try {
+    const response = await fetch('https://www.google.com', { 
+      method: 'HEAD', 
+      mode: 'no-cors',
+      signal: AbortSignal.timeout(5000)
+    });
+    console.log("Conexão com internet disponível");
+    return true;
+  } catch (e) {
+    console.error("Sem conexão com internet:", e);
+    return false;
+  }
+}
+
 // Função para tentar reconectar
 export async function attemptReconnect(): Promise<boolean> {
   isOfflineMode = false; // Resetar flag para tentar nova conexão
   
   // Verificar conexão com internet primeiro
-  try {
-    const internetCheck = await fetch('https://www.google.com', { 
-      method: 'HEAD', 
-      mode: 'no-cors',
-      signal: AbortSignal.timeout(5000) 
-    });
-    console.log("Conexão com internet disponível");
-  } catch (e) {
-    console.error("Sem conexão com internet:", e);
+  const hasInternet = await checkInternetConnection();
+  if (!hasInternet) {
     toast({
       title: "Sem conexão com internet",
       description: "Verifique sua conexão e tente novamente.",
@@ -188,6 +198,10 @@ export async function attemptReconnect(): Promise<boolean> {
       title: "Conexão restabelecida!",
       description: "A conexão com o Supabase foi restaurada com sucesso.",
     });
+    
+    // Tentar configurar o banco de dados novamente para garantir
+    await setupDatabase();
+    
     return true;
   } else {
     toast({
@@ -197,6 +211,52 @@ export async function attemptReconnect(): Promise<boolean> {
     });
     return false;
   }
+}
+
+// Função para realizar diagnóstico completo de conexão
+export async function diagnoseConnection(): Promise<{
+  hasInternet: boolean;
+  canReachSupabase: boolean;
+  setupSuccess: boolean;
+  errorCount: number;
+}> {
+  const diagnosis = {
+    hasInternet: false,
+    canReachSupabase: false,
+    setupSuccess: false,
+    errorCount: connectionErrorCount
+  };
+  
+  // Testar conexão com internet
+  diagnosis.hasInternet = await checkInternetConnection();
+  
+  if (!diagnosis.hasInternet) {
+    return diagnosis;
+  }
+  
+  // Testar conexão com Supabase (apenas ping)
+  try {
+    const startTime = Date.now();
+    const response = await fetch(SUPABASE_URL, { 
+      method: 'HEAD', 
+      mode: 'no-cors',
+      signal: AbortSignal.timeout(5000)
+    });
+    const endTime = Date.now();
+    console.log(`Ping ao Supabase: ${endTime - startTime}ms`);
+    diagnosis.canReachSupabase = true;
+  } catch (e) {
+    console.error("Não foi possível alcançar o Supabase:", e);
+    diagnosis.canReachSupabase = false;
+    return diagnosis;
+  }
+  
+  // Testar configuração do banco
+  if (diagnosis.canReachSupabase) {
+    diagnosis.setupSuccess = await setupDatabase();
+  }
+  
+  return diagnosis;
 }
 
 // Executar setup imediatamente ao carregar

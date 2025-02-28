@@ -25,6 +25,7 @@ const MatrixInterpretations: React.FC<MatrixInterpretationsProps> = ({ karmicDat
   const [interpretationsData, setInterpretationsData] = useState<Record<string, any>>({});
   const [loadError, setLoadError] = useState(false);
   const [rawStorageData, setRawStorageData] = useState<string>("");
+  const [totalInterpretations, setTotalInterpretations] = useState(0);
 
   // Function to force reload interpretations
   const forceReloadInterpretations = async () => {
@@ -41,6 +42,7 @@ const MatrixInterpretations: React.FC<MatrixInterpretationsProps> = ({ karmicDat
       // Try to get all interpretations
       const allInterpretations = getAllInterpretations();
       console.log("Total interpretations found:", allInterpretations.length);
+      setTotalInterpretations(allInterpretations.length);
       
       if (allInterpretations.length > 0) {
         // Display first 3 for diagnostics
@@ -92,6 +94,7 @@ const MatrixInterpretations: React.FC<MatrixInterpretationsProps> = ({ karmicDat
         // Obter a lista completa de interpretações para depuração
         const allInterpretations = getAllInterpretations();
         console.log("Total de interpretações encontradas:", allInterpretations.length);
+        setTotalInterpretations(allInterpretations.length);
         
         if (Object.keys(allData).length === 0) {
           console.warn("Nenhuma interpretação encontrada no armazenamento");
@@ -294,6 +297,27 @@ const MatrixInterpretations: React.FC<MatrixInterpretationsProps> = ({ karmicDat
         Interpretações da Sua Matriz Kármica
       </h2>
       
+      <div className="flex justify-between items-center mb-4">
+        <div className="text-sm text-karmic-600">
+          {totalInterpretations > 0 ? (
+            <span className="text-green-600 font-medium">{totalInterpretations} interpretações disponíveis</span>
+          ) : (
+            <span className="text-amber-600 font-medium">Nenhuma interpretação personalizada encontrada</span>
+          )}
+        </div>
+        
+        {loadError && (
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={forceReloadInterpretations}
+            className="h-8 text-xs border-amber-400 text-amber-700 hover:bg-amber-100"
+          >
+            <RefreshCw className="h-3.5 w-3.5 mr-1.5" /> Recarregar
+          </Button>
+        )}
+      </div>
+      
       {loadError && (
         <div className="bg-amber-50 border-l-4 border-amber-400 p-4 mb-6 rounded-md">
           <div className="flex items-start">
@@ -353,6 +377,10 @@ const MatrixInterpretations: React.FC<MatrixInterpretationsProps> = ({ karmicDat
           const isExpanded = expandedSections.has(item.key);
           const processedContent = processContent(interpretation.content);
           
+          // Verificar se esta interpretação está disponível nos dados
+          const interpretationId = `${item.key}-${item.value}`;
+          const isCustomInterpretation = interpretationsData[interpretationId] !== undefined;
+          
           return (
             <motion.div
               key={item.key}
@@ -367,6 +395,11 @@ const MatrixInterpretations: React.FC<MatrixInterpretationsProps> = ({ karmicDat
               >
                 <h3 className="text-xl font-serif font-medium text-karmic-800">
                   {getCategoryDisplayName(item.key)}
+                  {isCustomInterpretation && (
+                    <span className="ml-2 inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-green-100 text-green-800">
+                      Personalizado
+                    </span>
+                  )}
                 </h3>
                 <div className="flex items-center space-x-3">
                   <span className="karmic-number">{item.value}</span>
@@ -400,9 +433,6 @@ const MatrixInterpretations: React.FC<MatrixInterpretationsProps> = ({ karmicDat
           );
         })}
       </div>
-      
-      {/* Adicionando um pequeno comentário para garantir que o arquivo seja alterado */}
-      {/* Versão atualizada sem ferramentas de diagnóstico - 1.0 */}
     </div>
   );
 };
