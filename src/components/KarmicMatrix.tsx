@@ -99,10 +99,10 @@ const KarmicMatrix: React.FC<KarmicMatrixProps> = ({
             console.error("✗ User provided fallback image failed to load, trying next fallback");
             // If the first fallback fails, try the second one
             (e.target as HTMLImageElement).src = uploadedFallbackImage;
-            (e.target as HTMLImageElement).onError = (ev) => {
+            (e.target as HTMLImageElement).onerror = (ev) => {
               console.error("✗ Second fallback image failed to load, trying final fallback");
               (ev.target as HTMLImageElement).src = fallbackImage;
-              (ev.target as HTMLImageElement).onError = () => {
+              (ev.target as HTMLImageElement).onerror = () => {
                 console.error("✗ All fallback images failed to load");
               };
             };
