@@ -18,6 +18,7 @@ const MatrixResult = () => {
   const [isDownloading, setIsDownloading] = useState(false);
   const [loading, setLoading] = useState(true);
   const contentRef = useRef<HTMLDivElement>(null);
+  const matrixRef = useRef<HTMLDivElement>(null);
   const navigate = useNavigate();
   
   useEffect(() => {
@@ -182,7 +183,7 @@ const MatrixResult = () => {
     }, 800); // Delay maior para garantir que tudo esteja carregado
   };
   
-  // Nova função para download direto de PDF
+  // Função melhorada para download direto de PDF com garantia de carregar a imagem
   const handleDirectDownload = async () => {
     if (isDownloading || !contentRef.current) return;
     
@@ -194,28 +195,78 @@ const MatrixResult = () => {
     });
     
     try {
+      // Primeiro garantimos que imagens estão carregadas esperando um tempo
+      await new Promise(resolve => setTimeout(resolve, 500));
+      
       // Adiciona classe para melhorar a aparência no PDF
       document.body.classList.add('printing-mode');
       
-      // Captura o elemento com html2canvas
-      const canvas = await html2canvas(contentRef.current, {
-        scale: 2, // Melhor qualidade
+      // Primeiro vamos capturar a matriz separadamente para garantir que a imagem de fundo apareça
+      let matrixCanvas;
+      if (matrixRef.current) {
+        matrixCanvas = await html2canvas(matrixRef.current, {
+          scale: 2,
+          useCORS: true,
+          allowTaint: true,
+          logging: true,
+          backgroundColor: '#ffffff',
+          imageTimeout: 15000, // Tempo maior para carregar imagens
+          onclone: (clonedDoc) => {
+            // Forçar visibilidade total no clone
+            const clonedContent = clonedDoc.querySelector('[data-matrix-content]');
+            if (clonedContent) {
+              (clonedContent as HTMLElement).style.opacity = '1';
+              (clonedContent as HTMLElement).style.visibility = 'visible';
+            }
+          }
+        });
+      }
+      
+      // Depois capturamos todo o conteúdo para o PDF
+      const fullCanvas = await html2canvas(contentRef.current, {
+        scale: 2,
         useCORS: true,
-        logging: false,
         allowTaint: true,
-        backgroundColor: '#ffffff'
+        backgroundColor: '#ffffff',
+        imageTimeout: 15000,
+        onclone: (clonedDoc) => {
+          // Forçar visibilidade de todos elementos no clone
+          const clonedContent = clonedDoc.querySelector('[data-ref="content"]');
+          if (clonedContent) {
+            (clonedContent as HTMLElement).style.opacity = '1';
+            (clonedContent as HTMLElement).style.visibility = 'visible';
+          }
+        }
       });
       
-      // Cria um novo documento PDF
+      // Cria um novo documento PDF A4
       const pdf = new jsPDF('p', 'mm', 'a4');
-      const imgData = canvas.toDataURL('image/png');
-      
-      // Calcula as dimensões para ajustar à página
       const imgWidth = 210; // A4 width in mm (210mm)
-      const imgHeight = (canvas.height * imgWidth) / canvas.width;
       
-      // Adiciona a imagem ao PDF
-      pdf.addImage(imgData, 'PNG', 0, 0, imgWidth, imgHeight);
+      // Se temos a matriz separada, adicionamos ela primeiro
+      if (matrixCanvas) {
+        const matrixImgData = matrixCanvas.toDataURL('image/png');
+        const matrixImgHeight = (matrixCanvas.height * imgWidth) / matrixCanvas.width;
+        pdf.addImage(matrixImgData, 'PNG', 0, 0, imgWidth, Math.min(matrixImgHeight, 150));
+      }
+      
+      // Adicionamos o conteúdo completo
+      const fullImgData = fullCanvas.toDataURL('image/png');
+      const fullImgHeight = (fullCanvas.height * imgWidth) / fullCanvas.width;
+      
+      // Se tivermos adicionado a matriz separadamente, ajustamos a posição do conteúdo completo
+      if (matrixCanvas) {
+        // Calcular a altura proporcional da matriz para posicionar o resto do conteúdo
+        const matrixImgHeight = (matrixCanvas.height * imgWidth) / matrixCanvas.width;
+        const matrixHeight = Math.min(matrixImgHeight, 150);
+        
+        // Adicionar o resto do conteúdo em uma nova página
+        pdf.addPage();
+        pdf.addImage(fullImgData, 'PNG', 0, 0, imgWidth, fullImgHeight);
+      } else {
+        // Se não tiver a matriz separada, adiciona tudo de uma vez
+        pdf.addImage(fullImgData, 'PNG', 0, 0, imgWidth, fullImgHeight);
+      }
       
       // Baixa o PDF com nome personalizado
       const userName = userData?.name || 'Visitante';
@@ -333,12 +384,14 @@ const MatrixResult = () => {
           </div>
         </div>
         
-        <div ref={contentRef}>
+        <div ref={contentRef} data-ref="content">
           <motion.div
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             transition={{ duration: 0.5 }}
             className="text-center mb-10 print:mb-5"
+            ref={matrixRef}
+            data-matrix-content
           >
             <h2 className="text-xl md:text-2xl font-serif font-medium text-karmic-800 mb-2">
               Sua Matriz Kármica
