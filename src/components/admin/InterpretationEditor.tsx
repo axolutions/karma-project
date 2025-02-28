@@ -11,7 +11,7 @@ import {
   getCategoryDisplayName,
   getAllCategories
 } from '@/lib/interpretations';
-import { Save, Trash, Bold, Italic, List, Type } from 'lucide-react';
+import { Save, Trash, Bold, Italic, List, Type, Quote } from 'lucide-react';
 
 const InterpretationEditor: React.FC = () => {
   const [selectedCategory, setSelectedCategory] = useState("karmicSeal");
@@ -57,16 +57,35 @@ const InterpretationEditor: React.FC = () => {
       return;
     }
     
+    // Formata o conteúdo para garantir que esteja corretamente estruturado em HTML
+    const formattedContent = formatContentForSaving(content);
+    
     setInterpretation(
       selectedCategory, 
       parseInt(selectedNumber), 
       title, 
-      content
+      formattedContent
     );
     
     setTimeout(() => {
       setIsLoading(false);
     }, 500);
+  };
+  
+  // Função para garantir que o conteúdo está bem formatado em HTML
+  const formatContentForSaving = (rawContent: string) => {
+    let formattedContent = rawContent;
+    
+    // Verifica se está totalmente sem HTML
+    if (!formattedContent.includes('<p>') && !formattedContent.includes('</p>')) {
+      // Converte parágrafos simples para tags <p>
+      formattedContent = formattedContent
+        .split('\n\n')
+        .map(p => p.trim() ? `<p>${p.trim()}</p>` : '')
+        .join('\n');
+    }
+    
+    return formattedContent;
   };
   
   const handleDelete = () => {
@@ -104,6 +123,14 @@ const InterpretationEditor: React.FC = () => {
   const processContentForPreview = (rawHTML: string) => {
     // Estiliza os parágrafos com <strong> para dar destaque a certas partes
     let processedHTML = rawHTML;
+    
+    // Se não tiver formatação HTML, adiciona
+    if (!processedHTML.includes('<p>')) {
+      processedHTML = processedHTML
+        .split('\n\n')
+        .map(p => p.trim() ? `<p>${p.trim()}</p>` : '')
+        .join('\n');
+    }
     
     // Cria boxes para afirmações
     processedHTML = processedHTML.replace(
@@ -205,7 +232,7 @@ const InterpretationEditor: React.FC = () => {
           onClick={() => insertTemplate("<h3>Afirmação Kármica</h3>\n<p>Insira a afirmação aqui.</p>")}
           title="Inserir afirmação"
         >
-          Afirmação
+          <Quote className="h-4 w-4 mr-1" /> Afirmação
         </Button>
         <Button
           type="button"
@@ -244,7 +271,8 @@ const InterpretationEditor: React.FC = () => {
             className="min-h-[300px] font-mono text-sm"
           />
           <p className="text-xs text-karmic-500 mt-1">
-            Dica: Você pode usar tags HTML como &lt;h3&gt;, &lt;p&gt;, &lt;ul&gt;, &lt;li&gt; para formatar o texto. Use os botões acima para formatar mais facilmente.
+            Dica: Você pode usar tags HTML como &lt;p&gt; para parágrafos, &lt;strong&gt; para negrito, 
+            &lt;h3&gt; para subtítulos, &lt;ul&gt; e &lt;li&gt; para listas. Use os botões acima para formatar mais facilmente.
           </p>
         </div>
       )}

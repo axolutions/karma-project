@@ -132,8 +132,42 @@ export default {
         'fade-in': 'fade-in 0.4s ease-out',
         'fade-up': 'fade-up 0.6s ease-out',
         'reveal-right': 'reveal-right 0.7s ease-out'
-			}
+			},
+      typography: {
+        DEFAULT: {
+          css: {
+            color: '#5D574F',
+            a: {
+              color: '#776F68',
+              '&:hover': {
+                color: '#40392F',
+              },
+            },
+            h1: {
+              fontFamily: 'Playfair Display, serif',
+              fontWeight: '500',
+            },
+            h2: {
+              fontFamily: 'Playfair Display, serif',
+              fontWeight: '500',
+            },
+            h3: {
+              fontFamily: 'Playfair Display, serif',
+              fontWeight: '500',
+            },
+            h4: {
+              color: '#5D574F',
+              fontWeight: '500',
+            },
+            'blockquote p:first-of-type::before': { content: 'none' },
+            'blockquote p:last-of-type::after': { content: 'none' },
+          },
+        },
+      },
 		}
 	},
-	plugins: [require("tailwindcss-animate")],
+	plugins: [
+    require("tailwindcss-animate"),
+    require('@tailwindcss/typography'),
+  ],
 } satisfies Config;

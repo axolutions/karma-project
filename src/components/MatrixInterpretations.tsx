@@ -1,6 +1,6 @@
 
 import React, { useState } from 'react';
-import { getInterpretation, renderHTML, getCategoryDisplayName } from '@/lib/interpretations';
+import { getInterpretation, getCategoryDisplayName } from '@/lib/interpretations';
 import { motion, AnimatePresence } from 'framer-motion';
 import { ChevronDown, ChevronUp } from 'lucide-react';
 
@@ -43,22 +43,50 @@ const MatrixInterpretations: React.FC<MatrixInterpretationsProps> = ({ karmicDat
     { key: 'manifestationEnigma', value: karmicData.manifestationEnigma }
   ];
 
-  // Função que processa o HTML para estilizar automaticamente
-  const processInterpretationHTML = (html: string) => {
-    // Estiliza os parágrafos com <strong> para dar destaque a certas partes
-    let processedHTML = html;
+  // Função aprimorada para processar o HTML adequadamente
+  const processContent = (htmlContent: string) => {
+    // Verifica se o texto já está formatado ou não
+    if (!htmlContent.includes('<') && !htmlContent.includes('>')) {
+      // Se não estiver formatado, adiciona tags de parágrafo básicas
+      const paragraphs = htmlContent.split('\n\n').map(p => `<p>${p}</p>`).join('');
+      return paragraphs;
+    }
     
-    // Cria boxes para afirmações
-    processedHTML = processedHTML.replace(
-      /<h3>Afirmação.*?<\/h3>(.*?)(?=<h3>|$)/gs, 
-      '<div class="affirmation-box"><h3 class="affirmation-title">Afirmação Kármica</h3>$1</div>'
-    );
+    // Para textos já com HTML, melhora a formatação existente
+    let processedHTML = htmlContent;
     
-    // Destaca títulos secundários (h3)
+    // Adiciona estilos para títulos
     processedHTML = processedHTML.replace(
       /<h3>(.*?)<\/h3>/g,
       '<h3 class="karmic-subtitle">$1</h3>'
     );
+    
+    // Formata os blocos de afirmação
+    processedHTML = processedHTML.replace(
+      /<h3[^>]*>Afirmação[^<]*<\/h3>([\s\S]*?)(?=<h3|$)/g,
+      '<div class="affirmation-box"><h3 class="affirmation-title">Afirmação Kármica</h3>$1</div>'
+    );
+    
+    // Destaca textos importantes
+    processedHTML = processedHTML.replace(
+      /\*\*(.*?)\*\*/g, 
+      '<strong>$1</strong>'
+    );
+    
+    // Converte marcadores simples em listas HTML
+    processedHTML = processedHTML.replace(
+      /^- (.*?)$/gm,
+      '<li>$1</li>'
+    );
+    
+    // Agrupa itens de lista
+    processedHTML = processedHTML.replace(
+      /(<li>.*?<\/li>\s*)+/g,
+      '<ul>$&</ul>'
+    );
+    
+    // Remove possíveis listas vazias
+    processedHTML = processedHTML.replace(/<ul>\s*<\/ul>/g, '');
     
     return processedHTML;
   };
@@ -73,7 +101,7 @@ const MatrixInterpretations: React.FC<MatrixInterpretationsProps> = ({ karmicDat
         {interpretationItems.map((item, index) => {
           const interpretation = getInterpretation(item.key, item.value);
           const isExpanded = expandedSections.has(item.key);
-          const processedContent = processInterpretationHTML(interpretation.content);
+          const processedContent = processContent(interpretation.content);
           
           return (
             <motion.div
@@ -81,10 +109,12 @@ const MatrixInterpretations: React.FC<MatrixInterpretationsProps> = ({ karmicDat
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: index * 0.1, duration: 0.4 }}
-              className="karmic-card cursor-pointer"
-              onClick={() => toggleSection(item.key)}
+              className="karmic-card"
             >
-              <div className="flex justify-between items-center mb-2">
+              <div 
+                className="flex justify-between items-center mb-2 cursor-pointer"
+                onClick={() => toggleSection(item.key)}
+              >
                 <h3 className="text-xl font-serif font-medium text-karmic-800">
                   {getCategoryDisplayName(item.key)}
                 </h3>
@@ -107,10 +137,12 @@ const MatrixInterpretations: React.FC<MatrixInterpretationsProps> = ({ karmicDat
                     transition={{ duration: 0.3 }}
                     className="overflow-hidden"
                   >
-                    <div 
-                      className="karmic-content mt-4 pt-4 border-t border-karmic-200" 
-                      dangerouslySetInnerHTML={{ __html: processedContent }} 
-                    />
+                    <div className="karmic-content mt-4 pt-4 border-t border-karmic-200">
+                      <div 
+                        className="prose prose-karmic max-w-none"
+                        dangerouslySetInnerHTML={{ __html: processedContent }} 
+                      />
+                    </div>
                   </motion.div>
                 )}
               </AnimatePresence>
