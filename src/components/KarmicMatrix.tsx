@@ -9,7 +9,7 @@ interface KarmicMatrixProps {
 
 const KarmicMatrix: React.FC<KarmicMatrixProps> = ({ 
   karmicData,
-  backgroundImage = "https://matrizkarmica.com/wp-content/uploads/2025/02/Design-sem-nome-1.png"
+  backgroundImage = "https://darkorange-goldfinch-896244.hostingersite.com/wp-content/uploads/2025/02/Design-sem-nome-1.png"
 }) => {
   const [imgSrc, setImgSrc] = useState(backgroundImage);
   const [isImageLoaded, setIsImageLoaded] = useState(false);
@@ -47,7 +47,7 @@ const KarmicMatrix: React.FC<KarmicMatrixProps> = ({
       console.error("KarmicMatrix: Erro ao carregar imagem. Usando imagem local.");
       setImageError(true);
       // Usar a imagem enviada pelo usuário como fallback
-      setImgSrc("/lovable-uploads/cd6e3165-659f-45ba-b486-c2702df90610.png");
+      setImgSrc("/lovable-uploads/03adb121-9666-444c-aa4b-0d3f89e5562d.png");
     };
     img.src = backgroundImage;
     
@@ -56,7 +56,7 @@ const KarmicMatrix: React.FC<KarmicMatrixProps> = ({
       if (!isImageLoaded) {
         console.warn("KarmicMatrix: Timeout ao carregar imagem. Usando fallback.");
         setImageError(true);
-        setImgSrc("/lovable-uploads/cd6e3165-659f-45ba-b486-c2702df90610.png");
+        setImgSrc("/lovable-uploads/03adb121-9666-444c-aa4b-0d3f89e5562d.png");
       }
     }, 5000);
     
@@ -113,11 +113,11 @@ const KarmicMatrix: React.FC<KarmicMatrixProps> = ({
         onError={() => {
           console.error("KarmicMatrix: Erro ao carregar imagem na tag. Usando fallback.");
           setImageError(true);
-          setImgSrc("/lovable-uploads/cd6e3165-659f-45ba-b486-c2702df90610.png");
+          setImgSrc("/lovable-uploads/03adb121-9666-444c-aa4b-0d3f89e5562d.png");
         }}
       />
       
-      {/* Sempre renderizar os números */}
+      {/* Números da matriz */}
       {numbersToDisplay.map((item) => {
         const position = numberPositions[item.key];
         return (

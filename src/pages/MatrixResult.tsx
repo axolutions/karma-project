@@ -288,8 +288,8 @@ const MatrixResult = () => {
   // Garantir que temos números kármicos para mostrar
   const karmicNumbers = userData.karmicNumbers || {};
   
-  // Usar a imagem enviada pelo usuário como fallback
-  const matrixBackgroundImage = "/lovable-uploads/cd6e3165-659f-45ba-b486-c2702df90610.png";
+  // URL da imagem da matriz
+  const matrixBackgroundImage = "https://darkorange-goldfinch-896244.hostingersite.com/wp-content/uploads/2025/02/Design-sem-nome-1.png";
   
   return (
     <div className="min-h-screen bg-gradient-to-b from-karmic-100 to-white py-12 print:bg-white print:py-0">
