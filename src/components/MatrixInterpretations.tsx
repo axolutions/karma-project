@@ -61,16 +61,16 @@ const InterpretationCard: React.FC<InterpretationItemProps> = ({
   };
   
   return (
-    <div className="karmic-card bg-cream-50 rounded-lg border border-amber-200 mb-6 p-5 shadow-sm transition-all hover:shadow-md">
+    <div className="karmic-card">
       <div className="flex justify-between items-center cursor-pointer" onClick={toggleExpand}>
         <div className="flex items-center">
-          <div className="karmic-number mr-4 bg-amber-100 text-amber-900 font-serif font-bold text-xl rounded-full w-12 h-12 flex items-center justify-center border border-amber-300">{number}</div>
-          <h3 className="text-xl font-serif font-semibold text-amber-900">{title}</h3>
+          <div className="karmic-number mr-3">{number}</div>
+          <h3 className="text-lg font-serif font-medium text-karmic-800">{title}</h3>
         </div>
         <Button 
           variant="ghost" 
           size="sm" 
-          className="interpretation-toggle p-1 h-8 w-8 text-amber-700 hover:bg-amber-100 hover:text-amber-900"
+          className="interpretation-toggle p-1 h-8 w-8"
           onClick={(e) => {
             e.stopPropagation();
             toggleExpand();
@@ -80,10 +80,10 @@ const InterpretationCard: React.FC<InterpretationItemProps> = ({
         </Button>
       </div>
       
-      <div className={`interpretation-content mt-5 ${isExpanded ? '' : 'hidden'}`}>
+      <div className={`interpretation-content ${isExpanded ? '' : 'hidden'}`}>
         {interpretation && (
           <div 
-            className="prose prose-amber max-w-none prose-headings:font-serif prose-headings:text-amber-900 prose-p:text-amber-800 prose-li:text-amber-800 prose-strong:text-amber-900 prose-strong:font-semibold"
+            className="prose-karmic karmic-content"
             dangerouslySetInnerHTML={{ 
               __html: sanitizeHtml(processContent(interpretation)) 
             }}
@@ -168,7 +168,7 @@ const MatrixInterpretations: React.FC<MatrixInterpretationsProps> = ({ karmicDat
   
   if (!karmicData) {
     return (
-      <div className="p-6 bg-amber-50 rounded-lg text-center text-amber-800 border border-amber-200">
+      <div className="p-6 bg-amber-50 rounded-lg text-center text-amber-800">
         Dados kármicos não disponíveis. Por favor, verifique sua data de nascimento.
       </div>
     );
@@ -187,9 +187,9 @@ const MatrixInterpretations: React.FC<MatrixInterpretationsProps> = ({ karmicDat
   ];
   
   return (
-    <div className="matrix-interpretations bg-cream-50 p-6 rounded-lg border border-amber-200">
+    <div className="matrix-interpretations">
       <div className="flex flex-col md:flex-row justify-between items-center mb-6">
-        <h2 className="text-2xl md:text-3xl font-serif font-semibold text-amber-900 mb-4 md:mb-0">
+        <h2 className="text-xl md:text-2xl font-serif font-medium text-karmic-800 mb-4 md:mb-0">
           Interpretações da sua Matriz
         </h2>
         
@@ -197,18 +197,18 @@ const MatrixInterpretations: React.FC<MatrixInterpretationsProps> = ({ karmicDat
           variant="outline"
           size="sm"
           onClick={forceReloadInterpretations}
-          className="h-8 text-xs border-amber-400 text-amber-800 hover:bg-amber-100 mb-4"
+          className="h-8 text-xs border-amber-400 text-amber-700 hover:bg-amber-100 mb-4"
         >
           <RefreshCw className="h-3.5 w-3.5 mr-1.5" /> Recarregar Interpretações
         </Button>
       </div>
       
-      <Separator className="mb-8 bg-amber-200" />
+      <Separator className="mb-8 bg-karmic-200" />
       
       {loading ? (
         <div className="text-center py-10">
-          <RefreshCw className="h-8 w-8 text-amber-600 animate-spin mx-auto mb-4" />
-          <p className="text-amber-700 font-serif">Carregando interpretações kármicas...</p>
+          <RefreshCw className="h-8 w-8 text-karmic-600 animate-spin mx-auto mb-4" />
+          <p className="text-karmic-700">Carregando interpretações kármicas...</p>
         </div>
       ) : (
         <div className="space-y-6">
