@@ -31,8 +31,7 @@ const Index = () => {
           if (userData && userData.karmicNumbers) {
             console.log("Usuário com matriz kármica, redirecionando...");
             setHasProfile(true);
-            // Comentamos esta linha para evitar o redirecionamento automático
-            // navigate('/matrix');
+            navigate('/matrix');
             return true; // Indica que foi redirecionado
           } else {
             console.log("Usuário logado mas sem perfil completo");

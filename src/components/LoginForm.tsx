@@ -73,11 +73,19 @@ const LoginForm: React.FC<LoginFormProps> = ({ onLoginSuccess }) => {
       
       setTimeout(() => {
         setIsSubmitting(false);
-        // Chamar o callback em vez de redirecionar diretamente
-        if (onLoginSuccess) {
-          onLoginSuccess();
+        
+        if (userData && userData.karmicNumbers) {
+          // Usuário já tem matriz, vamos para a página de matriz
+          console.log("Usuário tem matriz, redirecionando para /matrix");
+          navigate('/matrix');
         } else {
-          window.location.reload();
+          // Usuário não tem matriz, exibir formulário de perfil
+          console.log("Usuário sem matriz, atualizando página para mostrar formulário de perfil");
+          if (onLoginSuccess) {
+            onLoginSuccess();
+          } else {
+            window.location.reload();
+          }
         }
       }, 1000);
     } else {
