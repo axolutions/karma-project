@@ -1,11 +1,11 @@
 
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useRef } from 'react';
 import { Button } from "@/components/ui/button";
 import { getCurrentUser, getUserData, logout } from '@/lib/auth';
 import { useNavigate } from 'react-router-dom';
 import KarmicMatrix from '@/components/KarmicMatrix';
 import MatrixInterpretations from '@/components/MatrixInterpretations';
-import { LogOut, RefreshCw, Download } from 'lucide-react';
+import { LogOut, RefreshCw, Download, FileText, Image } from 'lucide-react';
 import { toast } from "@/components/ui/use-toast";
 import { motion } from 'framer-motion';
 import { isInOfflineMode } from '@/lib/supabase';
@@ -16,7 +16,9 @@ const MatrixResult = () => {
   const [userData, setUserData] = useState<any>(null);
   const [refreshing, setRefreshing] = useState(false);
   const [loading, setLoading] = useState(true);
-  const [downloading, setDownloading] = useState(false);
+  const [downloadingPDF, setDownloadingPDF] = useState(false);
+  const [downloadingPNG, setDownloadingPNG] = useState(false);
+  const matrixRef = useRef<HTMLDivElement>(null);
   const navigate = useNavigate();
   
   useEffect(() => {
@@ -66,85 +68,118 @@ const MatrixResult = () => {
     loadUserData();
   }, [navigate]);
   
-  // Função para gerar PDF da página completa (matriz + interpretações)
-  const handleDownloadFullPage = async () => {
+  // Função para baixar apenas as interpretações em PDF
+  const handleDownloadInterpretations = async () => {
     try {
-      setDownloading(true);
+      setDownloadingPDF(true);
       toast({
         title: "Preparando download",
-        description: "Gerando PDF da sua matriz e interpretações...",
+        description: "Gerando PDF das suas interpretações...",
       });
       
-      // Selecionar o contêiner principal que contém a matriz e as interpretações
-      const fullPageElement = document.querySelector('.container');
-      if (!fullPageElement) {
-        throw new Error("Não foi possível encontrar o conteúdo da página");
+      // Selecionar apenas o contêiner de interpretações
+      const interpretationsElement = document.querySelector('.matrix-interpretations');
+      if (!interpretationsElement) {
+        throw new Error("Não foi possível encontrar as interpretações");
       }
       
       // Expandir todas as interpretações antes de capturar
-      const interpretationsElement = document.querySelector('.matrix-interpretations');
-      if (interpretationsElement) {
-        const headers = interpretationsElement.querySelectorAll('.karmic-card');
-        
-        // Simular cliques para abrir todas as seções
-        headers.forEach(header => {
-          const headerElement = header.querySelector('h3');
-          if (headerElement) {
-            headerElement.click();
-          }
-        });
-      }
+      const headers = interpretationsElement.querySelectorAll('.karmic-card');
+      headers.forEach(header => {
+        const headerElement = header.querySelector('h3');
+        if (headerElement) {
+          headerElement.click();
+        }
+      });
       
       // Pequeno delay para garantir que todas as seções estejam expandidas
       await new Promise(resolve => setTimeout(resolve, 1000));
       
-      // Pré-carregar a imagem da matriz antes de gerar o PDF
-      const matrixImage = document.querySelector('.karmic-matrix-with-image img') as HTMLImageElement;
-      if (matrixImage) {
-        // Certifique-se de que a imagem está carregada
-        if (!matrixImage.complete) {
-          await new Promise(resolve => {
-            matrixImage.onload = resolve;
-            matrixImage.onerror = resolve;
-          });
-        }
-      }
-      
-      // Configurações do PDF com melhorias para lidar com imagens
+      // Configurações do PDF
       const pdfOptions = {
         margin: [10, 10, 10, 10],
-        filename: `Matriz-Karmica-Completa-${userData?.name || 'Pessoal'}.pdf`,
+        filename: `Interpretacoes-Matriz-Karmica-${userData?.name || 'Pessoal'}.pdf`,
         image: { type: 'jpeg', quality: 0.98 },
         html2canvas: { 
-          scale: 2, // Melhor qualidade
+          scale: 2,
           useCORS: true,
-          allowTaint: true,
-          logging: true,
-          letterRendering: true,
-          imageTimeout: 0, // Sem timeout para imagens
-          foreignObjectRendering: false // Desativar foreignObject para maior compatibilidade
+          logging: false
         },
         jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }
       };
       
-      // Gerar o PDF usando html2pdf com as novas configurações
-      await html2pdf().from(fullPageElement).set(pdfOptions).save()
+      // Gerar o PDF
+      await html2pdf().from(interpretationsElement).set(pdfOptions).save()
         .then(() => {
           toast({
             title: "Download concluído",
-            description: "Sua Matriz Kármica completa foi baixada em PDF com sucesso!",
+            description: "Suas interpretações foram baixadas em PDF com sucesso!",
           });
         });
       
     } catch (error) {
-      console.error("Erro ao gerar download:", error);
+      console.error("Erro ao gerar download das interpretações:", error);
       toast({
         title: "Erro ao gerar download",
-        description: "Não foi possível baixar a matriz completa. Por favor, tente novamente mais tarde.",
+        description: "Não foi possível baixar as interpretações. Por favor, tente novamente mais tarde.",
         variant: "destructive"
       });
     } finally {
-      setDownloading(false);
+      setDownloadingPDF(false);
+    }
+  };
+  
+  // Função para baixar a matriz como PNG
+  const handleDownloadMatrixAsPNG = async () => {
+    try {
+      setDownloadingPNG(true);
+      toast({
+        title: "Preparando download",
+        description: "Gerando imagem da sua matriz...",
+      });
+      
+      if (!matrixRef.current) {
+        throw new Error("Não foi possível encontrar a matriz");
+      }
+      
+      const canvas = await html2canvas(matrixRef.current, {
+        scale: 2,
+        useCORS: true,
+        allowTaint: true,
+        backgroundColor: null,
+        logging: false,
+        onclone: (document) => {
+          // Certifique-se de que a imagem tenha tempo para carregar no clone
+          const img = document.querySelector('.karmic-matrix-with-image img') as HTMLImageElement;
+          if (img && !img.complete) {
+            return new Promise((resolve) => {
+              img.onload = resolve;
+            });
+          }
+        }
+      });
+      
+      // Converter para PNG e fazer download
+      const dataUrl = canvas.toDataURL('image/png');
+      const link = document.createElement('a');
+      link.download = `Matriz-Karmica-${userData?.name || 'Pessoal'}.png`;
+      link.href = dataUrl;
+      link.click();
+      
+      toast({
+        title: "Download concluído",
+        description: "Sua Matriz Kármica foi baixada como imagem PNG com sucesso!",
+      });
+      
+    } catch (error) {
+      console.error("Erro ao gerar imagem da matriz:", error);
+      toast({
+        title: "Erro ao gerar imagem",
+        description: "Não foi possível baixar a matriz como imagem. Por favor, tente novamente mais tarde.",
+        variant: "destructive"
+      });
+    } finally {
+      setDownloadingPNG(false);
     }
   };
   
@@ -206,12 +241,22 @@ const MatrixResult = () => {
             </Button>
             
             <Button 
-              onClick={handleDownloadFullPage}
+              onClick={handleDownloadMatrixAsPNG}
               className="karmic-button flex items-center"
-              disabled={downloading}
+              disabled={downloadingPNG}
             >
-              <Download className="mr-2 h-4 w-4" />
-              {downloading ? 'Gerando PDF...' : 'Baixar Matriz em PDF'}
+              <Image className="mr-2 h-4 w-4" />
+              {downloadingPNG ? 'Gerando imagem...' : 'Baixar Matriz em PNG'}
+            </Button>
+            
+            <Button 
+              onClick={handleDownloadInterpretations}
+              variant="outline"
+              className="karmic-button flex items-center"
+              disabled={downloadingPDF}
+            >
+              <FileText className="mr-2 h-4 w-4" />
+              {downloadingPDF ? 'Gerando PDF...' : 'Baixar Interpretações em PDF'}
             </Button>
             
             <Button 
@@ -238,7 +283,7 @@ const MatrixResult = () => {
             Data de Nascimento: <span className="font-medium">{userData?.birthDate || "Não informada"}</span>
           </p>
           
-          <div className="karmic-matrix-container">
+          <div className="karmic-matrix-container" ref={matrixRef}>
             <KarmicMatrix karmicData={userData?.karmicNumbers} />
           </div>
         </motion.div>

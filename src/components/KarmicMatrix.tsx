@@ -15,11 +15,13 @@ interface KarmicMatrixProps {
     manifestationEnigma: number;
   } | undefined;
   backgroundImage?: string;
+  showNumbers?: boolean;
 }
 
 const KarmicMatrix: React.FC<KarmicMatrixProps> = ({ 
   karmicData,
-  backgroundImage = "/lovable-uploads/ce9f1d87-d6ab-4456-a798-1f4cec565e32.png"
+  backgroundImage = "/lovable-uploads/ce9f1d87-d6ab-4456-a798-1f4cec565e32.png",
+  showNumbers = true
 }) => {
   const [imageLoaded, setImageLoaded] = useState(false);
   const [imgSrc, setImgSrc] = useState(backgroundImage);
@@ -116,7 +118,7 @@ const KarmicMatrix: React.FC<KarmicMatrixProps> = ({
       />
       
       {/* Numbers overlay */}
-      {imageLoaded && numbersToDisplay.map((item, index) => (
+      {imageLoaded && showNumbers && numbersToDisplay.map((item, index) => (
         <motion.div
           key={item.key}
           initial={{ opacity: 0, scale: 0.8 }}
