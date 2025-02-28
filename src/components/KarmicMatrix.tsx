@@ -24,7 +24,7 @@ const KarmicMatrix: React.FC<KarmicMatrixProps> = ({
   // Coordenadas específicas para cada posição
   const positions = [
     // Posição 0 - 3 da esquerda (topo)
-    { top: "13%", left: "15%" },
+    { top: "23%", left: "35%" },
     
     // Posição 1 - 1 da direita (topo)
     { top: "13%", left: "85%" },
