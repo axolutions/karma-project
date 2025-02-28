@@ -43,7 +43,6 @@ const KarmicMatrix: React.FC<KarmicMatrixProps> = ({
       setHasError(true);
     };
     
-    // Tentar carregar a imagem direta sem proxy CORS
     img.src = backgroundImage;
     
     // Fallback se a imagem não carregar em 5 segundos
@@ -55,7 +54,7 @@ const KarmicMatrix: React.FC<KarmicMatrixProps> = ({
     }, 5000);
     
     return () => clearTimeout(timeout);
-  }, [backgroundImage, imageLoaded]);
+  }, [backgroundImage]);
   
   // Posições para cada número específico
   const numberPositions = {
@@ -83,7 +82,7 @@ const KarmicMatrix: React.FC<KarmicMatrixProps> = ({
         <img 
           src={hasError ? fallbackImage : backgroundImage} 
           alt="Matriz Kármica 2025"
-          className={`w-full h-auto ${!imageLoaded && !hasError ? 'opacity-50' : 'opacity-100'}`}
+          className={`w-full h-auto object-contain ${!imageLoaded && !hasError ? 'opacity-0' : 'opacity-100'}`}
           onLoad={() => setImageLoaded(true)}
           onError={() => {
             console.error("✗ Erro ao exibir imagem da matriz");
