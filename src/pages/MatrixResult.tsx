@@ -77,7 +77,7 @@ const MatrixResult = () => {
       
       // Função para pré-carregar a imagem da matriz
       const preloadImage = (src: string): Promise<HTMLImageElement> => {
-        return new Promise((resolve, reject) => {
+        return new Promise<HTMLImageElement>((resolve, reject) => {
           const img = new Image();
           img.crossOrigin = "anonymous";
           img.onload = () => resolve(img);
