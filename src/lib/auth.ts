@@ -149,6 +149,7 @@ export function getCurrentUser(): string | null {
 
 export function logout(): void {
   sessionStorage.removeItem('karmicCurrentUser');
+  console.log("Usuário deslogado");
 }
 
 export function isLoggedIn(): boolean {

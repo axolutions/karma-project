@@ -64,6 +64,12 @@ const Index = () => {
     initPage();
   }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
+  // Função para fazer logout e voltar ao início
+  const handleLogout = () => {
+    logout();
+    window.location.reload();
+  };
+
   // Se estiver carregando, mostrar indicador
   if (loading) {
     return (
@@ -79,6 +85,17 @@ const Index = () => {
   return (
     <div className="min-h-screen bg-gradient-to-b from-karmic-100 to-white py-12">
       <div className="container max-w-5xl mx-auto px-4">
+        {userLoggedIn && (
+          <div className="text-right mb-4">
+            <button 
+              onClick={handleLogout}
+              className="text-karmic-500 hover:text-karmic-700 text-sm"
+            >
+              Sair da conta
+            </button>
+          </div>
+        )}
+        
         <IntroSection />
         
         <motion.div
@@ -96,7 +113,17 @@ const Index = () => {
           </h2>
           
           {userLoggedIn && !hasProfile ? (
-            <ProfileForm onProfileComplete={() => checkAndRedirect()} />
+            <>
+              <ProfileForm onProfileComplete={() => checkAndRedirect()} />
+              <div className="mt-4 text-center">
+                <button 
+                  onClick={handleLogout}
+                  className="text-karmic-500 hover:text-karmic-700 text-sm"
+                >
+                  Usar outro email
+                </button>
+              </div>
+            </>
           ) : (
             userLoggedIn && hasProfile ? (
               <div className="text-center">
