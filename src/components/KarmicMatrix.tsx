@@ -19,7 +19,7 @@ interface KarmicMatrixProps {
 
 const KarmicMatrix: React.FC<KarmicMatrixProps> = ({ 
   karmicData,
-  backgroundImage = "/lovable-uploads/0f4daaf6-035f-4ac0-8f13-ae6d9a0f5102.png" // Usar a imagem marrom carregada pelo usuário
+  backgroundImage = "https://darkorange-goldfinch-896244.hostingersite.com/wp-content/uploads/2025/02/Design-sem-nome-1.png"
 }) => {
   const [imageLoaded, setImageLoaded] = useState(false);
   const [imgSrc, setImgSrc] = useState(backgroundImage);
@@ -37,6 +37,7 @@ const KarmicMatrix: React.FC<KarmicMatrixProps> = ({
       // Usar um fallback de cor marrom se a imagem falhar
       setImgSrc("/placeholder.svg");
     };
+    img.crossOrigin = "anonymous"; // Importante para conseguir capturar a imagem em canvas
     img.src = backgroundImage;
   }, [backgroundImage]);
   
@@ -74,6 +75,7 @@ const KarmicMatrix: React.FC<KarmicMatrixProps> = ({
         <img 
           src={imgSrc} 
           alt="Matriz Kármica 2025"
+          crossOrigin="anonymous"
           className="w-full h-auto"
           onLoad={() => setImageLoaded(true)}
           style={{ 
@@ -107,6 +109,7 @@ const KarmicMatrix: React.FC<KarmicMatrixProps> = ({
       <img 
         src={imgSrc} 
         alt="Matriz Kármica 2025"
+        crossOrigin="anonymous"
         className="w-full h-auto"
         onLoad={() => setImageLoaded(true)}
         style={{ 
