@@ -19,7 +19,7 @@ interface KarmicMatrixProps {
 
 const KarmicMatrix: React.FC<KarmicMatrixProps> = ({ 
   karmicData,
-  backgroundImage = "https://darkorange-goldfinch-896244.hostingersite.com/wp-content/uploads/2025/02/Design-sem-nome-1.png"
+  backgroundImage = "/lovable-uploads/0f4daaf6-035f-4ac0-8f13-ae6d9a0f5102.png" // Usar a imagem marrom carregada pelo usuário
 }) => {
   const [imageLoaded, setImageLoaded] = useState(false);
   const [imgSrc, setImgSrc] = useState(backgroundImage);
@@ -29,13 +29,14 @@ const KarmicMatrix: React.FC<KarmicMatrixProps> = ({
     const img = new Image();
     img.onload = () => {
       setImageLoaded(true);
+      console.log("Imagem da matriz carregada com sucesso!");
     };
-    img.onerror = () => {
+    img.onerror = (error) => {
       // Fallback para uma imagem local se a externa falhar
-      console.error("Erro ao carregar a imagem da matriz. Usando fallback.");
+      console.error("Erro ao carregar a imagem da matriz:", error);
+      // Usar um fallback de cor marrom se a imagem falhar
       setImgSrc("/placeholder.svg");
     };
-    img.crossOrigin = "anonymous"; // Importante para conseguir capturar a imagem em canvas
     img.src = backgroundImage;
   }, [backgroundImage]);
   
@@ -73,12 +74,12 @@ const KarmicMatrix: React.FC<KarmicMatrixProps> = ({
         <img 
           src={imgSrc} 
           alt="Matriz Kármica 2025"
-          crossOrigin="anonymous"
           className="w-full h-auto"
           onLoad={() => setImageLoaded(true)}
           style={{ 
             border: '1px solid #EAE6E1',
-            borderRadius: '8px'
+            borderRadius: '8px',
+            backgroundColor: '#8B4513' // Cor marrom como fallback
           }}
         />
         <div className="text-center mt-4 text-karmic-600">
@@ -106,12 +107,12 @@ const KarmicMatrix: React.FC<KarmicMatrixProps> = ({
       <img 
         src={imgSrc} 
         alt="Matriz Kármica 2025"
-        crossOrigin="anonymous"
         className="w-full h-auto"
         onLoad={() => setImageLoaded(true)}
         style={{ 
           border: '1px solid #EAE6E1',
-          borderRadius: '8px'
+          borderRadius: '8px',
+          backgroundColor: '#8B4513' // Cor marrom como fallback
         }}
       />
       
