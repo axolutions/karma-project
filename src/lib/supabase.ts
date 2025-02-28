@@ -8,6 +8,8 @@ const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBh
 
 // Flag para controlar o modo offline
 let isOfflineMode = false;
+let connectionErrorCount = 0;
+let lastConnectionAttempt = 0;
 
 // Criar cliente do Supabase com opções de timeout aumentadas
 export const supabaseClient = createClient(SUPABASE_URL, SUPABASE_ANON_KEY, {
@@ -21,10 +23,11 @@ export const supabaseClient = createClient(SUPABASE_URL, SUPABASE_ANON_KEY, {
       const [url, config] = args;
       return fetch(url, {
         ...config,
-        signal: AbortSignal.timeout(10000), // 10 segundos de timeout
+        signal: AbortSignal.timeout(15000), // 15 segundos de timeout (aumentado)
       }).catch(error => {
         console.warn("Erro na requisição Supabase:", error);
         isOfflineMode = true;
+        connectionErrorCount++;
         throw error;
       });
     }
@@ -48,10 +51,17 @@ export function setOfflineMode(value: boolean): void {
 
 // Status da conexão
 export async function checkConnection(): Promise<boolean> {
-  // Se já sabemos que estamos offline, não tentar novamente
-  if (isOfflineMode) {
-    console.log("Estamos em modo offline, pulando verificação de conexão.");
-    return false;
+  // Registrar tempo da tentativa
+  lastConnectionAttempt = Date.now();
+  
+  // Se já sabemos que estamos offline e tentamos muitas vezes, não tentar novamente por um tempo
+  if (isOfflineMode && connectionErrorCount > 5) {
+    // Só permitir nova tentativa após 30 segundos da última falha
+    const timeSinceLastAttempt = Date.now() - lastConnectionAttempt;
+    if (timeSinceLastAttempt < 30000) {
+      console.log(`Muitas tentativas recentes (${connectionErrorCount}). Aguardando antes de tentar novamente.`);
+      return false;
+    }
   }
   
   try {
@@ -72,6 +82,7 @@ export async function checkConnection(): Promise<boolean> {
     
     // Se chegou aqui, estamos online
     isOfflineMode = false;
+    connectionErrorCount = 0; // Resetar contador de erros
     return true;
   } catch (e) {
     console.error("Erro ao conectar com Supabase:", e);
@@ -82,8 +93,8 @@ export async function checkConnection(): Promise<boolean> {
 
 // Configurar o banco de dados Supabase
 export async function setupDatabase(): Promise<boolean> {
-  if (isOfflineMode) {
-    console.log("Estamos em modo offline, pulando setup de database.");
+  if (isOfflineMode && connectionErrorCount > 5) {
+    console.log("Muitas falhas de conexão, esperando um momento antes de tentar novamente.");
     return false;
   }
   
@@ -131,10 +142,13 @@ export async function setupDatabase(): Promise<boolean> {
     }
     
     console.log("Tabela interpretations configurada com sucesso!");
+    isOfflineMode = false;
+    connectionErrorCount = 0; // Resetar contador de erros
     return true;
   } catch (error) {
     console.error("Erro crítico ao configurar banco de dados:", error);
     isOfflineMode = true;
+    connectionErrorCount++;
     return false;
   }
 }
@@ -142,6 +156,26 @@ export async function setupDatabase(): Promise<boolean> {
 // Função para tentar reconectar
 export async function attemptReconnect(): Promise<boolean> {
   isOfflineMode = false; // Resetar flag para tentar nova conexão
+  
+  // Verificar conexão com internet primeiro
+  try {
+    const internetCheck = await fetch('https://www.google.com', { 
+      method: 'HEAD', 
+      mode: 'no-cors',
+      signal: AbortSignal.timeout(5000) 
+    });
+    console.log("Conexão com internet disponível");
+  } catch (e) {
+    console.error("Sem conexão com internet:", e);
+    toast({
+      title: "Sem conexão com internet",
+      description: "Verifique sua conexão e tente novamente.",
+      variant: "destructive"
+    });
+    isOfflineMode = true;
+    return false;
+  }
+  
   toast({
     title: "Tentando reconectar...",
     description: "Verificando conexão com o banco de dados.",
@@ -184,4 +218,3 @@ setupDatabase().then(success => {
     }
   }
 });
-
