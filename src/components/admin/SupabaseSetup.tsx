@@ -2,25 +2,58 @@
 import React, { useState, useEffect } from 'react';
 import { Button } from "@/components/ui/button";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
-import { checkConnection, setupDatabase, attemptReconnect } from '@/lib/supabase';
-import { AlertCircle, Check, Database, RefreshCw, Wifi, WifiOff, ExternalLink, Server } from 'lucide-react';
+import { 
+  checkConnection, 
+  setupDatabase, 
+  attemptReconnect, 
+  diagnoseConnection 
+} from '@/lib/supabase';
+import { 
+  AlertCircle, Check, Database, RefreshCw, Wifi, WifiOff, 
+  ExternalLink, Server, Shield, CheckCircle, Settings 
+} from 'lucide-react';
 import { toast } from "@/components/ui/use-toast";
+import { supabaseClient } from '@/lib/supabase';
 
 const SupabaseSetup: React.FC = () => {
   const [isConnected, setIsConnected] = useState<boolean | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [setupAttempted, setSetupAttempted] = useState(false);
   const [lastAttemptTime, setLastAttemptTime] = useState<string | null>(null);
+  const [diagnosisResult, setDiagnosisResult] = useState<any>(null);
 
   useEffect(() => {
     checkConnectionStatus();
+    
+    // Verificar a cada 30 segundos
+    const interval = setInterval(() => {
+      checkConnectionStatus(false);
+    }, 30000);
+    
+    return () => clearInterval(interval);
   }, []);
 
-  const checkConnectionStatus = async () => {
+  const checkConnectionStatus = async (showToast = true) => {
     setIsLoading(true);
     const status = await checkConnection();
     setIsConnected(status);
     setLastAttemptTime(new Date().toLocaleTimeString());
+    
+    if (showToast) {
+      if (status) {
+        toast({
+          title: "Conexão estabelecida",
+          description: "Conectado ao banco de dados com sucesso.",
+        });
+      } else {
+        toast({
+          title: "Sem conexão",
+          description: "Não foi possível conectar ao banco de dados. Os dados estão sendo salvos localmente.",
+          variant: "destructive"
+        });
+      }
+    }
+    
     setIsLoading(false);
   };
 
@@ -28,14 +61,14 @@ const SupabaseSetup: React.FC = () => {
     setIsLoading(true);
     setSetupAttempted(true);
     toast({
-      title: "Tentando configurar banco de dados",
-      description: "Aguarde enquanto tentamos configurar a conexão...",
+      title: "Configurando banco de dados",
+      description: "Aguarde enquanto tentamos estabelecer conexão...",
     });
 
     const success = await setupDatabase();
     
     if (success) {
-      await checkConnectionStatus();
+      await checkConnectionStatus(false);
       toast({
         title: "Configuração concluída",
         description: "Banco de dados configurado com sucesso!",
@@ -44,7 +77,7 @@ const SupabaseSetup: React.FC = () => {
     } else {
       toast({
         title: "Configuração falhou",
-        description: "Não foi possível configurar o banco de dados automaticamente. Verifique o console para mais detalhes.",
+        description: "Não foi possível configurar o banco de dados. Verifique sua conexão e tente novamente.",
         variant: "destructive",
       });
     }
@@ -66,24 +99,6 @@ const SupabaseSetup: React.FC = () => {
     setLastAttemptTime(new Date().toLocaleTimeString());
   };
 
-  const checkSupabaseCredentials = () => {
-    // Verificar se as credenciais do Supabase estão definidas
-    if (import.meta.env.VITE_SUPABASE_URL && import.meta.env.VITE_SUPABASE_ANON_KEY) {
-      return true;
-    }
-    return false;
-  };
-
-  const testInternet = async () => {
-    try {
-      const response = await fetch('https://www.google.com', { method: 'HEAD', mode: 'no-cors' });
-      return true;
-    } catch (error) {
-      console.error('Teste de internet falhou:', error);
-      return false;
-    }
-  };
-
   const runNetworkDiagnostic = async () => {
     setIsLoading(true);
     toast({
@@ -91,26 +106,66 @@ const SupabaseSetup: React.FC = () => {
       description: "Executando testes de conectividade...",
     });
 
-    // Verificar conexão com a internet
-    const hasInternet = await testInternet();
+    // Diagnóstico completo
+    const diagnosis = await diagnoseConnection();
+    setDiagnosisResult(diagnosis);
     
-    // Verificar credenciais do Supabase
-    const hasCredentials = checkSupabaseCredentials();
-    
-    // Tentar conectar ao Supabase novamente
-    const canConnectSupabase = await checkConnection();
-
-    setIsConnected(canConnectSupabase);
+    setIsConnected(diagnosis.canReachSupabase && diagnosis.setupSuccess);
     setLastAttemptTime(new Date().toLocaleTimeString());
     setIsLoading(false);
 
     toast({
       title: "Resultado do diagnóstico",
-      description: `Internet: ${hasInternet ? '✅' : '❌'}, 
-                   Credenciais: ${hasCredentials ? '✅' : '❌'}, 
-                   Supabase: ${canConnectSupabase ? '✅' : '❌'}`,
-      variant: hasInternet && hasCredentials && canConnectSupabase ? "default" : "destructive",
+      description: `Internet: ${diagnosis.hasInternet ? '✅' : '❌'}, 
+                   Supabase: ${diagnosis.canReachSupabase ? '✅' : '❌'}, 
+                   Banco: ${diagnosis.setupSuccess ? '✅' : '❌'}`,
+      variant: diagnosis.hasInternet && diagnosis.canReachSupabase && diagnosis.setupSuccess ? "default" : "destructive",
     });
+  };
+  
+  const testDirectConnection = async () => {
+    setIsLoading(true);
+    toast({
+      title: "Teste direto",
+      description: "Tentando conexão direta com o servidor...",
+    });
+    
+    try {
+      // Testar com função de tabela
+      const { error } = await supabaseClient.from('interpretations').select('count(*)');
+      
+      if (!error) {
+        toast({
+          title: "Conexão direta bem-sucedida",
+          description: "Conseguimos conectar diretamente ao servidor. Recomendamos que você atualize a página agora.",
+          duration: 8000
+        });
+        setIsConnected(true);
+      } else {
+        console.error("Erro na conexão direta:", error);
+        toast({
+          title: "Falha na conexão direta",
+          description: `Erro: ${error.message}`,
+          variant: "destructive"
+        });
+      }
+    } catch (e) {
+      console.error("Exceção na conexão direta:", e);
+      toast({
+        title: "Erro na conexão direta",
+        description: "Ocorreu um erro ao tentar conexão direta.",
+        variant: "destructive"
+      });
+    } finally {
+      setIsLoading(false);
+    }
+  };
+  
+  const forceReset = () => {
+    if (window.confirm("Isso irá reiniciar todas as configurações de conexão. Continuar?")) {
+      localStorage.removeItem('supabase-connection');
+      window.location.reload();
+    }
   };
 
   const renderConnectionStatus = () => {
@@ -118,9 +173,9 @@ const SupabaseSetup: React.FC = () => {
       return (
         <Alert className="bg-blue-50 border-blue-200">
           <RefreshCw className="h-5 w-5 text-blue-500 animate-spin" />
-          <AlertTitle>Verificando conexão com o Supabase...</AlertTitle>
+          <AlertTitle>Verificando conexão com o banco de dados...</AlertTitle>
           <AlertDescription>
-            Aguarde enquanto verificamos a conexão com o seu banco de dados.
+            Aguarde enquanto verificamos a conexão.
           </AlertDescription>
         </Alert>
       );
@@ -132,7 +187,7 @@ const SupabaseSetup: React.FC = () => {
           <Check className="h-5 w-5 text-green-500" />
           <AlertTitle>Conexão estabelecida!</AlertTitle>
           <AlertDescription>
-            Sua aplicação está conectada ao Supabase e a tabela de interpretações está configurada corretamente.
+            Sua aplicação está conectada ao banco de dados e a sincronização está funcionando corretamente.
             {lastAttemptTime && <div className="text-xs mt-1 text-green-600">Última verificação: {lastAttemptTime}</div>}
           </AlertDescription>
         </Alert>
@@ -144,16 +199,16 @@ const SupabaseSetup: React.FC = () => {
         <AlertCircle className="h-5 w-5 text-red-500" />
         <AlertTitle>Problemas com a conexão</AlertTitle>
         <AlertDescription>
-          <p>Não foi possível conectar ao Supabase ou a tabela de interpretações não existe.</p>
+          <p>Não foi possível conectar ao banco de dados. Seus dados estão sendo salvos localmente para evitar perdas.</p>
           {setupAttempted && <p className="text-red-600 font-medium">A tentativa automática de configuração falhou.</p>}
           {lastAttemptTime && <div className="text-xs mt-1 text-red-600">Última tentativa: {lastAttemptTime}</div>}
           <p className="mt-2 text-sm">
             Isso pode ocorrer por vários motivos:
           </p>
           <ul className="list-disc pl-5 text-sm mt-1 space-y-1">
-            <li>Problemas de conexão com a internet</li>
-            <li>Servidor do Supabase indisponível</li>
-            <li>Credenciais incorretas do Supabase</li>
+            <li>Problemas com a conexão de internet</li>
+            <li>Servidor indisponível temporariamente</li>
+            <li>Erro de configuração no servidor</li>
           </ul>
         </AlertDescription>
       </Alert>
@@ -165,7 +220,7 @@ const SupabaseSetup: React.FC = () => {
       <div className="bg-white rounded-lg border p-6">
         <h2 className="text-xl font-semibold mb-4 flex items-center">
           <Database className="mr-2 h-5 w-5 text-karmic-600" />
-          Configuração do Supabase
+          Configuração do Banco de Dados
         </h2>
         
         <div className="mb-6">
@@ -222,37 +277,65 @@ const SupabaseSetup: React.FC = () => {
                     <>Diagnóstico de Rede</>
                   )}
                 </Button>
+                
+                <Button
+                  onClick={testDirectConnection}
+                  disabled={isLoading}
+                  variant="outline"
+                  className="border-green-300 text-green-700 hover:bg-green-50"
+                >
+                  {isLoading ? (
+                    <>
+                      <RefreshCw className="mr-2 h-4 w-4 animate-spin" />
+                      Testando...
+                    </>
+                  ) : (
+                    <><Shield className="mr-2 h-4 w-4" /> Teste Direto</>
+                  )}
+                </Button>
               </div>
               
+              {diagnosisResult && (
+                <div className="bg-gray-50 border rounded-md p-4 mt-4">
+                  <h3 className="font-medium mb-2 text-sm">Resultado do diagnóstico:</h3>
+                  <ul className="space-y-2 text-sm">
+                    <li className="flex items-center">
+                      {diagnosisResult.hasInternet ? 
+                        <CheckCircle className="h-4 w-4 text-green-500 mr-2" /> : 
+                        <AlertCircle className="h-4 w-4 text-red-500 mr-2" />}
+                      Internet: {diagnosisResult.hasInternet ? 'Conectado' : 'Sem conexão'}
+                    </li>
+                    <li className="flex items-center">
+                      {diagnosisResult.canReachSupabase ? 
+                        <CheckCircle className="h-4 w-4 text-green-500 mr-2" /> : 
+                        <AlertCircle className="h-4 w-4 text-red-500 mr-2" />}
+                      Servidor: {diagnosisResult.canReachSupabase ? 'Acessível' : 'Inacessível'}
+                    </li>
+                    <li className="flex items-center">
+                      {diagnosisResult.setupSuccess ? 
+                        <CheckCircle className="h-4 w-4 text-green-500 mr-2" /> : 
+                        <AlertCircle className="h-4 w-4 text-red-500 mr-2" />}
+                      Banco de dados: {diagnosisResult.setupSuccess ? 'Configurado' : 'Não configurado'}
+                    </li>
+                    <li className="flex items-center">
+                      <Settings className="h-4 w-4 text-gray-500 mr-2" />
+                      Tentativas: {diagnosisResult.errorCount}
+                    </li>
+                  </ul>
+                </div>
+              )}
+              
               <div className="mt-6 border-t pt-4">
-                <h3 className="font-medium mb-2">Instruções para configuração manual:</h3>
+                <h3 className="font-medium mb-2">Instruções para resolução de problemas:</h3>
                 <ol className="list-decimal pl-5 space-y-2 text-sm">
-                  <li>Acesse o painel do Supabase em <a href="https://app.supabase.io" target="_blank" rel="noopener noreferrer" className="text-blue-600 underline">app.supabase.io</a></li>
-                  <li>Selecione seu projeto</li>
-                  <li>Vá para a seção "SQL Editor"</li>
-                  <li>Crie uma nova query</li>
-                  <li>Cole o seguinte SQL e execute:</li>
+                  <li>Verifique se sua conexão com a internet está funcionando</li>
+                  <li>Tente recarregar a página (F5 ou Ctrl+R)</li>
+                  <li>Clique nos botões "Reconectar" ou "Teste Direto" acima</li>
+                  <li>Se o problema persistir, tente o botão "Configurar Banco de Dados"</li>
+                  <li>Em último caso, limpe o cache do navegador e tente novamente</li>
                 </ol>
                 
-                <div className="mt-2 bg-gray-100 p-3 rounded-md text-sm font-mono whitespace-pre-wrap">
-{`CREATE TABLE IF NOT EXISTS public.interpretations (
-  id VARCHAR PRIMARY KEY,
-  title VARCHAR NOT NULL,
-  content TEXT NOT NULL,
-  updated_at TIMESTAMPTZ DEFAULT now()
-);
-
--- Configurar RLS (Row Level Security)
-ALTER TABLE public.interpretations ENABLE ROW LEVEL SECURITY;
-
--- Política para permitir operações anônimas
-CREATE POLICY "Allow anonymous access" ON public.interpretations
-  FOR ALL
-  USING (true)
-  WITH CHECK (true);`}
-                </div>
-                
-                <div className="mt-4 flex gap-2">
+                <div className="mt-4 flex flex-wrap gap-2">
                   <Button
                     onClick={checkConnectionStatus}
                     variant="outline"
@@ -265,8 +348,17 @@ CREATE POLICY "Allow anonymous access" ON public.interpretations
                         Verificando...
                       </>
                     ) : (
-                      <>Verificar novamente</>
+                      <>Verificar conexão novamente</>
                     )}
+                  </Button>
+                  
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={forceReset}
+                    className="border-red-300 text-red-700 hover:bg-red-50"
+                  >
+                    Reiniciar configurações
                   </Button>
                   
                   <Button
@@ -275,46 +367,72 @@ CREATE POLICY "Allow anonymous access" ON public.interpretations
                     asChild
                   >
                     <a href="https://app.supabase.io" target="_blank" rel="noopener noreferrer">
-                      <ExternalLink className="mr-1 h-4 w-4" /> Abrir Supabase
+                      <ExternalLink className="mr-1 h-4 w-4" /> Abrir Dashboard
                     </a>
                   </Button>
                 </div>
                 
                 <p className="mt-4 text-sm text-gray-600">
-                  <strong>Nota:</strong> Mesmo sem conexão com o Supabase, suas interpretações estão salvas 
-                  localmente no navegador. Você pode continuar trabalhando normalmente e tentar reconectar mais tarde.
+                  <strong>Nota:</strong> Mesmo sem conexão com o banco de dados, suas interpretações estão salvas 
+                  localmente no navegador. Você pode continuar trabalhando normalmente e a 
+                  sincronização ocorrerá automaticamente quando a conexão for restabelecida.
                 </p>
               </div>
             </div>
           )}
           
           {isConnected && (
-            <div className="flex gap-3">
-              <Button
-                onClick={checkConnectionStatus}
-                variant="outline"
-                disabled={isLoading}
-                size="sm"
-              >
-                {isLoading ? (
-                  <>
-                    <RefreshCw className="mr-2 h-4 w-4 animate-spin" />
-                    Verificando...
-                  </>
-                ) : (
-                  <>Verificar conexão novamente</>
-                )}
-              </Button>
+            <div>
+              <div className="flex flex-wrap gap-3">
+                <Button
+                  onClick={checkConnectionStatus}
+                  variant="outline"
+                  disabled={isLoading}
+                  size="sm"
+                >
+                  {isLoading ? (
+                    <>
+                      <RefreshCw className="mr-2 h-4 w-4 animate-spin" />
+                      Verificando...
+                    </>
+                  ) : (
+                    <>Verificar conexão</>
+                  )}
+                </Button>
+                
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={runNetworkDiagnostic}
+                  disabled={isLoading}
+                >
+                  {isLoading ? (
+                    <>
+                      <RefreshCw className="mr-2 h-4 w-4 animate-spin" />
+                      Diagnosticando...
+                    </>
+                  ) : (
+                    <>Diagnóstico completo</>
+                  )}
+                </Button>
+                
+                <Button
+                  variant="outline"
+                  size="sm"
+                  asChild
+                >
+                  <a href="https://app.supabase.io" target="_blank" rel="noopener noreferrer">
+                    <ExternalLink className="mr-1 h-4 w-4" /> Abrir Dashboard
+                  </a>
+                </Button>
+              </div>
               
-              <Button
-                variant="outline"
-                size="sm"
-                asChild
-              >
-                <a href="https://app.supabase.io" target="_blank" rel="noopener noreferrer">
-                  <ExternalLink className="mr-1 h-4 w-4" /> Abrir Supabase
-                </a>
-              </Button>
+              <Alert className="mt-4 bg-blue-50 border-blue-200">
+                <AlertTitle className="text-blue-700">Tudo funcionando corretamente</AlertTitle>
+                <AlertDescription className="text-blue-700">
+                  Seu banco de dados está configurado e funcionando normalmente. Todos os dados estão sendo sincronizados automaticamente.
+                </AlertDescription>
+              </Alert>
             </div>
           )}
         </div>

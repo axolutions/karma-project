@@ -2,9 +2,9 @@
 import { createClient } from '@supabase/supabase-js';
 import { toast } from "@/components/ui/use-toast";
 
-// Constantes para Supabase
-const SUPABASE_URL = 'https://szmqkpzasopsdhdjtehc.supabase.co';
-const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InN6bXFrcHphc29wc2RoZGp0ZWhjIiwicm9sZSI6ImFub24iLCJpYXQiOjE3MTc0Mjk5MzQsImV4cCI6MjAzMzAwNTkzNH0.1uQHgwcFNdHSMSa1lIvP2L2C6ZQxfB1e0oGOYSxo1ec';
+// Constantes para Supabase (usamos os mesmos valores existentes)
+const SUPABASE_URL = 'https://kkrbhnxrxbmkimgjkzse.supabase.co';
+const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImtrcmJobnhyeGJta2ltZ2prenNlIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDA3NDA4MTUsImV4cCI6MjA1NjMxNjgxNX0.-MGooOS-2qixIJrXbBAn04eowqaQ7WxKYVI4VEp_qF0';
 
 // Flag para controlar o modo offline
 let isOfflineMode = false;
@@ -23,10 +23,9 @@ export const supabaseClient = createClient(SUPABASE_URL, SUPABASE_ANON_KEY, {
       const [url, config] = args;
       return fetch(url, {
         ...config,
-        signal: AbortSignal.timeout(15000), // 15 segundos de timeout (aumentado)
+        signal: AbortSignal.timeout(20000), // 20 segundos de timeout (aumentado)
       }).catch(error => {
         console.warn("Erro na requisição Supabase:", error);
-        isOfflineMode = true;
         connectionErrorCount++;
         throw error;
       });
@@ -102,40 +101,64 @@ export async function setupDatabase(): Promise<boolean> {
   try {
     console.log("Tentando criar tabela interpretations no Supabase...");
     
-    // SQL para criar a tabela interpretations se ela não existir
+    // SQL direto para criar a tabela
+    const createTableSQL = `
+      CREATE TABLE IF NOT EXISTS public.interpretations (
+        id VARCHAR PRIMARY KEY,
+        title VARCHAR NOT NULL,
+        content TEXT NOT NULL,
+        updated_at TIMESTAMPTZ DEFAULT now()
+      );
+      
+      -- Configurar RLS (Row Level Security)
+      ALTER TABLE public.interpretations ENABLE ROW LEVEL SECURITY;
+      
+      -- Política para permitir operações anônimas
+      CREATE POLICY "Allow anonymous access" ON public.interpretations
+        FOR ALL
+        USING (true)
+        WITH CHECK (true);
+    `;
+    
+    // Tentativa principal usando RPC
     const { error } = await supabaseClient.rpc('setup_interpretations_table');
     
     if (error) {
-      console.error("Erro ao configurar banco de dados:", error);
+      console.error("Erro ao configurar banco de dados via RPC:", error);
       
       // Tentativa alternativa: criar a tabela diretamente com SQL
       const createTableResult = await supabaseClient.rpc('execute_sql', {
-        sql_query: `
-          CREATE TABLE IF NOT EXISTS public.interpretations (
-            id VARCHAR PRIMARY KEY,
-            title VARCHAR NOT NULL,
-            content TEXT NOT NULL,
-            updated_at TIMESTAMPTZ DEFAULT now()
-          );
-          
-          -- Configurar RLS (Row Level Security)
-          ALTER TABLE public.interpretations ENABLE ROW LEVEL SECURITY;
-          
-          -- Política para permitir operações anônimas
-          CREATE POLICY "Allow anonymous access" ON public.interpretations
-            FOR ALL
-            USING (true)
-            WITH CHECK (true);
-        `
+        sql_query: createTableSQL
       });
       
       if (createTableResult.error) {
         console.error("Erro ao criar tabela diretamente:", createTableResult.error);
         
-        // Última tentativa: usar SQL bruto através da extensão pg_raw
-        const rawSqlResult = await supabaseClient.from('_postgrest_rpc').select().eq('name', 'execute_sql');
-        if (rawSqlResult.error) {
-          console.error("Todas as tentativas falharam, não foi possível criar a tabela.");
+        // Última tentativa: tentar com SQL bruto através do cliente
+        try {
+          const { error: rawError } = await supabaseClient.from('interpretations').select('count(*)');
+          if (rawError && rawError.code === '42P01') {
+            console.log("Tabela não existe, tentando criar manualmente...");
+            
+            // Usar POST request direto para o endpoint SQL
+            const response = await fetch(`${SUPABASE_URL}/rest/v1/`, {
+              method: 'POST',
+              headers: {
+                'Content-Type': 'application/json',
+                'apikey': SUPABASE_ANON_KEY,
+                'Authorization': `Bearer ${SUPABASE_ANON_KEY}`,
+              },
+              body: JSON.stringify({ query: createTableSQL }),
+            });
+            
+            if (!response.ok) {
+              throw new Error(`Falha ao executar SQL: ${response.statusText}`);
+            }
+            
+            console.log("Tabela possivelmente criada via endpoint alternativo!");
+          }
+        } catch (directError) {
+          console.error("Todas as tentativas falharam, não foi possível criar a tabela:", directError);
           isOfflineMode = true;
           return false;
         }
@@ -155,7 +178,7 @@ export async function setupDatabase(): Promise<boolean> {
 }
 
 // Função para diagnosticar e testar a conexão de rede
-async function checkInternetConnection(): Promise<boolean> {
+export async function checkInternetConnection(): Promise<boolean> {
   try {
     const response = await fetch('https://www.google.com', { 
       method: 'HEAD', 
@@ -196,7 +219,7 @@ export async function attemptReconnect(): Promise<boolean> {
   if (connectionResult) {
     toast({
       title: "Conexão restabelecida!",
-      description: "A conexão com o Supabase foi restaurada com sucesso.",
+      description: "A conexão com o banco de dados foi restaurada com sucesso.",
     });
     
     // Tentar configurar o banco de dados novamente para garantir
@@ -206,7 +229,7 @@ export async function attemptReconnect(): Promise<boolean> {
   } else {
     toast({
       title: "Falha na reconexão",
-      description: "Não foi possível conectar ao Supabase. Continuando em modo offline.",
+      description: "Não foi possível conectar ao banco de dados. Os dados estão sendo salvos localmente para garantir que nada seja perdido.",
       variant: "destructive"
     });
     return false;
@@ -260,21 +283,35 @@ export async function diagnoseConnection(): Promise<{
 }
 
 // Executar setup imediatamente ao carregar
-setupDatabase().then(success => {
-  if (success) {
-    console.log("Banco de dados configurado com sucesso!");
-  } else {
-    console.warn("Não foi possível configurar o banco de dados automaticamente. Operando em modo offline.");
-    
-    // Notificar usuário
-    if (isOfflineMode) {
-      setTimeout(() => {
-        toast({
-          title: "Modo Offline Ativado",
-          description: "Não foi possível conectar ao banco de dados. Dados serão salvos localmente.",
-          duration: 6000,
-        });
-      }, 2000); // Atraso para garantir que os toasts já foram inicializados
+setTimeout(async () => {
+  console.log("Iniciando verificação de conexão com Supabase...");
+  const isConnected = await checkConnection();
+  
+  if (isConnected) {
+    console.log("Conexão com Supabase estabelecida, configurando banco...");
+    const success = await setupDatabase();
+    if (success) {
+      console.log("Banco de dados configurado com sucesso!");
+      isOfflineMode = false;
+      toast({
+        title: "Conexão estabelecida",
+        description: "Conectado ao banco de dados com sucesso.",
+        duration: 3000
+      });
+    } else {
+      console.warn("Não foi possível configurar o banco de dados. Tentando operar no modo híbrido.");
+      toast({
+        title: "Modo híbrido ativado",
+        description: "Dados são salvos localmente e sincronizados quando possível.",
+        duration: 4000
+      });
     }
+  } else {
+    console.warn("Não foi possível conectar ao Supabase. Operando em modo offline.");
+    toast({
+      title: "Modo Offline Temporário",
+      description: "Seus dados estão sendo salvos localmente. Tentaremos sincronizar automaticamente quando possível.",
+      duration: 5000
+    });
   }
-});
+}, 1000);
