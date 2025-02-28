@@ -29,13 +29,28 @@ export function setInterpretation(category: string, number: number, title: strin
     content
   };
   
-  // Save to localStorage
-  saveInterpretations();
+  // Log antes de salvar para debug
+  console.log(`Salvando interpretação: ${id} - ${title}`);
   
-  toast({
-    title: "Interpretação Salva",
-    description: `A interpretação para ${category} número ${number} foi salva com sucesso.`
-  });
+  // Save to localStorage with better error handling
+  try {
+    saveInterpretations();
+    
+    // Criar backup imediato após salvar
+    createBackup();
+    
+    toast({
+      title: "Interpretação Salva",
+      description: `A interpretação para ${getCategoryDisplayName(category)} número ${number} foi salva com sucesso.`
+    });
+  } catch (error) {
+    console.error("Erro ao salvar interpretação:", error);
+    toast({
+      title: "Erro ao salvar",
+      description: "Ocorreu um erro ao salvar a interpretação. Tente novamente.",
+      variant: "destructive"
+    });
+  }
 }
 
 // Get an interpretation
@@ -69,31 +84,265 @@ export function deleteInterpretation(category: string, number: number): void {
     
     toast({
       title: "Interpretação Removida",
-      description: `A interpretação para ${category} número ${number} foi removida.`
+      description: `A interpretação para ${getCategoryDisplayName(category)} número ${number} foi removida.`
     });
   }
 }
 
-// Save interpretations to localStorage
-function saveInterpretations(): void {
-  localStorage.setItem('karmicInterpretations', JSON.stringify(interpretations));
+// Criar backup dos dados
+function createBackup(): void {
+  try {
+    if (Object.keys(interpretations).length === 0) {
+      return; // Não criar backup vazio
+    }
+    
+    // Salvar cada interpretação individualmente para evitar problemas com tamanho
+    Object.entries(interpretations).forEach(([id, interp]) => {
+      localStorage.setItem(`backup_${id}`, JSON.stringify(interp));
+    });
+    
+    // Salvar lista de IDs
+    localStorage.setItem('backup_interpretation_ids', JSON.stringify(Object.keys(interpretations)));
+    
+    // Timestamp do backup
+    localStorage.setItem('backup_timestamp', new Date().toISOString());
+    
+    console.log(`Backup criado com ${Object.keys(interpretations).length} interpretações`);
+  } catch (error) {
+    console.error("Erro ao criar backup:", error);
+  }
 }
 
-// Load interpretations from localStorage
-export function loadInterpretations(): void {
-  const saved = localStorage.getItem('karmicInterpretations');
-  
-  if (saved) {
-    try {
-      interpretations = JSON.parse(saved);
-    } catch (error) {
-      console.error("Error parsing saved interpretations:", error);
+// Restaurar do backup
+export function restoreFromBackup(): boolean {
+  try {
+    // Verificar se existe backup
+    const idsJson = localStorage.getItem('backup_interpretation_ids');
+    if (!idsJson) {
+      console.log("Nenhum backup encontrado");
+      return false;
     }
+    
+    const ids = JSON.parse(idsJson);
+    if (!Array.isArray(ids) || ids.length === 0) {
+      console.log("Backup vazio ou inválido");
+      return false;
+    }
+    
+    // Limpar interpretações atuais
+    interpretations = {};
+    
+    // Carregar cada interpretação do backup
+    let loadedCount = 0;
+    
+    ids.forEach(id => {
+      const interpJson = localStorage.getItem(`backup_${id}`);
+      if (interpJson) {
+        try {
+          const interp = JSON.parse(interpJson);
+          if (interp && interp.id && interp.title && interp.content) {
+            interpretations[id] = interp;
+            loadedCount++;
+          }
+        } catch (e) {
+          console.error(`Erro ao processar backup de ${id}:`, e);
+        }
+      }
+    });
+    
+    if (loadedCount > 0) {
+      console.log(`Restaurados ${loadedCount} de ${ids.length} interpretações do backup`);
+      
+      // Salvar as interpretações restauradas no armazenamento principal
+      saveInterpretations();
+      
+      return true;
+    } else {
+      console.log("Nenhuma interpretação pôde ser restaurada do backup");
+      return false;
+    }
+  } catch (error) {
+    console.error("Erro ao restaurar do backup:", error);
+    return false;
+  }
+}
+
+// Verificar localStorage por dados de interpretação
+export function scanForInterpretations(): number {
+  let recoveredCount = 0;
+  
+  try {
+    // Procurar por padrões de nome conhecidos
+    for (let i = 0; i < localStorage.length; i++) {
+      const key = localStorage.key(i);
+      if (!key) continue;
+      
+      // Verificar diferentes padrões de nomes de chaves
+      const isBackupKey = key.startsWith('backup_') && !key.includes('_ids') && !key.includes('timestamp');
+      const isDirectKey = key.startsWith('karmicInterp_');
+      
+      if (isBackupKey || isDirectKey) {
+        try {
+          const value = localStorage.getItem(key);
+          if (!value) continue;
+          
+          const data = JSON.parse(value);
+          if (data && data.id && data.title && data.content) {
+            // Extrair o ID real
+            const realId = isBackupKey ? key.replace('backup_', '') : key.replace('karmicInterp_', '');
+            
+            // Adicionar à coleção de interpretações
+            interpretations[realId] = data;
+            recoveredCount++;
+          }
+        } catch (e) {
+          // Ignorar erros de parsing
+        }
+      }
+    }
+    
+    // Se encontrou alguma coisa, salvar
+    if (recoveredCount > 0) {
+      console.log(`Encontradas ${recoveredCount} interpretações no localStorage`);
+      saveInterpretations();
+    }
+    
+    return recoveredCount;
+  } catch (error) {
+    console.error("Erro ao escanear localStorage:", error);
+    return 0;
+  }
+}
+
+// Save interpretations to localStorage with better error handling
+function saveInterpretations(): void {
+  try {
+    // Verificar se há dados válidos
+    if (!interpretations || Object.keys(interpretations).length === 0) {
+      console.warn("Não há interpretações para salvar");
+      return;
+    }
+    
+    // Salvar o objeto completo
+    const dataToSave = JSON.stringify(interpretations);
+    localStorage.setItem('karmicInterpretations', dataToSave);
+    
+    // Também salvar cada interpretação individualmente como fallback
+    Object.entries(interpretations).forEach(([id, interp]) => {
+      localStorage.setItem(`karmicInterp_${id}`, JSON.stringify(interp));
+    });
+    
+    // Salvar lista de IDs
+    localStorage.setItem('karmicInterpretationsKeys', JSON.stringify(Object.keys(interpretations)));
+    
+    console.log(`Salvamento concluído: ${Object.keys(interpretations).length} interpretações`);
+  } catch (error) {
+    console.error("Erro ao salvar interpretações:", error);
+    
+    // Tentar salvar apenas individualmente se o método principal falhar
+    try {
+      Object.entries(interpretations).forEach(([id, interp]) => {
+        localStorage.setItem(`karmicInterp_${id}`, JSON.stringify(interp));
+      });
+      localStorage.setItem('karmicInterpretationsKeys', JSON.stringify(Object.keys(interpretations)));
+      
+      console.log("Salvamento alternativo concluído");
+    } catch (backupError) {
+      console.error("Falha total no salvamento:", backupError);
+    }
+  }
+}
+
+// Load interpretations from localStorage with better error handling
+export function loadInterpretations(): void {
+  console.log("Carregando interpretações do localStorage");
+  
+  try {
+    // Método 1: Carregar objeto completo
+    const saved = localStorage.getItem('karmicInterpretations');
+    
+    if (saved && saved !== "{}") {
+      try {
+        const parsedData = JSON.parse(saved);
+        
+        if (parsedData && typeof parsedData === 'object') {
+          interpretations = parsedData;
+          console.log(`Carregadas ${Object.keys(interpretations).length} interpretações do localStorage`);
+          return;
+        }
+      } catch (parseError) {
+        console.error("Erro ao analisar dados salvos:", parseError);
+      }
+    }
+    
+    // Método 2: Carregar de chaves individuais
+    console.log("Tentando método alternativo de carregamento");
+    const keysString = localStorage.getItem('karmicInterpretationsKeys');
+    
+    if (keysString) {
+      try {
+        const keys = JSON.parse(keysString);
+        if (Array.isArray(keys) && keys.length > 0) {
+          let loadedCount = 0;
+          
+          keys.forEach(key => {
+            const itemString = localStorage.getItem(`karmicInterp_${key}`);
+            if (itemString) {
+              try {
+                interpretations[key] = JSON.parse(itemString);
+                loadedCount++;
+              } catch (e) {
+                console.error(`Erro ao analisar item ${key}:`, e);
+              }
+            }
+          });
+          
+          if (loadedCount > 0) {
+            console.log(`Carregadas ${loadedCount} interpretações pelo método alternativo`);
+            return;
+          }
+        }
+      } catch (keysError) {
+        console.error("Erro ao analisar lista de chaves:", keysError);
+      }
+    }
+    
+    // Método 3: Tentar restaurar do backup
+    console.log("Tentando restaurar do backup");
+    const restored = restoreFromBackup();
+    
+    if (restored) {
+      console.log("Dados restaurados do backup com sucesso");
+      return;
+    }
+    
+    // Método 4: Busca completa no localStorage
+    console.log("Realizando busca completa no localStorage");
+    const recovered = scanForInterpretations();
+    
+    if (recovered > 0) {
+      console.log(`Recuperadas ${recovered} interpretações do localStorage`);
+      return;
+    }
+    
+    // Se chegou aqui, não conseguiu carregar de nenhuma forma
+    console.warn("Não foi possível carregar interpretações. Iniciando com dados vazios.");
+    interpretations = {};
+  } catch (error) {
+    console.error("Erro crítico ao carregar interpretações:", error);
+    interpretations = {};
   }
 }
 
 // Initialize interpretations from localStorage
 loadInterpretations();
+
+// Backup automático a cada 5 minutos
+setInterval(() => {
+  if (Object.keys(interpretations).length > 0) {
+    createBackup();
+  }
+}, 5 * 60 * 1000);
 
 // Get display name for a category
 export function getCategoryDisplayName(category: string): string {
@@ -129,4 +378,63 @@ export function getAllCategories(): string[] {
 export function renderHTML(html: string) {
   // Processar o HTML para adicionar classes e formatação automática
   return { __html: html };
+}
+
+// Exportar função para recuperação manual
+export function performRecovery(): boolean {
+  // Tenta todos os métodos de recuperação em sequência
+  
+  // 1. Restaurar do backup
+  const fromBackup = restoreFromBackup();
+  if (fromBackup) return true;
+  
+  // 2. Escanear localStorage
+  const fromScan = scanForInterpretations();
+  return fromScan > 0;
+}
+
+// Adicionar todas as interpretações de uma vez (para importação)
+export function importInterpretations(data: Record<string, Interpretation>): boolean {
+  try {
+    // Validar dados
+    if (!data || typeof data !== 'object') {
+      console.error("Dados de importação inválidos");
+      return false;
+    }
+    
+    const entries = Object.entries(data);
+    if (entries.length === 0) {
+      console.error("Nenhum dado para importar");
+      return false;
+    }
+    
+    // Validar que cada entrada é uma interpretação válida
+    let validCount = 0;
+    
+    entries.forEach(([id, item]) => {
+      if (item && typeof item === 'object' && 'id' in item && 'title' in item && 'content' in item) {
+        interpretations[id] = item;
+        validCount++;
+      }
+    });
+    
+    if (validCount > 0) {
+      saveInterpretations();
+      createBackup();
+      
+      console.log(`Importadas ${validCount} interpretações com sucesso`);
+      return true;
+    } else {
+      console.error("Nenhuma interpretação válida encontrada para importar");
+      return false;
+    }
+  } catch (error) {
+    console.error("Erro ao importar interpretações:", error);
+    return false;
+  }
+}
+
+// Obter todas as interpretações para exportação
+export function exportInterpretations(): Record<string, Interpretation> {
+  return { ...interpretations };
 }

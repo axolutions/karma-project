@@ -1,5 +1,5 @@
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
@@ -9,9 +9,12 @@ import {
   setInterpretation, 
   deleteInterpretation,
   getCategoryDisplayName,
-  getAllCategories
+  getAllCategories,
+  performRecovery,
+  exportInterpretations,
+  importInterpretations
 } from '@/lib/interpretations';
-import { Save, Trash, Bold, Italic, List, Type, Quote } from 'lucide-react';
+import { Save, Trash, Bold, Italic, List, Type, Quote, RotateCcw, Download, Upload } from 'lucide-react';
 
 const InterpretationEditor: React.FC = () => {
   const [selectedCategory, setSelectedCategory] = useState("karmicSeal");
@@ -20,18 +23,26 @@ const InterpretationEditor: React.FC = () => {
   const [content, setContent] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [previewMode, setPreviewMode] = useState(false);
+  const [interpretationsCount, setInterpretationsCount] = useState(0);
+  const fileInputRef = useRef<HTMLInputElement>(null);
   
   const possibleNumbers = ["1", "2", "3", "4", "5", "6", "7", "8", "9", "11", "22", "33", "44"];
   const categories = getAllCategories();
   
   useEffect(() => {
     loadInterpretation();
+    updateInterpretationsCount();
   }, [selectedCategory, selectedNumber]);
   
   const loadInterpretation = () => {
     const interpretation = getInterpretation(selectedCategory, parseInt(selectedNumber));
     setTitle(interpretation.title);
     setContent(interpretation.content);
+  };
+  
+  const updateInterpretationsCount = () => {
+    const count = Object.keys(exportInterpretations()).length;
+    setInterpretationsCount(count);
   };
   
   const handleSave = () => {
@@ -60,17 +71,31 @@ const InterpretationEditor: React.FC = () => {
     // Formata o conteúdo para garantir que esteja corretamente estruturado em HTML
     const formattedContent = formatContentForSaving(content);
     
-    setInterpretation(
-      selectedCategory, 
-      parseInt(selectedNumber), 
-      title, 
-      formattedContent
-    );
-    
-    setTimeout(() => {
+    try {
+      setInterpretation(
+        selectedCategory, 
+        parseInt(selectedNumber), 
+        title, 
+        formattedContent
+      );
+      
+      setTimeout(() => {
+        setIsLoading(false);
+        updateInterpretationsCount();
+      }, 300);
+    } catch (error) {
+      console.error("Erro ao salvar interpretação:", error);
+      toast({
+        title: "Erro ao salvar",
+        description: "Ocorreu um erro ao salvar a interpretação. Tente novamente.",
+        variant: "destructive"
+      });
       setIsLoading(false);
-    }, 500);
+    }
   };
+  
+  // Constante para texto padrão
+  const DEFAULT_INTERPRETATION = "Interpretação não disponível para este número. Por favor, contate o administrador para adicionar este conteúdo.";
   
   // Função para garantir que o conteúdo está bem formatado em HTML
   const formatContentForSaving = (rawContent: string) => {
@@ -93,7 +118,131 @@ const InterpretationEditor: React.FC = () => {
       deleteInterpretation(selectedCategory, parseInt(selectedNumber));
       setTitle("");
       setContent("");
+      updateInterpretationsCount();
     }
+  };
+  
+  const handleRecovery = () => {
+    if (window.confirm("Tentar recuperar interpretações do localStorage? Esta operação não apagará os dados atuais.")) {
+      setIsLoading(true);
+      
+      setTimeout(() => {
+        const success = performRecovery();
+        
+        if (success) {
+          toast({
+            title: "Recuperação concluída",
+            description: "Foram recuperadas interpretações armazenadas localmente.",
+          });
+          loadInterpretation();
+          updateInterpretationsCount();
+        } else {
+          toast({
+            title: "Recuperação falhou",
+            description: "Não foi possível encontrar interpretações armazenadas para recuperar.",
+            variant: "destructive"
+          });
+        }
+        
+        setIsLoading(false);
+      }, 500);
+    }
+  };
+  
+  const handleExport = () => {
+    try {
+      const data = exportInterpretations();
+      
+      if (Object.keys(data).length === 0) {
+        toast({
+          title: "Nada para exportar",
+          description: "Não há interpretações para exportar.",
+          variant: "destructive"
+        });
+        return;
+      }
+      
+      const dataStr = JSON.stringify(data, null, 2);
+      const dataUri = `data:application/json;charset=utf-8,${encodeURIComponent(dataStr)}`;
+      
+      const exportName = `interpretacoes-karmicas-${new Date().toISOString().split('T')[0]}.json`;
+      
+      const linkElement = document.createElement('a');
+      linkElement.setAttribute('href', dataUri);
+      linkElement.setAttribute('download', exportName);
+      linkElement.click();
+      
+      toast({
+        title: "Exportação concluída",
+        description: `${Object.keys(data).length} interpretações exportadas com sucesso.`
+      });
+    } catch (error) {
+      console.error("Erro ao exportar:", error);
+      toast({
+        title: "Erro na exportação",
+        description: "Não foi possível exportar as interpretações.",
+        variant: "destructive"
+      });
+    }
+  };
+  
+  const handleImportClick = () => {
+    if (fileInputRef.current) {
+      fileInputRef.current.click();
+    }
+  };
+  
+  const handleImportFile = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (!file) return;
+    
+    const reader = new FileReader();
+    
+    reader.onload = (e) => {
+      try {
+        const content = e.target?.result as string;
+        const data = JSON.parse(content);
+        
+        if (window.confirm(`Deseja importar ${Object.keys(data).length} interpretações? Isso manterá as interpretações atuais e adicionará as novas.`)) {
+          const success = importInterpretations(data);
+          
+          if (success) {
+            toast({
+              title: "Importação concluída",
+              description: `${Object.keys(data).length} interpretações importadas com sucesso.`
+            });
+            loadInterpretation();
+            updateInterpretationsCount();
+          } else {
+            toast({
+              title: "Importação falhou",
+              description: "Não foi possível importar as interpretações. Verifique o formato do arquivo.",
+              variant: "destructive"
+            });
+          }
+        }
+      } catch (error) {
+        console.error("Erro ao importar arquivo:", error);
+        toast({
+          title: "Erro na importação",
+          description: "O arquivo selecionado contém dados inválidos.",
+          variant: "destructive"
+        });
+      }
+      
+      // Limpar input para permitir selecionar o mesmo arquivo novamente
+      event.target.value = '';
+    };
+    
+    reader.onerror = () => {
+      toast({
+        title: "Erro na leitura",
+        description: "Não foi possível ler o arquivo selecionado.",
+        variant: "destructive"
+      });
+    };
+    
+    reader.readAsText(file);
   };
   
   const insertTag = (openTag: string, closeTag: string) => {
@@ -149,6 +298,55 @@ const InterpretationEditor: React.FC = () => {
   
   return (
     <div className="space-y-6">
+      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6">
+        <div>
+          <h2 className="text-xl font-medium text-karmic-800">Editor de Interpretações</h2>
+          <p className="text-sm text-karmic-600">
+            {interpretationsCount > 0 
+              ? `${interpretationsCount} interpretações salvas` 
+              : "Nenhuma interpretação salva"}
+          </p>
+        </div>
+        
+        <div className="flex flex-wrap gap-2">
+          <Button 
+            variant="outline" 
+            size="sm"
+            onClick={handleRecovery}
+            disabled={isLoading}
+            className="text-amber-600 border-amber-300 hover:bg-amber-50"
+          >
+            <RotateCcw className="h-4 w-4 mr-1" /> Recuperar Dados
+          </Button>
+          
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={handleExport}
+            className="text-green-600 border-green-300 hover:bg-green-50"
+          >
+            <Download className="h-4 w-4 mr-1" /> Exportar
+          </Button>
+          
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={handleImportClick}
+            className="text-blue-600 border-blue-300 hover:bg-blue-50"
+          >
+            <Upload className="h-4 w-4 mr-1" /> Importar
+          </Button>
+          
+          <input
+            type="file"
+            ref={fileInputRef}
+            onChange={handleImportFile}
+            accept=".json"
+            className="hidden"
+          />
+        </div>
+      </div>
+      
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         <div>
           <label htmlFor="category" className="text-sm font-medium text-karmic-700 block mb-2">
@@ -293,7 +491,7 @@ const InterpretationEditor: React.FC = () => {
           onClick={handleSave}
           disabled={isLoading}
         >
-          <Save className="h-4 w-4 mr-1" /> Salvar
+          <Save className="h-4 w-4 mr-1" /> {isLoading ? "Salvando..." : "Salvar"}
         </Button>
       </div>
     </div>
