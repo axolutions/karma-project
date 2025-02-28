@@ -237,8 +237,7 @@ export async function initInterpretations(): Promise<void> {
       console.log(`Carregadas ${Object.keys(interpretations).length} interpretações do localStorage durante inicialização.`);
     }
     
-    // Depois tentar carregar do Supabase (pode atualizar os dados do localStorage)
-    try {
+    // Depois tentar carregar do Supabase (pode atualizar os dados do localStorage)\n    try {
       await loadFromSupabase();
     } catch (supabaseError) {
       console.error("Erro ao carregar do Supabase durante inicialização:", supabaseError);
