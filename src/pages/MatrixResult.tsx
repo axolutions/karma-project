@@ -132,13 +132,11 @@ const MatrixResult = () => {
         document.body.classList.add('printing-mode');
         
         // Em navegadores modernos, isso deve abrir diretamente a opção de salvar como PDF
-        const printResult = window.print();
+        window.print();
         
-        // Alguns navegadores retornam false se a impressão foi cancelada
-        if (printResult === false) {
-          setTimeout(() => setIsPrinting(false), 1000);
-        }
-        
+        // Note: window.print() returns void, not a boolean, so we can't check its return value
+        // Instead, we'll rely on our timeout and event listener
+
         // Remove a classe após um tempo
         setTimeout(() => {
           document.body.classList.remove('printing-mode');
