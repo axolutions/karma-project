@@ -24,8 +24,9 @@ const KarmicMatrix: React.FC<KarmicMatrixProps> = ({
   const [imageLoaded, setImageLoaded] = useState(false);
   const [hasError, setHasError] = useState(false);
   
-  // Local fallback image
+  // Local fallback images
   const fallbackImage = "/lovable-uploads/e3827c66-0547-4aea-8e5d-403dd2ac4af2.png"; 
+  const uploadedFallbackImage = "/lovable-uploads/e5125d57-cbc7-4202-b746-eb90da348d92.png";
   
   useEffect(() => {
     // Reset states when component mounts or backgroundImage changes
@@ -84,16 +85,20 @@ const KarmicMatrix: React.FC<KarmicMatrixProps> = ({
       );
     }
     
-    // If error or loading failed, use fallback
+    // Try first uploaded fallback
     return (
       <div className="relative w-full h-full" style={{ minHeight: "500px" }}>
         <img 
-          src={fallbackImage} 
+          src={uploadedFallbackImage} 
           alt="Karmic Matrix 2025 (Fallback)"
           className="w-full h-auto transition-opacity duration-300"
           style={{ maxWidth: '100%' }}
           onLoad={() => console.log("✓ Fallback image loaded successfully")}
-          onError={() => console.error("✗ Even fallback image failed to load")}
+          onError={(e) => {
+            console.error("✗ First fallback image failed to load, trying second fallback");
+            // If the first fallback fails, try the second one
+            (e.target as HTMLImageElement).src = fallbackImage;
+          }}
         />
         {hasError && (
           <div className="absolute bottom-0 left-0 right-0 bg-amber-50 bg-opacity-80 p-2 text-center text-sm text-karmic-800">

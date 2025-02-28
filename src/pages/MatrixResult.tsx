@@ -66,7 +66,7 @@ const MatrixResult = () => {
     loadUserData();
   }, [navigate]);
   
-  // New function to download just interpretations as PDF
+  // Function to download just interpretations as PDF
   const handleDownloadInterpretations = async () => {
     try {
       setSending(true);
