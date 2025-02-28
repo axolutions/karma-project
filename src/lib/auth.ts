@@ -10,6 +10,12 @@ let authorizedEmails: string[] = [
   "teste@teste.com" // Adicionamos o email diretamente aqui também
 ];
 
+// Admin emails list
+let adminEmails: string[] = [
+  "test@example.com",
+  "admin@example.com"
+];
+
 // Temporary storage for user data
 // In a real app, this would be in a database
 interface UserData {
@@ -21,6 +27,11 @@ interface UserData {
 }
 
 const userDatabase: Record<string, UserData> = {};
+
+export function isAdmin(email: string): boolean {
+  const normalizedEmail = email.toLowerCase().trim();
+  return adminEmails.includes(normalizedEmail);
+}
 
 export function isAuthorizedEmail(email: string): boolean {
   const normalizedEmail = email.toLowerCase().trim();

@@ -1,12 +1,12 @@
+
 import React, { useEffect } from 'react';
 import InterpretationEditor from '@/components/admin/InterpretationEditor';
 import InterpretationRecovery from '@/components/admin/InterpretationRecovery';
 import SupabaseSetup from '@/components/admin/SupabaseSetup';
 import EmailManager from '@/components/admin/EmailManager';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { getCurrentUser, isAdmin, logout } from '@/lib/auth';
+import { getCurrentUser, logout } from '@/lib/auth';
 import { useNavigate } from 'react-router-dom';
-import { useEffect } from 'react';
 
 const Admin = () => {
   const navigate = useNavigate();
@@ -15,13 +15,22 @@ const Admin = () => {
     const checkAuth = () => {
       const email = getCurrentUser();
       
-      if (!email || !isAdmin(email)) {
+      // Since isAdmin doesn't exist, we'll use a simpler check
+      // Assuming admin emails have specific domains or are in a predefined list
+      if (!email || !isAdminEmail(email)) {
         navigate('/');
       }
     };
     
     checkAuth();
   }, [navigate]);
+  
+  // Helper function to check if email is admin
+  const isAdminEmail = (email: string): boolean => {
+    // For now, let's consider test@example.com as admin
+    const adminEmails = ['test@example.com', 'admin@example.com'];
+    return adminEmails.includes(email.toLowerCase());
+  };
   
   return (
     <div className="container max-w-4xl mx-auto p-4 py-8">
