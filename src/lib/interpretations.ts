@@ -137,24 +137,86 @@ export function generateInterpretationsHTML(karmicData: any): string {
   
   const categories = getAllCategories();
   let htmlContent = `
-    <html>
+    <!DOCTYPE html>
+    <html lang="pt-BR">
     <head>
+      <meta charset="UTF-8">
+      <meta name="viewport" content="width=device-width, initial-scale=1.0">
+      <title>Suas Interpretações Kármicas</title>
       <style>
-        body { font-family: Arial, sans-serif; color: #333; line-height: 1.6; }
-        h1 { color: #8B5CF6; text-align: center; margin-bottom: 20px; }
-        h2 { color: #8B5CF6; margin-top: 25px; border-bottom: 1px solid #ddd; padding-bottom: 8px; }
-        h3 { color: #6D28D9; margin-top: 20px; }
+        body { 
+          font-family: Arial, sans-serif; 
+          color: #333; 
+          line-height: 1.6; 
+          padding: 20px;
+          max-width: 800px;
+          margin: 0 auto;
+        }
+        h1 { 
+          color: #8B5CF6; 
+          text-align: center; 
+          margin-bottom: 20px; 
+          font-size: 28px;
+        }
+        h2 { 
+          color: #8B5CF6; 
+          margin-top: 30px; 
+          border-bottom: 1px solid #ddd; 
+          padding-bottom: 8px; 
+          font-size: 20px;
+        }
+        h3 { 
+          color: #6D28D9; 
+          margin-top: 20px; 
+          font-size: 18px;
+        }
         p { margin-bottom: 10px; }
-        .interpretation { margin-bottom: 30px; padding: 15px; border-radius: 8px; background-color: #f9f7ff; }
-        .affirmation-box { background-color: #f0ebff; padding: 15px; border-radius: 8px; margin: 20px 0; }
-        .affirmation-title { color: #6D28D9; margin-top: 0; }
+        .header {
+          margin-bottom: 30px;
+          text-align: center;
+        }
+        .date {
+          font-size: 14px;
+          color: #666;
+          text-align: center;
+          margin-bottom: 30px;
+        }
+        .interpretation { 
+          margin-bottom: 40px; 
+          padding: 20px; 
+          border-radius: 8px; 
+          background-color: #f9f7ff; 
+          border: 1px solid #e4e0ec;
+        }
+        .affirmation-box { 
+          background-color: #f0ebff; 
+          padding: 15px; 
+          border-radius: 8px; 
+          margin: 20px 0; 
+          border-left: 4px solid #8B5CF6;
+        }
+        .affirmation-title { 
+          color: #6D28D9; 
+          margin-top: 0; 
+        }
         ul { padding-left: 20px; }
         li { margin-bottom: 5px; }
+        img.logo {
+          max-width: 120px;
+          margin: 0 auto 20px auto;
+          display: block;
+        }
       </style>
     </head>
     <body>
-      <h1>Suas Interpretações Kármicas</h1>
+      <div class="header">
+        <h1>Suas Interpretações Kármicas</h1>
+        <div class="date">Gerado em: ${new Date().toLocaleDateString('pt-BR')}</div>
+      </div>
   `;
+  
+  // Verificar se temos números kármicos válidos
+  let hasValidData = false;
   
   // Adicionar cada categoria de interpretação
   categories.forEach(category => {
@@ -162,14 +224,35 @@ export function generateInterpretationsHTML(karmicData: any): string {
       const number = karmicData[category];
       const interpretation = getInterpretation(category, number);
       
-      htmlContent += `
-        <div class="interpretation">
-          <h2>${interpretation.title}</h2>
-          ${interpretation.content}
-        </div>
-      `;
+      // Verifica se temos conteúdo real para adicionar
+      if (interpretation && interpretation.content && 
+          interpretation.content !== DEFAULT_INTERPRETATION) {
+        
+        hasValidData = true;
+        
+        htmlContent += `
+          <div class="interpretation">
+            <h2>${interpretation.title}</h2>
+            ${interpretation.content}
+          </div>
+        `;
+      }
     }
   });
+  
+  // Se não houver dados válidos
+  if (!hasValidData) {
+    htmlContent += `
+      <div style="text-align: center; padding: 40px 20px;">
+        <p style="color: #6b7280; font-size: 18px;">
+          Não foram encontradas interpretações para seus números kármicos.
+        </p>
+        <p style="color: #8B5CF6; margin-top: 20px;">
+          Por favor, contate o administrador para adicionar interpretações.
+        </p>
+      </div>
+    `;
+  }
   
   htmlContent += `
     </body>
