@@ -1,4 +1,3 @@
-
 import React, { useEffect, useState } from 'react';
 import { Button } from "@/components/ui/button";
 import { getCurrentUser, getUserData, logout } from '@/lib/auth';
@@ -70,95 +69,132 @@ const MatrixResult = () => {
   const handleDownloadInterpretations = async () => {
     try {
       setSending(true);
+      toast({
+        title: "Preparando PDF",
+        description: "Aguarde enquanto geramos o PDF das interpretações..."
+      });
       
-      // Capture all expanded interpretations before generating PDF
-      const expandAllInterpretations = document.querySelectorAll('.matrix-interpretations .karmic-card');
-      expandAllInterpretations.forEach(card => {
-        if (!card.querySelector('.overflow-hidden')) {
-          // If not expanded, click to expand
-          const header = card.querySelector('.flex.justify-between');
-          if (header) {
-            (header as HTMLElement).click();
-          }
+      // Expand all interpretation cards first to capture their content
+      const cards = document.querySelectorAll('.karmic-card');
+      cards.forEach((card) => {
+        const toggleButton = card.querySelector('.interpretation-toggle');
+        const content = card.querySelector('.interpretation-content');
+        
+        if (content && content.classList.contains('hidden')) {
+          // If content is hidden, click the toggle to expand it
+          (toggleButton as HTMLElement)?.click();
         }
       });
       
-      // Delay to ensure all sections expand before generating PDF
-      await new Promise<void>((resolve) => setTimeout(() => resolve(), 1000));
+      // Wait for the cards to expand
+      await new Promise(resolve => setTimeout(resolve, 500));
       
-      try {
-        // Create PDF
-        const pdf = new jsPDF({
-          orientation: 'portrait',
-          unit: 'mm',
-          format: 'a4',
-        });
-        
-        // Add title
-        pdf.setFontSize(16);
-        pdf.text("Interpretações da Matriz Kármica", 105, 15, { align: 'center' });
-        pdf.setFontSize(12);
-        pdf.text(`${userData?.name || 'Cliente'} - ${userData?.birthDate || 'Data não informada'}`, 105, 25, { align: 'center' });
-        
-        // Capture each interpretation section individually and add to PDF
-        const interpretationCards = document.querySelectorAll('.matrix-interpretations .karmic-card');
-        let currentY = 35; // Initial Y position
-        
-        for (let i = 0; i < interpretationCards.length; i++) {
-          const card = interpretationCards[i];
+      // Create PDF
+      const pdf = new jsPDF({
+        orientation: 'portrait',
+        unit: 'mm',
+        format: 'a4',
+      });
+      
+      // Add title and user info
+      pdf.setFontSize(18);
+      pdf.text("Matriz Kármica Pessoal 2025", 105, 20, { align: 'center' });
+      pdf.setFontSize(12);
+      pdf.text(`Nome: ${userData?.name || 'Cliente'}`, 20, 30);
+      pdf.text(`Data de Nascimento: ${userData?.birthDate || 'Não informada'}`, 20, 38);
+      
+      // Get the interpretations container
+      const interpretationsContainer = document.querySelector('.matrix-interpretations');
+      if (!interpretationsContainer) {
+        throw new Error("Não foi possível encontrar o conteúdo das interpretações");
+      }
+      
+      // Capture each card individually to handle them better in the PDF
+      const interpretationCards = document.querySelectorAll('.karmic-card');
+      let currentY = 50; // Start position after the header
+      
+      for (let i = 0; i < interpretationCards.length; i++) {
+        try {
+          const card = interpretationCards[i] as HTMLElement;
           
-          // Check if we need to add a new page
+          // If we're not on the first card, check if we need a new page
           if (i > 0) {
-            pdf.addPage();
-            currentY = 15; // Reset to top of new page
+            if (currentY > 250) { // Add new page if close to bottom
+              pdf.addPage();
+              currentY = 20; // Reset Y position on new page
+            } else {
+              currentY += 10; // Add spacing between cards
+            }
           }
           
-          const canvas = await html2canvas(card as HTMLElement, {
-            scale: 1.5,
-            backgroundColor: "#ffffff",
-            logging: false,
-            useCORS: true,
-            allowTaint: true
-          });
+          // Capture the title section
+          const titleSection = card.querySelector('.flex.items-center') as HTMLElement;
+          const title = titleSection?.querySelector('h3')?.textContent || `Interpretação ${i+1}`;
           
-          const imgData = canvas.toDataURL('image/jpeg', 0.95);
+          // Add title
+          pdf.setFontSize(14);
+          pdf.text(title, 20, currentY);
+          currentY += 8;
           
-          // Calculate dimensions to maintain proportions
-          const imgWidth = 190;
-          const imgHeight = canvas.height * imgWidth / canvas.width;
-          
-          // Add image to PDF
-          pdf.addImage(imgData, 'JPEG', 10, currentY, imgWidth, imgHeight);
-          
-          // Update Y position for next item
-          currentY += imgHeight + 10;
+          // Capture the content section (which should be visible now)
+          const contentSection = card.querySelector('.interpretation-content > div') as HTMLElement;
+          if (contentSection) {
+            // Use html2canvas to capture content with proper formatting
+            const canvas = await html2canvas(contentSection, {
+              scale: 2,
+              useCORS: true,
+              allowTaint: true,
+              backgroundColor: '#fff8e1', // Light amber background to match the theme
+            });
+            
+            // Add the captured content to PDF
+            const imgData = canvas.toDataURL('image/jpeg', 0.95);
+            const imgWidth = 170; // Width of the image in the PDF
+            const imgHeight = (canvas.height * imgWidth) / canvas.width;
+            
+            pdf.addImage(imgData, 'JPEG', 20, currentY, imgWidth, imgHeight);
+            currentY += imgHeight + 5;
+            
+            // If content is too big and goes off-page, add a page break
+            if (currentY > 270) {
+              pdf.addPage();
+              currentY = 20;
+            }
+          }
+        } catch (cardError) {
+          console.error(`Erro ao processar cartão ${i}:`, cardError);
+          // Continue to next card if one fails
         }
-        
-        // Download PDF
-        pdf.save(`Interpretações-Matriz-Karmica-${userData?.name || 'Pessoal'}.pdf`);
-        
-        toast({
-          title: "Download concluído",
-          description: "As interpretações da sua Matriz Kármica foram baixadas com sucesso!",
-        });
-      } catch (error) {
-        console.error("Erro ao gerar PDF das interpretações:", error);
-        toast({
-          title: "Erro ao gerar PDF",
-          description: "Não foi possível baixar as interpretações. Por favor, tente novamente mais tarde.",
-          variant: "destructive"
-        });
-      } finally {
-        setSending(false);
       }
-    } catch (error) {
-      console.error("Erro geral ao preparar PDF:", error);
-      setSending(false);
+      
+      // Save the PDF
+      pdf.save(`Matriz_Karmica_${userData?.name || 'Pessoal'}.pdf`);
+      
+      // Collapse cards back if needed
+      cards.forEach((card) => {
+        const toggleButton = card.querySelector('.interpretation-toggle');
+        const content = card.querySelector('.interpretation-content');
+        
+        // Keep only the first one expanded
+        if (content && !content.classList.contains('hidden') && card !== cards[0]) {
+          // If content is visible, click the toggle to collapse it
+          (toggleButton as HTMLElement)?.click();
+        }
+      });
+      
       toast({
-        title: "Erro ao preparar PDF",
-        description: "Houve um problema ao preparar o documento. Por favor, tente novamente.",
+        title: "PDF gerado com sucesso",
+        description: "Seu arquivo PDF com as interpretações da matriz foi baixado."
+      });
+    } catch (error) {
+      console.error("Erro ao gerar PDF:", error);
+      toast({
+        title: "Erro ao gerar PDF",
+        description: "Não foi possível gerar o PDF. Por favor, tente novamente.",
         variant: "destructive"
       });
+    } finally {
+      setSending(false);
     }
   };
   
@@ -226,7 +262,7 @@ const MatrixResult = () => {
               disabled={sending}
             >
               <FileText className="mr-2 h-4 w-4" />
-              Baixar Interpretação
+              {sending ? "Gerando PDF..." : "Baixar Interpretação"}
             </Button>
             
             <Button 
