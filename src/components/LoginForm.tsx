@@ -40,12 +40,6 @@ const LoginForm: React.FC = () => {
       return;
     }
     
-    // Check if user has already completed profile BEFORE login
-    // This ensures we know if the user has a profile before proceeding
-    console.log("LoginForm: Verificando se usuário já tem perfil");
-    const userData = getUserData(email.trim().toLowerCase());
-    console.log("LoginForm: Dados do usuário:", userData);
-    
     // Login the user
     console.log("LoginForm: Email autorizado, realizando login");
     const success = login(email);
@@ -55,16 +49,23 @@ const LoginForm: React.FC = () => {
         description: "Bem-vindo ao Sistema de Matriz Kármica Pessoal 2025.",
       });
       
+      // Check if user has already completed profile
+      console.log("LoginForm: Verificando se usuário já tem perfil");
+      const userData = getUserData(email);
+      console.log("LoginForm: Dados do usuário:", userData);
+      
       setTimeout(() => {
         setIsSubmitting(false);
-        if (userData && userData.karmicNumbers) {
+        if (userData && userData.id) {
           // User already has a matrix, redirect to results
-          console.log("LoginForm: Usuário já tem matriz, redirecionando para /matrix");
+          console.log("LoginForm: Usuário já tem matriz, redirecionando para results");
           navigate('/matrix');
         } else {
           // User needs to fill profile, redirect to profile page
           console.log("LoginForm: Usuário precisa preencher perfil");
-          window.location.href = '/'; // Use window.location.href para forçar um reload completo
+          navigate('/');
+          // Force reload to show profile form
+          window.location.reload();
         }
       }, 1000);
     } else {

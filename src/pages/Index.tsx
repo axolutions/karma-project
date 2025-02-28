@@ -3,6 +3,7 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import LoginForm from '@/components/LoginForm';
 import ProfileForm from '@/components/ProfileForm';
+import IntroSection from '@/components/IntroSection';
 import { getCurrentUser, isLoggedIn, getUserData } from '@/lib/auth';
 
 const Index = () => {
@@ -11,7 +12,7 @@ const Index = () => {
   const navigate = useNavigate();
   
   useEffect(() => {
-    // Verificação de login
+    // Verificação simplificada de login
     const loggedIn = isLoggedIn();
     setUserLoggedIn(loggedIn);
     console.log("Index: Usuário logado?", loggedIn);
@@ -19,19 +20,11 @@ const Index = () => {
     // Se estiver logado, verificar perfil
     if (loggedIn) {
       const email = getCurrentUser();
-      console.log("Index: Email do usuário logado:", email);
-      
       if (email) {
         const userData = getUserData(email);
-        console.log("Index: Dados do usuário:", userData);
-        
         if (userData && userData.karmicNumbers) {
-          console.log("Index: Usuário tem perfil, redirecionando para /matrix");
           setHasProfile(true);
           navigate('/matrix');
-        } else {
-          console.log("Index: Usuário não tem perfil");
-          setHasProfile(false);
         }
       }
     }

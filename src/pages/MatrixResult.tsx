@@ -288,9 +288,6 @@ const MatrixResult = () => {
   // Garantir que temos números kármicos para mostrar
   const karmicNumbers = userData.karmicNumbers || {};
   
-  // URL da imagem da matriz
-  const matrixBackgroundImage = "https://darkorange-goldfinch-896244.hostingersite.com/wp-content/uploads/2025/02/Design-sem-nome-1.png";
-  
   return (
     <div className="min-h-screen bg-gradient-to-b from-karmic-100 to-white py-12 print:bg-white print:py-0">
       <div className="container max-w-4xl mx-auto px-4">
@@ -402,10 +399,7 @@ const MatrixResult = () => {
             </p>
           )}
           
-          <KarmicMatrix 
-            karmicData={karmicNumbers} 
-            backgroundImage={matrixBackgroundImage}
-          />
+          <KarmicMatrix karmicData={karmicNumbers} />
         </motion.div>
         
         <MatrixInterpretations karmicData={karmicNumbers} />
