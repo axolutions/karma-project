@@ -43,50 +43,88 @@ const MatrixInterpretations: React.FC<MatrixInterpretationsProps> = ({ karmicDat
     { key: 'manifestationEnigma', value: karmicData.manifestationEnigma }
   ];
 
-  // Função aprimorada para processar o HTML adequadamente
+  // Função para formatar explicitamente o conteúdo de texto bruto
+  const formatRawContent = (text: string) => {
+    if (!text) return "";
+    
+    // Dividir em parágrafos
+    const paragraphs = text.split('\n\n');
+    return paragraphs.map(p => `<p>${p}</p>`).join('\n');
+  };
+
+  // Função mais robusta para processar o HTML
   const processContent = (htmlContent: string) => {
-    // Verifica se o texto já está formatado ou não
+    // Se estiver vazio, retorna vazio
+    if (!htmlContent || htmlContent.trim() === '') return '';
+    
+    // Verifica se é um conteúdo sem formatação HTML
     if (!htmlContent.includes('<') && !htmlContent.includes('>')) {
-      // Se não estiver formatado, adiciona tags de parágrafo básicas
-      const paragraphs = htmlContent.split('\n\n').map(p => `<p>${p}</p>`).join('');
-      return paragraphs;
+      return formatRawContent(htmlContent);
     }
     
-    // Para textos já com HTML, melhora a formatação existente
+    // Para conteúdos que já têm HTML
     let processedHTML = htmlContent;
     
-    // Adiciona estilos para títulos
+    // Garantir que todos os parágrafos tenham tag <p>
+    if (!processedHTML.includes('<p>')) {
+      processedHTML = formatRawContent(processedHTML);
+    }
+    
+    // Aplicar formatação de negrito a frases-chave
+    const commonKeyPhrases = [
+      "desenvolvido em 2025", "Selo Kármico", "Portal do Karma", 
+      "lições principais", "propósito de vida", "missão cármica",
+      "desafio essencial", "consciência espiritual", "potencial interior",
+      "auto-confiança", "autoconfiança", "sabedoria", "coragem", "crescimento",
+      "transformação"
+    ];
+    
+    // Aplicar negrito a frases-chave que não estão dentro de tags
+    commonKeyPhrases.forEach(phrase => {
+      // Regex que encontra a frase mas não se estiver dentro de tags HTML
+      const regex = new RegExp(`(?<![<>\\w])${phrase}(?![<>\\w])`, 'gi');
+      processedHTML = processedHTML.replace(regex, `<strong>${phrase}</strong>`);
+    });
+    
+    // Formatar subtítulos
     processedHTML = processedHTML.replace(
       /<h3>(.*?)<\/h3>/g,
       '<h3 class="karmic-subtitle">$1</h3>'
     );
     
-    // Formata os blocos de afirmação
+    // Formatar afirmações
     processedHTML = processedHTML.replace(
       /<h3[^>]*>Afirmação[^<]*<\/h3>([\s\S]*?)(?=<h3|$)/g,
       '<div class="affirmation-box"><h3 class="affirmation-title">Afirmação Kármica</h3>$1</div>'
     );
     
-    // Destaca textos importantes
-    processedHTML = processedHTML.replace(
-      /\*\*(.*?)\*\*/g, 
-      '<strong>$1</strong>'
-    );
+    // Destacar palavras específicas de reforço
+    const emphasisWords = ["deve", "precisará", "essencial", "importante", "fundamental", "vital"];
+    emphasisWords.forEach(word => {
+      const regex = new RegExp(`\\b${word}\\b`, 'gi');
+      processedHTML = processedHTML.replace(regex, `<strong>${word}</strong>`);
+    });
     
-    // Converte marcadores simples em listas HTML
+    // Converter marcadores simples que não estejam em listas
     processedHTML = processedHTML.replace(
-      /^- (.*?)$/gm,
+      /(?<!<li>)- (.*?)(?=<br|<\/p>|$)/g,
       '<li>$1</li>'
     );
     
-    // Agrupa itens de lista
-    processedHTML = processedHTML.replace(
-      /(<li>.*?<\/li>\s*)+/g,
-      '<ul>$&</ul>'
-    );
+    // Agrupar itens de lista soltos
+    let hasUngroupedItems = processedHTML.includes('<li>') && !processedHTML.includes('<ul>');
+    if (hasUngroupedItems) {
+      processedHTML = processedHTML.replace(
+        /(<li>.*?<\/li>\s*)+/g,
+        '<ul class="my-4 space-y-2">$&</ul>'
+      );
+    }
     
-    // Remove possíveis listas vazias
-    processedHTML = processedHTML.replace(/<ul>\s*<\/ul>/g, '');
+    // Adicionar espaçamento em tags p que não tenham classe ou estilo
+    processedHTML = processedHTML.replace(
+      /<p(?![^>]*class=)([^>]*)>/g, 
+      '<p class="my-4 leading-relaxed"$1>'
+    );
     
     return processedHTML;
   };

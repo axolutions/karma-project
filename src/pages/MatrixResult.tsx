@@ -5,12 +5,13 @@ import { getCurrentUser, getUserData, logout } from '@/lib/auth';
 import { useNavigate } from 'react-router-dom';
 import KarmicMatrix from '@/components/KarmicMatrix';
 import MatrixInterpretations from '@/components/MatrixInterpretations';
-import { Printer, LogOut } from 'lucide-react';
+import { Printer, LogOut, RefreshCw } from 'lucide-react';
 import { toast } from "@/components/ui/use-toast";
 import { motion } from 'framer-motion';
 
 const MatrixResult = () => {
   const [userData, setUserData] = useState<any>(null);
+  const [refreshing, setRefreshing] = useState(false);
   const navigate = useNavigate();
   
   useEffect(() => {
@@ -46,6 +47,19 @@ const MatrixResult = () => {
     });
     navigate('/');
   };
+
+  const handleRefresh = () => {
+    setRefreshing(true);
+    toast({
+      title: "Atualizando",
+      description: "Recarregando sua Matriz Kármica..."
+    });
+    
+    // Simular um pequeno delay e então recarregar
+    setTimeout(() => {
+      window.location.reload();
+    }, 500);
+  };
   
   if (!userData) {
     return (
@@ -71,6 +85,16 @@ const MatrixResult = () => {
           </div>
           
           <div className="flex space-x-3">
+            <Button 
+              onClick={handleRefresh}
+              variant="outline"
+              className="karmic-button-outline flex items-center"
+              disabled={refreshing}
+            >
+              <RefreshCw className={`mr-2 h-4 w-4 ${refreshing ? 'animate-spin' : ''}`} />
+              Atualizar
+            </Button>
+            
             <Button 
               onClick={handlePrint}
               className="karmic-button flex items-center"
