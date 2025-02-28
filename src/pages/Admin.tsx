@@ -5,7 +5,7 @@ import InterpretationRecovery from '@/components/admin/InterpretationRecovery';
 import SupabaseSetup from '@/components/admin/SupabaseSetup';
 import EmailManager from '@/components/admin/EmailManager';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { getCurrentUser, isAdmin, logout } from '@/lib/auth';
+import { getCurrentUser, logout } from '@/lib/auth';
 import { useNavigate } from 'react-router-dom';
 import { toast } from "@/components/ui/use-toast";
 
@@ -29,34 +29,14 @@ const Admin = () => {
           return;
         }
         
-        // Lista de emails de administradores - adicionando mais opções para garantir acesso
-        const adminEmails = [
-          "test@example.com", 
-          "admin@example.com", 
-          "admin@admin.com", 
-          "admin", 
-          "carla@gmail.com", 
-          "carla.alves.maia@gmail.com",
-          email.toLowerCase().trim() // Garantir que o email atual sempre tenha acesso
-        ];
-        
-        const isUserAdmin = adminEmails.includes(email.toLowerCase().trim());
-        
-        console.log("Admin check for", email, "result:", isUserAdmin);
-        
-        if (!isUserAdmin) {
-          console.log("Admin access denied: User is not admin");
-          toast({
-            title: "Acesso negado",
-            description: "Você não tem permissão para acessar esta página.",
-            variant: "destructive"
-          });
-          navigate('/');
-          return;
-        }
-        
-        // User is authenticated and is an admin
+        // Allowing any logged-in user to access the admin panel
+        console.log("Admin access granted to:", email);
         setLoading(false);
+        
+        toast({
+          title: "Acesso concedido",
+          description: `Bem-vindo(a) ao painel administrativo, ${email}.`
+        });
       } catch (error) {
         console.error("Error checking admin status:", error);
         toast({

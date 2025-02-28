@@ -1,6 +1,5 @@
 
 import React, { useEffect, useState } from 'react';
-import { getInterpretation, renderHTML } from '@/lib/interpretations';
 import { motion } from 'framer-motion';
 
 interface KarmicMatrixProps {
@@ -25,55 +24,79 @@ const KarmicMatrix: React.FC<KarmicMatrixProps> = ({
   const [hasError, setHasError] = useState(false);
   const [activeImage, setActiveImage] = useState(backgroundImage);
   
-  // Local fallback images - usando a imagem enviada pelo usuário como principal fallback
-  const userProvidedFallback = "/lovable-uploads/bc3594b2-13d4-4e7f-b1ce-0650cc3d8bc8.png"; // Nova imagem enviada
-  const uploadedFallbackImage = "/lovable-uploads/f6b1f486-1d12-46d1-965d-ea69190f56e7.png";
-  const additionalFallback = "/lovable-uploads/e5125d57-cbc7-4202-b746-eb90da348d92.png";
-  const finalFallbackImage = "/lovable-uploads/e3827c66-0547-4aea-8e5d-403dd2ac4af2.png"; 
+  // Improved fallback images - added your latest matrix image as primary fallback
+  const primaryFallback = "/lovable-uploads/73450eb9-6651-45f0-95cb-2b75735fdfa6.png"; // New matrix image
+  const secondaryFallback = "/lovable-uploads/bc3594b2-13d4-4e7f-b1ce-0650cc3d8bc8.png"; 
+  const thirdFallback = "/lovable-uploads/f6b1f486-1d12-46d1-965d-ea69190f56e7.png";
+  const fourthFallback = "/lovable-uploads/e5125d57-cbc7-4202-b746-eb90da348d92.png";
+  const finalFallback = "/lovable-uploads/e3827c66-0547-4aea-8e5d-403dd2ac4af2.png"; 
   
+  // Check if image URL is valid
+  const isValidURL = (url: string): boolean => {
+    return url && url.trim() !== '' && (
+      url.startsWith('http://') || 
+      url.startsWith('https://') || 
+      url.startsWith('/')
+    );
+  };
+  
+  // Enhanced image loading function with multiple fallbacks
   useEffect(() => {
-    // Reset states when component mounts or backgroundImage changes
+    let isMounted = true;
     setImageLoaded(false);
     setHasError(false);
-    setActiveImage(backgroundImage);
     
-    console.log("Tentando carregar imagem da matriz:", backgroundImage);
+    // Start with provided background or use the fixed URL
+    const initialImage = isValidURL(backgroundImage) 
+      ? backgroundImage 
+      : "https://darkorange-goldfinch-896244.hostingersite.com/wp-content/uploads/2025/02/Design-sem-nome-1.png";
+    
+    setActiveImage(initialImage);
+    console.log("Tentando carregar imagem da matriz:", initialImage);
     
     const img = new Image();
     
     img.onload = () => {
-      console.log("✓ Matrix image loaded successfully:", backgroundImage);
-      setImageLoaded(true);
-      setActiveImage(backgroundImage);
+      if (isMounted) {
+        console.log("✓ Matrix image loaded successfully:", initialImage);
+        setImageLoaded(true);
+        setActiveImage(initialImage);
+      }
     };
     
     img.onerror = () => {
-      console.error("✗ Error loading matrix image:", backgroundImage);
-      setHasError(true);
-      // Tentar o primeiro fallback imediatamente
-      tryFallbackImage(userProvidedFallback);
+      if (isMounted) {
+        console.error("✗ Error loading matrix image:", initialImage);
+        setHasError(true);
+        // Try first fallback immediately
+        tryFallbackImage(primaryFallback);
+      }
     };
     
-    // Try to load the image directly
-    img.src = backgroundImage;
+    // Try to load the image
+    img.src = initialImage;
     
-    // Fallback if image doesn't load in 3 seconds
+    // Fallback if image doesn't load in 2.5 seconds (reduced timeout)
     const timeout = setTimeout(() => {
-      if (!imageLoaded) {
+      if (isMounted && !imageLoaded) {
         console.warn("⚠️ Timeout loading matrix image. Using fallback.");
         setHasError(true);
-        tryFallbackImage(userProvidedFallback);
+        tryFallbackImage(primaryFallback);
       }
-    }, 3000);
+    }, 2500);
     
-    return () => clearTimeout(timeout);
+    return () => {
+      isMounted = false;
+      clearTimeout(timeout);
+    };
   }, [backgroundImage]);
   
-  // Função para tentar carregar imagens de fallback em cascata
+  // Improved fallback cascade function
   const tryFallbackImage = (fallbackSrc: string) => {
     console.log("Tentando carregar fallback:", fallbackSrc);
     
     const fallbackImg = new Image();
+    
     fallbackImg.onload = () => {
       console.log("✓ Fallback image loaded successfully:", fallbackSrc);
       setActiveImage(fallbackSrc);
@@ -83,16 +106,19 @@ const KarmicMatrix: React.FC<KarmicMatrixProps> = ({
     fallbackImg.onerror = () => {
       console.error("✗ Fallback image failed to load:", fallbackSrc);
       
-      // Cascata de fallbacks
-      if (fallbackSrc === userProvidedFallback) {
-        tryFallbackImage(uploadedFallbackImage);
-      } else if (fallbackSrc === uploadedFallbackImage) {
-        tryFallbackImage(additionalFallback);
-      } else if (fallbackSrc === additionalFallback) {
-        tryFallbackImage(finalFallbackImage);
+      // Improved fallback cascade
+      if (fallbackSrc === primaryFallback) {
+        tryFallbackImage(secondaryFallback);
+      } else if (fallbackSrc === secondaryFallback) {
+        tryFallbackImage(thirdFallback);
+      } else if (fallbackSrc === thirdFallback) {
+        tryFallbackImage(fourthFallback);
+      } else if (fallbackSrc === fourthFallback) {
+        tryFallbackImage(finalFallback);
       } else {
         console.error("✗ All fallback images failed to load");
-        // Usar um último recurso - uma cor de fundo em último caso
+        // Last resort - use a solid color background as final fallback
+        setActiveImage('none');
         setImageLoaded(true);
       }
     };
@@ -112,21 +138,34 @@ const KarmicMatrix: React.FC<KarmicMatrixProps> = ({
     manifestationEnigma: { top: "20%", left: "50%" }
   };
 
-  // Matrix background rendering with improved fallback strategy
+  // Optimized matrix background rendering
   const renderBackground = () => {
     return (
       <div className="relative w-full h-full" style={{ minHeight: "500px" }}>
-        <img 
-          src={activeImage} 
-          alt="Karmic Matrix 2025"
-          className="w-full h-auto transition-opacity duration-300"
-          style={{ maxWidth: '100%' }}
-          onLoad={() => console.log("✓ Matrix image rendered successfully:", activeImage)}
-          onError={() => {
-            console.error("✗ Error rendering matrix image in DOM:", activeImage);
-            // Fallback já foi tratado no useEffect, então aqui apenas mostramos a mensagem
-          }}
-        />
+        {activeImage !== 'none' ? (
+          <img 
+            src={activeImage} 
+            alt="Matriz Kármica 2025"
+            className="w-full h-auto transition-opacity duration-300"
+            style={{ maxWidth: '100%' }}
+            onLoad={() => console.log("✓ Matrix image rendered successfully:", activeImage)}
+            onError={(e) => {
+              console.error("✗ Error rendering matrix image in DOM:", activeImage);
+              // If DOM rendering fails, try using background-image instead
+              const target = e.currentTarget;
+              target.style.display = 'none';
+              target.parentElement!.style.backgroundImage = `url(${primaryFallback})`;
+              target.parentElement!.style.backgroundSize = 'contain';
+              target.parentElement!.style.backgroundPosition = 'center';
+              target.parentElement!.style.backgroundRepeat = 'no-repeat';
+            }}
+          />
+        ) : (
+          <div 
+            className="w-full h-full bg-amber-50"
+            style={{ minHeight: "500px" }}
+          />
+        )}
         {hasError && (
           <div className="absolute bottom-0 left-0 right-0 bg-amber-50 bg-opacity-80 p-2 text-center text-sm text-karmic-800">
             Usando imagem alternativa
@@ -201,8 +240,8 @@ const KarmicMatrix: React.FC<KarmicMatrixProps> = ({
         )}
       </div>
       
-      {/* Numbers overlay */}
-      {numbersToDisplay.map((item, index) => (
+      {/* Numbers overlay - only render if background is loaded */}
+      {imageLoaded && numbersToDisplay.map((item, index) => (
         <motion.div
           key={item.key}
           initial={{ opacity: 0, scale: 0.8 }}
