@@ -23,74 +23,77 @@ const KarmicMatrix: React.FC<KarmicMatrixProps> = ({
   const [imageLoaded, setImageLoaded] = useState(false);
   const [imgSrc, setImgSrc] = useState(backgroundImage);
   
-  // Verificar se temos dados kármicos válidos
-  const hasValidData = karmicData && 
-    typeof karmicData === 'object' && 
-    Object.keys(karmicData).length > 0;
-  
-  // Se não tivermos dados válidos, exibir uma mensagem de erro
-  if (!hasValidData) {
-    console.error("Dados kármicos inválidos ou ausentes", karmicData);
-    return (
-      <div className="relative max-w-4xl mx-auto p-8 bg-red-50 border border-red-200 rounded-md text-center">
-        <p className="text-red-500 font-medium">Erro ao carregar os dados da matriz kármica</p>
-        <p className="text-sm text-red-400 mt-2">Tente atualizar a página ou entre em contato com o suporte</p>
-      </div>
-    );
+  // Verificar se temos dados kármicos válidos e criar dados padrão se necessário
+  if (!karmicData || typeof karmicData !== 'object') {
+    console.error("Dados kármicos inválidos ou ausentes:", karmicData);
+    karmicData = {
+      karmicSeal: 0,
+      destinyCall: 0,
+      karmaPortal: 0,
+      karmicInheritance: 0,
+      karmicReprogramming: 0,
+      cycleProphecy: 0,
+      spiritualMark: 0,
+      manifestationEnigma: 0
+    };
   }
+  
+  // Garantir que todos os campos existam
+  const safeKarmicData = {
+    karmicSeal: karmicData.karmicSeal || 0,
+    destinyCall: karmicData.destinyCall || 0,
+    karmaPortal: karmicData.karmaPortal || 0,
+    karmicInheritance: karmicData.karmicInheritance || 0,
+    karmicReprogramming: karmicData.karmicReprogramming || 0,
+    cycleProphecy: karmicData.cycleProphecy || 0,
+    spiritualMark: karmicData.spiritualMark || 0,
+    manifestationEnigma: karmicData.manifestationEnigma || 0
+  };
   
   // Pré-carrega a imagem para garantir que ela esteja disponível para impressão
   useEffect(() => {
+    console.log("Carregando imagem da matriz:", backgroundImage);
     const img = new Image();
     img.onload = () => {
+      console.log("Imagem carregada com sucesso");
       setImageLoaded(true);
     };
     img.onerror = () => {
       // Fallback para uma imagem local se a externa falhar
       console.error("Erro ao carregar a imagem da matriz. Usando fallback.");
       setImgSrc("/placeholder.svg");
+      setImageLoaded(true); // Mesmo com erro, ainda tentamos mostrar algo
     };
     img.src = backgroundImage;
   }, [backgroundImage]);
   
   // Vamos listar explicitamente as posições para cada número específico
   const numberPositions = {
-    // Para valor específico 11 (karmicSeal) - NÃO MUDAR
     karmicSeal: { top: "23%", left: "25%" },
-    
-    // Para valor específico 3 (destinyCall) - REPOSICIONADO MAIS PARA CIMA E UM POUCO PARA A ESQUERDA
     destinyCall: { top: "72%", left: "73%" },
-    
-    // Para valor específico 9 (karmaPortal) - NÃO MUDAR
     karmaPortal: { top: "47%", left: "21%" },
-    
-    // Para valor específico 4 (karmicInheritance) - NÃO MUDAR
     karmicInheritance: { top: "47%", left: "72%" },
-    
-    // Para valor específico 3 (karmicReprogramming) - NÃO MUDAR
     karmicReprogramming: { top: "70%", left: "25%" },
-    
-    // Para valor específico 9 (cycleProphecy) - NÃO MUDAR
     cycleProphecy: { top: "74%", left: "48%" },
-    
-    // Para valor específico 1 (spiritualMark) - NÃO MUDAR
     spiritualMark: { top: "25%", left: "70%" },
-    
-    // Para valor específico 11 (manifestationEnigma) - NÃO MUDAR
     manifestationEnigma: { top: "20%", left: "47%" }
   };
 
   // Simplificamos o mapeamento para usar os valores diretamente
   const numbersToDisplay = [
-    { key: 'karmicSeal', value: karmicData.karmicSeal, title: "Selo Kármico 2025" },
-    { key: 'destinyCall', value: karmicData.destinyCall, title: "Chamado do Destino 2025" },
-    { key: 'karmaPortal', value: karmicData.karmaPortal, title: "Portal do Karma 2025" },
-    { key: 'karmicInheritance', value: karmicData.karmicInheritance, title: "Herança Kármica 2025" },
-    { key: 'karmicReprogramming', value: karmicData.karmicReprogramming, title: "Códex da Reprogramação 2025" },
-    { key: 'cycleProphecy', value: karmicData.cycleProphecy, title: "Profecia dos Ciclos 2025" },
-    { key: 'spiritualMark', value: karmicData.spiritualMark, title: "Marca Espiritual 2025" },
-    { key: 'manifestationEnigma', value: karmicData.manifestationEnigma, title: "Enigma da Manifestação 2025" }
+    { key: 'karmicSeal', value: safeKarmicData.karmicSeal, title: "Selo Kármico 2025" },
+    { key: 'destinyCall', value: safeKarmicData.destinyCall, title: "Chamado do Destino 2025" },
+    { key: 'karmaPortal', value: safeKarmicData.karmaPortal, title: "Portal do Karma 2025" },
+    { key: 'karmicInheritance', value: safeKarmicData.karmicInheritance, title: "Herança Kármica 2025" },
+    { key: 'karmicReprogramming', value: safeKarmicData.karmicReprogramming, title: "Códex da Reprogramação 2025" },
+    { key: 'cycleProphecy', value: safeKarmicData.cycleProphecy, title: "Profecia dos Ciclos 2025" },
+    { key: 'spiritualMark', value: safeKarmicData.spiritualMark, title: "Marca Espiritual 2025" },
+    { key: 'manifestationEnigma', value: safeKarmicData.manifestationEnigma, title: "Enigma da Manifestação 2025" }
   ];
+
+  // Verifica se a imagem está carregada antes de renderizar
+  console.log("Estado de carregamento da imagem:", imageLoaded);
+  console.log("Dados kármicos sendo exibidos:", safeKarmicData);
 
   return (
     <div className="relative max-w-4xl mx-auto">
@@ -99,16 +102,18 @@ const KarmicMatrix: React.FC<KarmicMatrixProps> = ({
         src={imgSrc} 
         alt="Matriz Kármica 2025" 
         className="w-full h-auto"
-        onLoad={() => setImageLoaded(true)}
+        onLoad={() => {
+          console.log("Imagem carregada via onLoad");
+          setImageLoaded(true);
+        }}
         style={{ 
-          // Adiciona um contorno para caso a imagem não seja visível no PDF
           border: '1px solid #EAE6E1',
           borderRadius: '8px'
         }}
       />
       
-      {/* Numbers overlay */}
-      {imageLoaded && numbersToDisplay.map((item, index) => (
+      {/* Renderiza os números mesmo se a imagem ainda não tiver sido carregada */}
+      {numbersToDisplay.map((item, index) => (
         <motion.div
           key={item.key}
           initial={{ opacity: 0, scale: 0.8 }}

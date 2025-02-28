@@ -34,21 +34,27 @@ const MatrixResult = () => {
   const navigate = useNavigate();
   
   useEffect(() => {
+    console.log("MatrixResult - Iniciando carregamento de dados");
     loadUserData();
   }, [navigate]);
   
   const loadUserData = () => {
     const email = getCurrentUser();
     if (!email) {
+      console.log("Nenhum usuário logado, redirecionando para a página inicial");
       navigate('/');
       return;
     }
     
+    console.log("Carregando dados para o email:", email);
+    
     // Obter todos os mapas do usuário
     const allMaps = getAllUserDataByEmail(email);
+    console.log("Mapas encontrados:", allMaps);
     
     // Verificar se temos mapas válidos
     if (!allMaps || allMaps.length === 0) {
+      console.log("Nenhum mapa encontrado");
       toast({
         title: "Perfil não encontrado",
         description: "Por favor, complete seu perfil primeiro.",
@@ -59,9 +65,11 @@ const MatrixResult = () => {
     }
     
     // Filtrar mapas inválidos (sem id ou dados corrompidos)
-    const validMaps = allMaps.filter(map => map && map.id && map.karmicNumbers);
+    const validMaps = allMaps.filter(map => map && map.id);
+    console.log("Mapas válidos:", validMaps);
     
     if (validMaps.length === 0) {
+      console.log("Nenhum mapa válido encontrado");
       toast({
         title: "Dados corrompidos",
         description: "Os dados do seu perfil parecem estar corrompidos. Por favor, crie um novo perfil.",
@@ -78,14 +86,18 @@ const MatrixResult = () => {
     
     // Tentar obter o mapa específico definido na sessão
     const currentMatrixId = getCurrentMatrixId();
+    console.log("ID da matriz atual:", currentMatrixId);
+    
     let currentData = null;
     
     if (currentMatrixId) {
       currentData = getUserData(email, currentMatrixId);
+      console.log("Dados da matriz atual:", currentData);
     }
     
     // Se não encontrar o mapa específico, usar o mais recente
-    if (!currentData || !currentData.id || !currentData.karmicNumbers) {
+    if (!currentData || !currentData.id) {
+      console.log("Usando o mapa mais recente");
       currentData = validMaps[validMaps.length - 1];
       if (currentData && currentData.id) {
         setCurrentMatrixId(currentData.id);
@@ -93,7 +105,8 @@ const MatrixResult = () => {
     }
     
     // Verificação final para garantir que temos dados válidos
-    if (!currentData || !currentData.karmicNumbers) {
+    if (!currentData || !currentData.id) {
+      console.log("Falha ao carregar dados válidos");
       toast({
         title: "Erro ao carregar dados",
         description: "Não foi possível carregar os dados da matriz kármica. Por favor, crie um novo perfil.",
@@ -103,6 +116,22 @@ const MatrixResult = () => {
       return;
     }
     
+    // Garantir que temos números kármicos, mesmo que vazios
+    if (!currentData.karmicNumbers) {
+      console.log("Números kármicos ausentes, criando objeto vazio");
+      currentData.karmicNumbers = {
+        karmicSeal: 0,
+        destinyCall: 0,
+        karmaPortal: 0,
+        karmicInheritance: 0,
+        karmicReprogramming: 0,
+        cycleProphecy: 0,
+        spiritualMark: 0,
+        manifestationEnigma: 0
+      };
+    }
+    
+    console.log("Definindo userData com:", currentData);
     setUserData(currentData);
   };
   
@@ -191,7 +220,7 @@ const MatrixResult = () => {
     if (!email) return;
     
     const selectedMap = getUserData(email, mapId);
-    if (selectedMap && selectedMap.id && selectedMap.karmicNumbers) {
+    if (selectedMap && selectedMap.id) {
       setCurrentMatrixId(mapId);
       setUserData(selectedMap);
       
@@ -229,7 +258,9 @@ const MatrixResult = () => {
     }, 300);
   };
   
-  if (!userData || !userData.karmicNumbers) {
+  // Mostrar estado de carregamento se ainda não temos dados
+  if (!userData) {
+    console.log("Ainda não temos dados, exibindo carregamento");
     return (
       <div className="min-h-screen flex items-center justify-center">
         <div className="text-center">
@@ -245,6 +276,9 @@ const MatrixResult = () => {
       </div>
     );
   }
+  
+  console.log("Renderizando matriz com dados:", userData);
+  console.log("Números kármicos:", userData.karmicNumbers);
   
   // Formatar data de criação
   const createdDate = userData.createdAt ? new Date(userData.createdAt).toLocaleDateString() : '';
@@ -360,10 +394,10 @@ const MatrixResult = () => {
             </p>
           )}
           
-          <KarmicMatrix karmicData={userData.karmicNumbers} />
+          <KarmicMatrix karmicData={userData.karmicNumbers || {}} />
         </motion.div>
         
-        <MatrixInterpretations karmicData={userData.karmicNumbers} />
+        <MatrixInterpretations karmicData={userData.karmicNumbers || {}} />
       </div>
     </div>
   );
