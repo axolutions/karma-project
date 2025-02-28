@@ -130,3 +130,51 @@ export function renderHTML(html: string) {
   // Processar o HTML para adicionar classes e formatação automática
   return { __html: html };
 }
+
+// Generate HTML for PDF export
+export function generateInterpretationsHTML(karmicData: any): string {
+  if (!karmicData) return '<p>Nenhum dado kármico disponível.</p>';
+  
+  const categories = getAllCategories();
+  let htmlContent = `
+    <html>
+    <head>
+      <style>
+        body { font-family: Arial, sans-serif; color: #333; line-height: 1.6; }
+        h1 { color: #8B5CF6; text-align: center; margin-bottom: 20px; }
+        h2 { color: #8B5CF6; margin-top: 25px; border-bottom: 1px solid #ddd; padding-bottom: 8px; }
+        h3 { color: #6D28D9; margin-top: 20px; }
+        p { margin-bottom: 10px; }
+        .interpretation { margin-bottom: 30px; padding: 15px; border-radius: 8px; background-color: #f9f7ff; }
+        .affirmation-box { background-color: #f0ebff; padding: 15px; border-radius: 8px; margin: 20px 0; }
+        .affirmation-title { color: #6D28D9; margin-top: 0; }
+        ul { padding-left: 20px; }
+        li { margin-bottom: 5px; }
+      </style>
+    </head>
+    <body>
+      <h1>Suas Interpretações Kármicas</h1>
+  `;
+  
+  // Adicionar cada categoria de interpretação
+  categories.forEach(category => {
+    if (karmicData[category]) {
+      const number = karmicData[category];
+      const interpretation = getInterpretation(category, number);
+      
+      htmlContent += `
+        <div class="interpretation">
+          <h2>${interpretation.title}</h2>
+          ${interpretation.content}
+        </div>
+      `;
+    }
+  });
+  
+  htmlContent += `
+    </body>
+    </html>
+  `;
+  
+  return htmlContent;
+}

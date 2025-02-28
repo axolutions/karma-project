@@ -16,6 +16,7 @@ import MatrixInterpretations from '@/components/MatrixInterpretations';
 import { Printer, LogOut, RefreshCw, ChevronDown, Plus, ShoppingCart } from 'lucide-react';
 import { toast } from "@/components/ui/use-toast";
 import { motion } from 'framer-motion';
+import { generateInterpretationsHTML } from '@/lib/interpretations';
 import {
   DropdownMenu,
   DropdownMenuContent,
