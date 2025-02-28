@@ -64,15 +64,17 @@ export default {
 					ring: 'hsl(var(--sidebar-ring))'
 				},
         karmic: {
-          100: '#F7F4F2',
-          200: '#EAE6E1',
-          300: '#D5CEC7',
-          400: '#B8AFA6',
-          500: '#9A9088',
-          600: '#776F68',
-          700: '#5D574F',
-          800: '#40392F',
-          900: '#2A251D'
+          50: 'hsl(var(--karmic-50))',
+          100: 'hsl(var(--karmic-100))',
+          200: 'hsl(var(--karmic-200))',
+          300: 'hsl(var(--karmic-300))',
+          400: 'hsl(var(--karmic-400))',
+          500: 'hsl(var(--karmic-500))',
+          600: 'hsl(var(--karmic-600))',
+          700: 'hsl(var(--karmic-700))',
+          800: 'hsl(var(--karmic-800))',
+          900: 'hsl(var(--karmic-900))',
+          950: 'hsl(var(--karmic-950))'
         }
 			},
       fontFamily: {
