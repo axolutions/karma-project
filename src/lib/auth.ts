@@ -23,15 +23,21 @@ interface UserData {
 const userDatabase: Record<string, UserData> = {};
 
 export function isAuthorizedEmail(email: string): boolean {
-  return authorizedEmails.includes(email.toLowerCase());
+  const normalizedEmail = email.toLowerCase().trim();
+  console.log("Verificando autorização para:", normalizedEmail);
+  console.log("Lista atual de emails:", authorizedEmails);
+  
+  return authorizedEmails.includes(normalizedEmail);
 }
 
 export function addAuthorizedEmail(email: string): boolean {
-  if (authorizedEmails.includes(email.toLowerCase())) {
+  const normalizedEmail = email.toLowerCase().trim();
+  
+  if (authorizedEmails.includes(normalizedEmail)) {
     return false;
   }
   
-  authorizedEmails.push(email.toLowerCase());
+  authorizedEmails.push(normalizedEmail);
   
   // Save to localStorage immediately after adding
   localStorage.setItem('karmicAuthorizedEmails', JSON.stringify(authorizedEmails));
@@ -40,7 +46,9 @@ export function addAuthorizedEmail(email: string): boolean {
 }
 
 export function removeAuthorizedEmail(email: string): boolean {
-  const index = authorizedEmails.indexOf(email.toLowerCase());
+  const normalizedEmail = email.toLowerCase().trim();
+  const index = authorizedEmails.indexOf(normalizedEmail);
+  
   if (index > -1) {
     authorizedEmails.splice(index, 1);
     
@@ -57,8 +65,11 @@ export function getAllAuthorizedEmails(): string[] {
 }
 
 export function saveUserData(userData: Omit<UserData, 'createdAt'>): void {
-  userDatabase[userData.email.toLowerCase()] = {
+  const normalizedEmail = userData.email.toLowerCase().trim();
+  
+  userDatabase[normalizedEmail] = {
     ...userData,
+    email: normalizedEmail, // Garantir que o email no banco de dados esteja normalizado
     createdAt: new Date()
   };
   
@@ -67,6 +78,8 @@ export function saveUserData(userData: Omit<UserData, 'createdAt'>): void {
 }
 
 export function getUserData(email: string): UserData | null {
+  const normalizedEmail = email.toLowerCase().trim();
+  
   // Check if we need to load from localStorage
   if (Object.keys(userDatabase).length === 0) {
     const savedData = localStorage.getItem('karmicUserData');
@@ -80,7 +93,7 @@ export function getUserData(email: string): UserData | null {
     }
   }
   
-  return userDatabase[email.toLowerCase()] || null;
+  return userDatabase[normalizedEmail] || null;
 }
 
 export function loadDatabaseFromStorage(): void {
@@ -88,12 +101,14 @@ export function loadDatabaseFromStorage(): void {
   if (savedEmails) {
     try {
       authorizedEmails = JSON.parse(savedEmails);
+      console.log("Emails carregados do localStorage:", authorizedEmails);
     } catch (error) {
       console.error("Error parsing saved emails:", error);
     }
   } else {
     // Se não houver emails salvos, salva a lista inicial
     localStorage.setItem('karmicAuthorizedEmails', JSON.stringify(authorizedEmails));
+    console.log("Lista inicial de emails salva no localStorage:", authorizedEmails);
   }
   
   const savedUserData = localStorage.getItem('karmicUserData');
@@ -111,7 +126,9 @@ loadDatabaseFromStorage();
 
 // Authentication functions
 export function login(email: string): boolean {
-  if (!isAuthorizedEmail(email)) {
+  const normalizedEmail = email.toLowerCase().trim();
+  
+  if (!isAuthorizedEmail(normalizedEmail)) {
     toast({
       title: "Acesso negado",
       description: "Este email não está autorizado a acessar o sistema.",
@@ -121,7 +138,8 @@ export function login(email: string): boolean {
   }
   
   // Store in session
-  sessionStorage.setItem('karmicCurrentUser', email.toLowerCase());
+  sessionStorage.setItem('karmicCurrentUser', normalizedEmail);
+  console.log("Usuário logado:", normalizedEmail);
   return true;
 }
 
