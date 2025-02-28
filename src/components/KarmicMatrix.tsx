@@ -27,8 +27,8 @@ const KarmicMatrix: React.FC<KarmicMatrixProps> = ({
     // Para valor específico 11 (karmicSeal) - NÃO MUDAR
     karmicSeal: { top: "23%", left: "25%" },
     
-    // Para valor específico 3 (destinyCall) - NÃO MUDAR
-    destinyCall: { top: "13%", left: "85%" },
+    // Para valor específico 3 (destinyCall) - REPOSICIONADO PARA BAIXO E PARA A ESQUERDA
+    destinyCall: { top: "30%", left: "65%" },
     
     // Para valor específico 9 (karmaPortal) - NÃO MUDAR
     karmaPortal: { top: "47%", left: "21%" },
@@ -42,7 +42,7 @@ const KarmicMatrix: React.FC<KarmicMatrixProps> = ({
     // Para valor específico 9 (cycleProphecy) - NÃO MUDAR
     cycleProphecy: { top: "74%", left: "48%" },
     
-    // Para valor específico 1 (spiritualMark) - AJUSTADO PARA CIMA E PARA A DIREITA
+    // Para valor específico 1 (spiritualMark) - NÃO MUDAR
     spiritualMark: { top: "25%", left: "70%" },
     
     // Para valor específico 11 (manifestationEnigma) - NÃO MUDAR
