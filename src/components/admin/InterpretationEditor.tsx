@@ -9,9 +9,10 @@ import {
   setInterpretation, 
   deleteInterpretation,
   getCategoryDisplayName,
-  getAllCategories
+  getAllCategories,
+  recoverFromBackup
 } from '@/lib/interpretations';
-import { Save, Trash, Bold, Italic, List, Type, Quote } from 'lucide-react';
+import { Save, Trash, Bold, Italic, List, Type, Quote, RotateCcw } from 'lucide-react';
 
 const InterpretationEditor: React.FC = () => {
   const [selectedCategory, setSelectedCategory] = useState("karmicSeal");
@@ -60,17 +61,39 @@ const InterpretationEditor: React.FC = () => {
     // Formata o conteúdo para garantir que esteja corretamente estruturado em HTML
     const formattedContent = formatContentForSaving(content);
     
-    setInterpretation(
-      selectedCategory, 
-      parseInt(selectedNumber), 
-      title, 
-      formattedContent
-    );
-    
-    setTimeout(() => {
+    try {
+      setInterpretation(
+        selectedCategory, 
+        parseInt(selectedNumber), 
+        title, 
+        formattedContent
+      );
+      
+      // Verificar se a interpretação foi realmente salva
+      setTimeout(() => {
+        const savedInterpretation = getInterpretation(selectedCategory, parseInt(selectedNumber));
+        if (savedInterpretation.content === DEFAULT_INTERPRETATION) {
+          toast({
+            title: "Erro ao verificar salvamento",
+            description: "A interpretação pode não ter sido salva corretamente. Tente novamente.",
+            variant: "destructive"
+          });
+        }
+        setIsLoading(false);
+      }, 500);
+    } catch (error) {
+      console.error("Erro ao salvar interpretação:", error);
+      toast({
+        title: "Erro ao salvar",
+        description: "Ocorreu um erro ao salvar a interpretação. Verifique o console para detalhes.",
+        variant: "destructive"
+      });
       setIsLoading(false);
-    }, 500);
+    }
   };
+  
+  // Constante para texto padrão
+  const DEFAULT_INTERPRETATION = "Interpretação não disponível para este número. Por favor, contate o administrador para adicionar este conteúdo.";
   
   // Função para garantir que o conteúdo está bem formatado em HTML
   const formatContentForSaving = (rawContent: string) => {
@@ -93,6 +116,27 @@ const InterpretationEditor: React.FC = () => {
       deleteInterpretation(selectedCategory, parseInt(selectedNumber));
       setTitle("");
       setContent("");
+    }
+  };
+  
+  const handleRecoverFromBackup = () => {
+    if (window.confirm(`ATENÇÃO: Esta ação tentará recuperar dados do último backup automático. Continue?`)) {
+      const success = recoverFromBackup();
+      if (success) {
+        toast({
+          title: "Recuperação bem-sucedida",
+          description: "Os dados foram recuperados do backup. Recarregando interpretação...",
+        });
+        setTimeout(() => {
+          loadInterpretation();
+        }, 1000);
+      } else {
+        toast({
+          title: "Recuperação falhou",
+          description: "Não foi possível recuperar os dados do backup.",
+          variant: "destructive"
+        });
+      }
     }
   };
   
@@ -149,6 +193,18 @@ const InterpretationEditor: React.FC = () => {
   
   return (
     <div className="space-y-6">
+      <div className="flex justify-between items-center">
+        <h2 className="text-xl font-medium text-karmic-800">Editor de Interpretações</h2>
+        <Button 
+          variant="outline" 
+          size="sm"
+          onClick={handleRecoverFromBackup}
+          className="text-amber-600 border-amber-300 hover:bg-amber-50"
+        >
+          <RotateCcw className="h-4 w-4 mr-1" /> Recuperar Backup
+        </Button>
+      </div>
+      
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         <div>
           <label htmlFor="category" className="text-sm font-medium text-karmic-700 block mb-2">
@@ -293,7 +349,7 @@ const InterpretationEditor: React.FC = () => {
           onClick={handleSave}
           disabled={isLoading}
         >
-          <Save className="h-4 w-4 mr-1" /> Salvar
+          <Save className="h-4 w-4 mr-1" /> {isLoading ? "Salvando..." : "Salvar"}
         </Button>
       </div>
     </div>
