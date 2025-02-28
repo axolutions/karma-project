@@ -46,6 +46,10 @@ const KarmicMatrix: React.FC<KarmicMatrixProps> = ({
     img.crossOrigin = "anonymous"; // Permitir carregamento cross-origin
     img.src = backgroundImage;
     
+    // Adicionar imagem na página para pré-carregamento
+    img.style.display = 'none';
+    document.body.appendChild(img);
+    
     // Fallback se a imagem não carregar em 5 segundos
     const timeout = setTimeout(() => {
       if (!imageLoaded) {
@@ -54,7 +58,10 @@ const KarmicMatrix: React.FC<KarmicMatrixProps> = ({
       }
     }, 5000);
     
-    return () => clearTimeout(timeout);
+    return () => {
+      clearTimeout(timeout);
+      document.body.removeChild(img);
+    };
   }, [backgroundImage, imageLoaded]);
   
   // Posições para cada número específico
@@ -85,7 +92,10 @@ const KarmicMatrix: React.FC<KarmicMatrixProps> = ({
           alt="Matriz Kármica 2025"
           className="w-full h-auto object-contain"
           style={{ maxHeight: '100%', opacity: imageLoaded || hasError ? 1 : 0.5 }}
-          onLoad={() => setImageLoaded(true)}
+          onLoad={() => {
+            console.log("✓ Imagem da matriz exibida com sucesso");
+            setImageLoaded(true);
+          }}
           onError={() => {
             console.error("✗ Erro ao exibir imagem da matriz");
             setHasError(true);
@@ -95,7 +105,7 @@ const KarmicMatrix: React.FC<KarmicMatrixProps> = ({
         
         {/* Spinner durante carregamento */}
         {!imageLoaded && !hasError && (
-          <div className="absolute inset-0 flex items-center justify-center">
+          <div className="absolute inset-0 flex items-center justify-center download-hidden">
             <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-karmic-800"></div>
           </div>
         )}

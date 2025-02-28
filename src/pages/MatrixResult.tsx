@@ -88,9 +88,11 @@ const MatrixResult = () => {
       
       // Pré-carregar a imagem antes de capturar
       try {
-        await preloadImage("https://darkorange-goldfinch-896244.hostingersite.com/wp-content/uploads/2025/02/Design-sem-nome-1.png");
+        const imgUrl = "https://darkorange-goldfinch-896244.hostingersite.com/wp-content/uploads/2025/02/Design-sem-nome-1.png";
+        await preloadImage(imgUrl);
+        console.log("✓ Imagem pré-carregada com sucesso!");
       } catch (error) {
-        console.warn("Aviso: Falha ao pré-carregar imagem, continuando com a captura...");
+        console.warn("Aviso: Falha ao pré-carregar imagem, continuando com a captura...", error);
       }
       
       // Garantir que a imagem esteja carregada antes de capturar
@@ -106,9 +108,10 @@ const MatrixResult = () => {
       const canvas = await html2canvas(matrixElement as HTMLElement, {
         scale: 3, // Alta qualidade
         backgroundColor: null, // Transparente para preservar cores
-        logging: false,
+        logging: true, // Habilitar logs para depuração
         useCORS: true, // Importante para imagens externas
         allowTaint: true, // Permite imagens de outros domínios
+        imageTimeout: 10000, // Aumentar timeout para carregamento de imagens
         onclone: (clonedDoc) => {
           // Garantir que a imagem esteja visível no clone
           const clonedMatrix = clonedDoc.querySelector('.karmic-matrix-wrapper');
@@ -121,6 +124,7 @@ const MatrixResult = () => {
             const matrixImage = clonedMatrix.querySelector('img');
             if (matrixImage) {
               (matrixImage as HTMLElement).style.opacity = '1';
+              (matrixImage as HTMLElement).style.visibility = 'visible';
               
               // Forçar o carregamento da imagem específica no clone
               if (!(matrixImage as HTMLImageElement).complete) {
