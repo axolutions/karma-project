@@ -57,6 +57,10 @@ const SupabaseSetup: React.FC = () => {
     setIsLoading(false);
   };
 
+  const handleCheckConnection = () => {
+    checkConnectionStatus(true);
+  };
+
   const handleSetupDatabase = async () => {
     setIsLoading(true);
     setSetupAttempted(true);
@@ -337,7 +341,7 @@ const SupabaseSetup: React.FC = () => {
                 
                 <div className="mt-4 flex flex-wrap gap-2">
                   <Button
-                    onClick={checkConnectionStatus}
+                    onClick={handleCheckConnection}
                     variant="outline"
                     disabled={isLoading}
                     size="sm"
@@ -385,7 +389,7 @@ const SupabaseSetup: React.FC = () => {
             <div>
               <div className="flex flex-wrap gap-3">
                 <Button
-                  onClick={checkConnectionStatus}
+                  onClick={handleCheckConnection}
                   variant="outline"
                   disabled={isLoading}
                   size="sm"

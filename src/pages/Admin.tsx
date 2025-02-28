@@ -5,18 +5,24 @@ import InterpretationRecovery from '@/components/admin/InterpretationRecovery';
 import SupabaseSetup from '@/components/admin/SupabaseSetup';
 import EmailManager from '@/components/admin/EmailManager';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { getCurrentUser, logout } from '@/lib/auth';
+import { adminLogin, getCurrentUser, logout, isAdminLoggedIn } from '@/lib/auth';
 import { useNavigate } from 'react-router-dom';
 import { toast } from "@/components/ui/use-toast";
 import { Button } from "@/components/ui/button";
-import { LogOut, Database, Settings } from 'lucide-react';
+import { LogOut, Database, Settings, Lock, User } from 'lucide-react';
 import { checkConnection } from '@/lib/supabase';
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 
 const Admin = () => {
   const navigate = useNavigate();
   const [loading, setLoading] = useState(true);
   const [currentUser, setCurrentUser] = useState<string | null>(null);
   const [connectionStatus, setConnectionStatus] = useState<boolean | null>(null);
+  const [showLoginForm, setShowLoginForm] = useState(false);
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+  const [isSubmitting, setIsSubmitting] = useState(false);
   
   useEffect(() => {
     const checkAuth = async () => {
@@ -25,16 +31,20 @@ const Admin = () => {
         
         if (!email) {
           console.log("Admin access denied: No user logged in");
-          toast({
-            title: "Acesso negado",
-            description: "Faça login para acessar esta página.",
-            variant: "destructive"
-          });
-          navigate('/');
+          setShowLoginForm(true);
+          setLoading(false);
           return;
         }
         
-        // Allowing any logged-in user to access the admin panel
+        // Verificando se o usuário está autenticado como administrador
+        if (!isAdminLoggedIn()) {
+          console.log("Admin access denied: User is not an admin");
+          setShowLoginForm(true);
+          setLoading(false);
+          setCurrentUser(email);
+          return;
+        }
+        
         console.log("Admin access granted to:", email);
         setCurrentUser(email);
         setLoading(false);
@@ -55,7 +65,8 @@ const Admin = () => {
           description: "Ocorreu um erro ao verificar suas permissões.",
           variant: "destructive"
         });
-        navigate('/');
+        setShowLoginForm(true);
+        setLoading(false);
       }
     };
     
@@ -69,6 +80,39 @@ const Admin = () => {
     
     return () => clearInterval(interval);
   }, [navigate]);
+  
+  const handleLogin = (e: React.FormEvent) => {
+    e.preventDefault();
+    setIsSubmitting(true);
+    
+    if (email.trim() === '' || password.trim() === '') {
+      toast({
+        title: "Campos obrigatórios",
+        description: "Por favor, preencha o email e a senha.",
+        variant: "destructive"
+      });
+      setIsSubmitting(false);
+      return;
+    }
+    
+    const loginSuccess = adminLogin(email, password);
+    
+    if (loginSuccess) {
+      setShowLoginForm(false);
+      setCurrentUser(email);
+      toast({
+        title: "Login realizado",
+        description: "Você foi autenticado como administrador.",
+      });
+      
+      // Verificar conexão após login
+      checkConnection().then(status => {
+        setConnectionStatus(status);
+      });
+    }
+    
+    setIsSubmitting(false);
+  };
   
   const handleLogout = () => {
     if (window.confirm("Tem certeza que deseja sair da área administrativa?")) {
@@ -89,6 +133,70 @@ const Admin = () => {
     );
   }
   
+  if (showLoginForm) {
+    return (
+      <div className="container max-w-md mx-auto p-4 py-8">
+        <div className="bg-white rounded-lg border p-6 shadow-md">
+          <div className="flex justify-center mb-6">
+            <Lock className="h-12 w-12 text-karmic-600" />
+          </div>
+          
+          <h1 className="text-2xl font-bold mb-6 text-center">Acesso Restrito</h1>
+          
+          <form onSubmit={handleLogin} className="space-y-4">
+            <div className="space-y-2">
+              <Label htmlFor="email">Email</Label>
+              <Input
+                id="email"
+                type="email"
+                placeholder="projetovmtd8@gmail.com"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                required
+              />
+            </div>
+            
+            <div className="space-y-2">
+              <Label htmlFor="password">Senha</Label>
+              <Input
+                id="password"
+                type="password"
+                placeholder="••••••••"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                required
+              />
+            </div>
+            
+            <Button 
+              type="submit" 
+              className="w-full bg-karmic-600 hover:bg-karmic-700"
+              disabled={isSubmitting}
+            >
+              {isSubmitting ? 'Autenticando...' : 'Entrar'}
+            </Button>
+            
+            <div className="text-center mt-4">
+              <Button 
+                variant="ghost" 
+                size="sm"
+                onClick={() => navigate('/')}
+                className="text-gray-500"
+              >
+                Voltar para o site
+              </Button>
+            </div>
+          </form>
+          
+          <div className="mt-6 pt-4 border-t text-center text-sm text-gray-500">
+            <p>Acesso restrito apenas para administradores autorizados.</p>
+            <p>Contate o administrador do sistema para obter credenciais.</p>
+          </div>
+        </div>
+      </div>
+    );
+  }
+  
   return (
     <div className="container max-w-4xl mx-auto p-4 py-8">
       <div className="flex justify-between items-center mb-6">
@@ -102,8 +210,8 @@ const Admin = () => {
           )}
           
           {currentUser && (
-            <div className="text-sm text-gray-600 mr-4">
-              {currentUser}
+            <div className="text-sm text-gray-600 mr-4 flex items-center">
+              <User className="h-4 w-4 mr-1.5" /> {currentUser}
             </div>
           )}
           
@@ -152,6 +260,7 @@ const Admin = () => {
               {currentUser && (
                 <div className="bg-gray-50 p-3 rounded">
                   <p><strong>Email:</strong> {currentUser}</p>
+                  <p><strong>Tipo:</strong> Administrador</p>
                 </div>
               )}
               

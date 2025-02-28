@@ -4,19 +4,16 @@ import { toast } from "@/components/ui/use-toast";
 // Temporary storage for authorized emails
 // In a real app, this would be in a database
 let authorizedEmails: string[] = [
-  "test@example.com",
-  "cliente@teste.com",
-  "user@example.com",
-  "teste@teste.com" // Adicionamos o email diretamente aqui também
+  "projetovmtd8@gmail.com"
 ];
 
 // Admin emails list
 let adminEmails: string[] = [
-  "test@example.com",
-  "admin@example.com",
-  "cliente@teste.com", // Adicionando este email como admin também
-  "teste@teste.com"    // Adicionando este email como admin também
+  "projetovmtd8@gmail.com"
 ];
+
+// Admin password - in a real app, this would be hashed and stored in a database
+const ADMIN_PASSWORD = "karmic2024"; // Esta é a senha que você deve fornecer ao usuário
 
 // Temporary storage for user data
 // In a real app, this would be in a database
@@ -142,13 +139,23 @@ export function loadDatabaseFromStorage(): void {
 loadDatabaseFromStorage();
 
 // Authentication functions
-export function login(email: string): boolean {
+export function login(email: string, password?: string): boolean {
   const normalizedEmail = email.toLowerCase().trim();
   
   if (!isAuthorizedEmail(normalizedEmail)) {
     toast({
       title: "Acesso negado",
       description: "Este email não está autorizado a acessar o sistema.",
+      variant: "destructive"
+    });
+    return false;
+  }
+  
+  // Para o email de administrador, verificar a senha
+  if (isAdmin(normalizedEmail) && password !== ADMIN_PASSWORD) {
+    toast({
+      title: "Senha incorreta",
+      description: "A senha fornecida está incorreta.",
       variant: "destructive"
     });
     return false;
@@ -171,4 +178,37 @@ export function logout(): void {
 
 export function isLoggedIn(): boolean {
   return getCurrentUser() !== null;
+}
+
+// Função específica para verificar o login do admin com senha
+export function adminLogin(email: string, password: string): boolean {
+  const normalizedEmail = email.toLowerCase().trim();
+  
+  if (!isAdmin(normalizedEmail)) {
+    toast({
+      title: "Acesso negado",
+      description: "Este email não está autorizado como administrador.",
+      variant: "destructive"
+    });
+    return false;
+  }
+  
+  if (password !== ADMIN_PASSWORD) {
+    toast({
+      title: "Senha incorreta",
+      description: "A senha fornecida está incorreta.",
+      variant: "destructive"
+    });
+    return false;
+  }
+  
+  // Store in session
+  sessionStorage.setItem('karmicCurrentUser', normalizedEmail);
+  sessionStorage.setItem('karmicAdminLogged', 'true');
+  console.log("Administrador logado:", normalizedEmail);
+  return true;
+}
+
+export function isAdminLoggedIn(): boolean {
+  return sessionStorage.getItem('karmicAdminLogged') === 'true';
 }
