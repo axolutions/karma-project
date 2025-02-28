@@ -23,14 +23,14 @@ const KarmicMatrix: React.FC<KarmicMatrixProps> = ({
 }) => {
   // Define positions of the 8 boxes on the matrix image - ajustes ainda mais precisos
   const boxPositions = [
-    { top: '10%', left: '25%', translateX: '-50%', translateY: '-50%' },   // Position 1 - top left square (3) - ajuste mais preciso
-    { top: '10%', left: '76%', translateX: '-50%', translateY: '-50%' },   // Position 2 - top right square (1) - ajuste mais preciso
+    { top: '7.5%', left: '25%', translateX: '-50%', translateY: '-50%' },   // Position 1 - top left square (3) - subir bem mais
+    { top: '7.5%', left: '76%', translateX: '-50%', translateY: '-50%' },   // Position 2 - top right square (1) - subir bem mais
     { top: '47%', left: '22%', translateX: '-50%', translateY: '-50%' },   // Position 3 - middle left square (9) - manter
     { top: '47%', left: '72%', translateX: '-50%', translateY: '-50%' },   // Position 4 - middle right square (4) - manter
-    { top: '85%', left: '25%', translateX: '-50%', translateY: '-50%' },   // Position 5 - bottom left square (11) - ajuste mais preciso
+    { top: '88%', left: '25%', translateX: '-50%', translateY: '-50%' },   // Position 5 - bottom left square (11) - descer bem mais
     { top: '74%', left: '48%', translateX: '-50%', translateY: '-50%' },   // Position 6 - bottom middle square (9) - manter
-    { top: '85%', left: '76%', translateX: '-50%', translateY: '-50%' },   // Position 7 - bottom right square (3) - ajuste mais preciso
-    { top: '20%', left: '48%', translateX: '-50%', translateY: '-50%' }    // Position 8 - top middle square (11) - ajuste mais preciso
+    { top: '88%', left: '73%', translateX: '-50%', translateY: '-50%' },   // Position 7 - bottom right square (3) - descer bem mais e ir mais para esquerda
+    { top: '20%', left: '48%', translateX: '-50%', translateY: '-50%' }    // Position 8 - top middle square (11) - manter
   ];
 
   // Map data to positions
