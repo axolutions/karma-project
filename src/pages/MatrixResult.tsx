@@ -25,9 +25,6 @@ const MatrixResult = () => {
   const matrixRef = useRef<HTMLDivElement>(null);
   const navigate = useNavigate();
   
-  // Usamos o ID para forçar um recarregamento quando necessário
-  const [matrixId, setMatrixId] = useState(Date.now());
-  
   useEffect(() => {
     const loadUserData = async () => {
       setLoading(true);
@@ -164,14 +161,12 @@ const MatrixResult = () => {
         const sourceHeight = contentCanvas.height / contentPageCount;
         const destHeight = contentImgHeight / contentPageCount;
         
-        // Usa apenas os parâmetros necessários
         pdf.addImage(
-          contentImgData, // source
-          'PNG', // format
-          10, // x
-          10, // y
-          contentImgWidth, // width
-          destHeight // height
+          contentImgData, 'PNG',
+          10, 10,
+          contentImgWidth, destHeight,
+          null, null,
+          0, i * sourceHeight, contentCanvas.width, sourceHeight
         );
       }
       
@@ -227,16 +222,10 @@ const MatrixResult = () => {
       description: "Recarregando sua Matriz Kármica..."
     });
     
-    // Forçar recarregamento da matriz mudando seu ID para forçar re-renderização
-    setMatrixId(Date.now());
-    
+    // Simular um pequeno delay e então recarregar
     setTimeout(() => {
-      setRefreshing(false);
-      toast({
-        title: "Atualizado",
-        description: "Matriz Kármica recarregada com sucesso!"
-      });
-    }, 1000);
+      window.location.reload();
+    }, 500);
   };
   
   if (loading) {
@@ -336,7 +325,7 @@ const MatrixResult = () => {
               Data de Nascimento: <span className="font-medium">{userData?.birthDate || "Não informada"}</span>
             </p>
             
-            <div ref={matrixRef} key={matrixId}>
+            <div ref={matrixRef}>
               <KarmicMatrix karmicData={userData?.karmicNumbers} />
             </div>
           </motion.div>
