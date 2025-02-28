@@ -1,9 +1,10 @@
 
 import React, { useState, useEffect } from 'react';
-import { getInterpretation, getCategoryDisplayName, exportInterpretations } from '@/lib/interpretations';
+import { getInterpretation, getCategoryDisplayName, exportInterpretations, getAllInterpretations } from '@/lib/interpretations';
 import { motion, AnimatePresence } from 'framer-motion';
-import { ChevronDown, ChevronUp, AlertCircle } from 'lucide-react';
+import { ChevronDown, ChevronUp, AlertCircle, Database, RefreshCw } from 'lucide-react';
 import { toast } from "@/components/ui/use-toast";
+import { Button } from "@/components/ui/button";
 
 interface MatrixInterpretationsProps {
   karmicData: {
@@ -23,6 +24,61 @@ const MatrixInterpretations: React.FC<MatrixInterpretationsProps> = ({ karmicDat
   const [isLoaded, setIsLoaded] = useState(false);
   const [interpretationsData, setInterpretationsData] = useState<Record<string, any>>({});
   const [loadError, setLoadError] = useState(false);
+  const [isRecoveryMode, setIsRecoveryMode] = useState(false);
+  const [rawStorageData, setRawStorageData] = useState<string>("");
+
+  // Function to force reload interpretations
+  const forceReloadInterpretations = async () => {
+    setIsLoaded(false);
+    
+    try {
+      // Inspect localStorage directly
+      const rawData = localStorage.getItem('karmicInterpretations');
+      if (rawData) {
+        setRawStorageData(rawData);
+        console.log("Raw localStorage data found:", rawData.substring(0, 500) + "...");
+      }
+      
+      // Try to get all interpretations
+      const allInterpretations = getAllInterpretations();
+      console.log("Total interpretations found:", allInterpretations.length);
+      
+      if (allInterpretations.length > 0) {
+        // Display first 3 for diagnostics
+        console.log("Sample interpretations:", allInterpretations.slice(0, 3));
+      }
+
+      // Get all data as object
+      const allData = exportInterpretations();
+      console.log("Exported interpretations data:", Object.keys(allData).length);
+      setInterpretationsData(allData);
+      
+      if (Object.keys(allData).length === 0) {
+        setLoadError(true);
+        toast({
+          title: "Nenhuma interpretação encontrada",
+          description: "Não foi possível encontrar suas interpretações no sistema. Verifique se os dados foram importados corretamente.",
+          variant: "destructive"
+        });
+      } else {
+        setLoadError(false);
+        toast({
+          title: "Interpretações carregadas",
+          description: `${Object.keys(allData).length} interpretações foram encontradas e carregadas.`
+        });
+      }
+    } catch (error) {
+      console.error("Erro ao recarregar interpretações:", error);
+      setLoadError(true);
+      toast({
+        title: "Erro ao carregar interpretações",
+        description: "Ocorreu um erro ao tentar recuperar suas interpretações.",
+        variant: "destructive"
+      });
+    } finally {
+      setIsLoaded(true);
+    }
+  };
 
   useEffect(() => {
     // Carregar interpretações logo no início
@@ -34,14 +90,40 @@ const MatrixInterpretations: React.FC<MatrixInterpretationsProps> = ({ karmicDat
         console.log("Dados de interpretações disponíveis:", allData);
         setInterpretationsData(allData);
         
+        // Obter a lista completa de interpretações para depuração
+        const allInterpretations = getAllInterpretations();
+        console.log("Total de interpretações encontradas:", allInterpretations.length);
+        
         if (Object.keys(allData).length === 0) {
           console.warn("Nenhuma interpretação encontrada no armazenamento");
           setLoadError(true);
-          toast({
-            title: "Aviso sobre interpretações",
-            description: "Não foi possível carregar as interpretações. Usando conteúdo padrão.",
-            variant: "destructive"
-          });
+          
+          // Verificar localStorage diretamente
+          const rawData = localStorage.getItem('karmicInterpretations');
+          if (rawData) {
+            setRawStorageData(rawData);
+            console.log("Dados brutos encontrados no localStorage:", rawData.substring(0, 500) + "...");
+            
+            // Tentar recuperar manualmente
+            try {
+              const parsedData = JSON.parse(rawData);
+              if (parsedData && Object.keys(parsedData).length > 0) {
+                console.log("Dados recuperados manualmente do localStorage:", Object.keys(parsedData).length);
+                setInterpretationsData(parsedData);
+                setLoadError(false);
+              }
+            } catch (parseError) {
+              console.error("Erro ao analisar dados do localStorage:", parseError);
+            }
+          }
+          
+          if (loadError) {
+            toast({
+              title: "Dados não encontrados",
+              description: "Suas interpretações não foram encontradas. Use o botão 'Recuperar Interpretações' para tentar novamente.",
+              variant: "destructive"
+            });
+          }
         }
       } catch (error) {
         console.error("Erro ao carregar interpretações:", error);
@@ -70,6 +152,10 @@ const MatrixInterpretations: React.FC<MatrixInterpretationsProps> = ({ karmicDat
       }
       return newSet;
     });
+  };
+
+  const toggleRecoveryMode = () => {
+    setIsRecoveryMode(!isRecoveryMode);
   };
 
   // Se karmicData for undefined, exibimos uma mensagem
@@ -185,48 +271,11 @@ const MatrixInterpretations: React.FC<MatrixInterpretationsProps> = ({ karmicDat
     return processedHTML;
   };
 
-  // Renderizar conteúdo de exemplo para casos onde a interpretação original não existe
-  const getFallbackContent = (category: string, number: number) => {
-    const categoryDisplayName = getCategoryDisplayName(category);
-    let fallbackContent = '';
-    
-    // Conteúdo básico baseado na categoria
-    switch(category) {
-      case 'karmicSeal':
-        fallbackContent = `<p>Seu <strong>Selo Kármico ${number}</strong> em 2025 indica um período de crescimento significativo. Este número representa sua essência vital e propósito primordial.</p>
-        <h3>Significado Profundo</h3>
-        <p>O número ${number} traz a energia de [qualidade principal], convidando você a desenvolver maior [virtude relacionada] enquanto trabalha seus desafios pessoais.</p>`;
-        break;
-      case 'destinyCall':
-        fallbackContent = `<p>O <strong>Chamado do Destino ${number}</strong> em sua matriz para 2025 revela sua vocação profunda e propósito de vida. Este é um momento crucial para ouvir o que sua alma veio realizar.</p>`;
-        break;
-      case 'karmaPortal':
-        fallbackContent = `<p>O <strong>Portal do Karma ${number}</strong> em sua matriz revela as lições que sua alma está trabalhando em 2025. Este portal representa um ponto de transformação importante.</p>`;
-        break;
-      case 'karmicInheritance':
-        fallbackContent = `<p>Sua <strong>Herança Kármica ${number}</strong> representa os dons e talentos que você traz de vidas passadas. Em 2025, estes dons estarão especialmente ativos e disponíveis.</p>`;
-        break;
-      case 'karmicReprogramming':
-        fallbackContent = `<p>O <strong>Códex da Reprogramação ${number}</strong> indica padrões que precisam ser transformados em 2025. Este é um ano importante para liberar limitações antigas.</p>`;
-        break;
-      case 'cycleProphecy':
-        fallbackContent = `<p>A <strong>Profecia dos Ciclos ${number}</strong> revela as energias cíclicas que estarão influenciando sua vida em 2025. Prepare-se para um período de significativa evolução pessoal.</p>`;
-        break;
-      case 'spiritualMark':
-        fallbackContent = `<p>Sua <strong>Marca Espiritual ${number}</strong> indica a frequência vibratória de sua alma em 2025. Esta energia o guiará em sua expansão de consciência ao longo do ano.</p>`;
-        break;
-      case 'manifestationEnigma':
-        fallbackContent = `<p>O <strong>Enigma da Manifestação ${number}</strong> em sua matriz para 2025 revela como você tende a materializar suas intenções e desejos. Esta energia o ajudará a manifestar o que realmente importa.</p>`;
-        break;
-      default:
-        fallbackContent = `<p>Esta interpretação ainda está sendo preparada. Por favor, consulte novamente em breve para obter insights sobre o ${categoryDisplayName} ${number}.</p>`;
-    }
-    
-    // Adicionar afirmação genérica
-    fallbackContent += `<h3>Afirmação Kármica</h3>
-    <p>Eu abraço plenamente a energia do número ${number} em minha vida, permitindo que ela me guie para meu mais alto potencial em 2025.</p>`;
-    
-    return fallbackContent;
+  // Tentar recuperar e exibir a interpretação real, sem fallback
+  const getRawInterpretation = (category: string, number: number) => {
+    const id = `${category}-${number}`;
+    const interpretationData = interpretationsData[id];
+    return interpretationData ? interpretationData.content : null;
   };
 
   if (!isLoaded) {
@@ -244,6 +293,63 @@ const MatrixInterpretations: React.FC<MatrixInterpretationsProps> = ({ karmicDat
     );
   }
 
+  // Exibir área de diagnóstico/recuperação
+  if (isRecoveryMode) {
+    return (
+      <div className="max-w-4xl mx-auto mt-8">
+        <div className="karmic-card p-6">
+          <div className="flex justify-between items-center mb-4">
+            <h2 className="text-xl font-serif font-medium text-karmic-800">
+              Modo de Recuperação de Dados
+            </h2>
+            <Button 
+              variant="outline" 
+              onClick={toggleRecoveryMode}
+              className="text-karmic-600"
+            >
+              Voltar às Interpretações
+            </Button>
+          </div>
+          
+          <div className="mb-4">
+            <h3 className="font-medium mb-2">Diagnóstico de Armazenamento</h3>
+            <div className="bg-gray-50 p-4 rounded-md">
+              <p>Interpretações carregadas: {Object.keys(interpretationsData).length}</p>
+              <p>Estado de erro: {loadError ? "Sim" : "Não"}</p>
+            </div>
+          </div>
+          
+          <div className="mb-4">
+            <h3 className="font-medium mb-2">Dados Brutos do LocalStorage</h3>
+            <div className="bg-gray-50 p-4 rounded-md max-h-60 overflow-auto text-xs">
+              <pre>{rawStorageData || "Nenhum dado encontrado no localStorage"}</pre>
+            </div>
+          </div>
+          
+          <div className="mb-4">
+            <h3 className="font-medium mb-2">Interpretações Disponíveis</h3>
+            <div className="bg-gray-50 p-4 rounded-md max-h-60 overflow-auto text-xs">
+              <pre>{
+                Object.keys(interpretationsData).length > 0 
+                  ? JSON.stringify(Object.keys(interpretationsData), null, 2) 
+                  : "Nenhuma interpretação encontrada"
+              }</pre>
+            </div>
+          </div>
+          
+          <div className="flex justify-center mt-4">
+            <Button 
+              onClick={forceReloadInterpretations}
+              className="bg-karmic-600 hover:bg-karmic-700 text-white"
+            >
+              <RefreshCw className="h-4 w-4 mr-2" /> Recarregar Interpretações
+            </Button>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="max-w-4xl mx-auto mt-8">
       <h2 className="text-2xl md:text-3xl font-serif font-medium text-karmic-800 mb-6 text-center">
@@ -252,14 +358,32 @@ const MatrixInterpretations: React.FC<MatrixInterpretationsProps> = ({ karmicDat
       
       {loadError && (
         <div className="bg-amber-50 border-l-4 border-amber-400 p-4 mb-6 rounded-md">
-          <div className="flex">
-            <div className="flex-shrink-0">
+          <div className="flex items-start">
+            <div className="flex-shrink-0 pt-0.5">
               <AlertCircle className="h-5 w-5 text-amber-400" />
             </div>
             <div className="ml-3">
               <p className="text-sm text-amber-700">
-                <strong>Algumas interpretações podem estar usando conteúdo padrão.</strong> Os dados completos não puderam ser carregados neste momento.
+                <strong>Problemas ao carregar suas interpretações.</strong> Suas interpretações personalizadas não puderam ser carregadas.
               </p>
+              <div className="mt-2 flex space-x-2">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={forceReloadInterpretations}
+                  className="h-8 text-xs border-amber-400 text-amber-700 hover:bg-amber-100"
+                >
+                  <RefreshCw className="h-3.5 w-3.5 mr-1.5" /> Tentar Novamente
+                </Button>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={toggleRecoveryMode}
+                  className="h-8 text-xs border-amber-400 text-amber-700 hover:bg-amber-100"
+                >
+                  <Database className="h-3.5 w-3.5 mr-1.5" /> Diagnóstico
+                </Button>
+              </div>
             </div>
           </div>
         </div>
@@ -270,20 +394,30 @@ const MatrixInterpretations: React.FC<MatrixInterpretationsProps> = ({ karmicDat
           // Tenta obter a interpretação, com tratamento de erro
           let interpretation = { title: '', content: '' };
           try {
-            interpretation = getInterpretation(item.key, item.value);
+            // Primeiro verificamos se temos a interpretação real nos dados carregados
+            const rawInterpretation = getRawInterpretation(item.key, item.value);
             
-            // Verificar se temos apenas o conteúdo padrão (indica que não existe interpretação personalizada)
-            const isDefaultContent = interpretation.content.includes("Interpretação não disponível");
-            
-            // Se for conteúdo padrão, usar o fallback
-            if (isDefaultContent) {
-              interpretation.title = `${getCategoryDisplayName(item.key)} ${item.value}`;
-              interpretation.content = getFallbackContent(item.key, item.value);
+            if (rawInterpretation) {
+              // Se temos a interpretação real, usamos ela
+              interpretation = {
+                title: `${getCategoryDisplayName(item.key)} ${item.value}`,
+                content: rawInterpretation
+              };
+            } else {
+              // Se não temos, tentamos obter do sistema
+              interpretation = getInterpretation(item.key, item.value);
+              
+              // Verificar se temos apenas o conteúdo padrão (indica que não existe interpretação)
+              if (interpretation.content.includes("Interpretação não disponível")) {
+                console.warn(`Interpretação não encontrada para ${item.key}-${item.value}`);
+              }
             }
           } catch (error) {
             console.error(`Erro ao obter interpretação para ${item.key}-${item.value}:`, error);
-            interpretation.title = `${getCategoryDisplayName(item.key)} ${item.value}`;
-            interpretation.content = getFallbackContent(item.key, item.value);
+            interpretation = {
+              title: `${getCategoryDisplayName(item.key)} ${item.value}`,
+              content: `<p>Não foi possível carregar esta interpretação. Por favor, tente recarregar a página.</p>`
+            };
           }
           
           const isExpanded = expandedSections.has(item.key);
@@ -335,6 +469,16 @@ const MatrixInterpretations: React.FC<MatrixInterpretationsProps> = ({ karmicDat
             </motion.div>
           );
         })}
+      </div>
+      
+      <div className="flex justify-center mt-8">
+        <Button
+          variant="outline"
+          onClick={toggleRecoveryMode}
+          className="text-karmic-600"
+        >
+          <Database className="h-4 w-4 mr-2" /> Ferramentas de Diagnóstico
+        </Button>
       </div>
     </div>
   );
