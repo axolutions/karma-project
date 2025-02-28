@@ -1,5 +1,5 @@
 
-import React, { useEffect, useState, useRef } from 'react';
+import React, { useEffect, useState } from 'react';
 import { getInterpretation, renderHTML } from '@/lib/interpretations';
 import { motion } from 'framer-motion';
 
@@ -19,33 +19,24 @@ interface KarmicMatrixProps {
 
 const KarmicMatrix: React.FC<KarmicMatrixProps> = ({ 
   karmicData,
-  backgroundImage = "/lovable-uploads/77a4e867-ec94-4db5-b2be-656d9131268e.png"
+  backgroundImage = "https://darkorange-goldfinch-896244.hostingersite.com/wp-content/uploads/2025/02/Design-sem-nome-1.png"
 }) => {
   const [imageLoaded, setImageLoaded] = useState(false);
   const [imgSrc, setImgSrc] = useState(backgroundImage);
-  const imgRef = useRef<HTMLImageElement>(null);
   
   // Pré-carrega a imagem para garantir que ela esteja disponível para impressão
-  // Sem dependências para evitar re-renders
   useEffect(() => {
     const img = new Image();
     img.onload = () => {
-      console.log("Imagem da matriz carregada com sucesso:", backgroundImage);
       setImageLoaded(true);
     };
     img.onerror = () => {
+      // Fallback para uma imagem local se a externa falhar
       console.error("Erro ao carregar a imagem da matriz. Usando fallback.");
       setImgSrc("/placeholder.svg");
-      setImageLoaded(true); // Mesmo com erro, continuamos
     };
     img.src = backgroundImage;
-    
-    // Cleanup para evitar memory leaks
-    return () => {
-      img.onload = null;
-      img.onerror = null;
-    };
-  }, []); // Remove backgroundImage das dependências para evitar loops
+  }, [backgroundImage]);
   
   // Vamos listar explicitamente as posições para cada número específico
   const numberPositions = {
@@ -82,6 +73,7 @@ const KarmicMatrix: React.FC<KarmicMatrixProps> = ({
           src={imgSrc} 
           alt="Matriz Kármica 2025" 
           className="w-full h-auto"
+          onLoad={() => setImageLoaded(true)}
           style={{ 
             border: '1px solid #EAE6E1',
             borderRadius: '8px'
@@ -108,36 +100,20 @@ const KarmicMatrix: React.FC<KarmicMatrixProps> = ({
 
   return (
     <div className="relative max-w-4xl mx-auto">
-      {/* Mostrar indicador de carregamento enquanto a imagem carrega */}
-      {!imageLoaded && (
-        <div className="animate-pulse bg-karmic-100 w-full h-80 rounded-lg flex items-center justify-center">
-          <p className="text-karmic-600">Carregando matriz...</p>
-        </div>
-      )}
-      
-      {/* Background matrix image - importante manter as propriedades mesmo quando não estiver visível */}
+      {/* Background matrix image */}
       <img 
-        ref={imgRef}
         src={imgSrc} 
         alt="Matriz Kármica 2025" 
         className="w-full h-auto"
+        onLoad={() => setImageLoaded(true)}
         style={{ 
-          visibility: imageLoaded ? 'visible' : 'hidden',
+          // Adiciona um contorno para caso a imagem não seja visível no PDF
           border: '1px solid #EAE6E1',
           borderRadius: '8px'
         }}
-        onLoad={() => {
-          console.log("Imagem carregada via evento onLoad");
-          setImageLoaded(true);
-        }}
-        onError={() => {
-          console.error("Erro ao carregar imagem via evento onError");
-          setImgSrc("/placeholder.svg");
-          setImageLoaded(true);
-        }}
       />
       
-      {/* Numbers overlay - só mostrar quando a imagem estiver carregada */}
+      {/* Numbers overlay */}
       {imageLoaded && numbersToDisplay.map((item, index) => (
         <motion.div
           key={item.key}

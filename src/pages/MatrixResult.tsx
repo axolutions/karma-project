@@ -1,20 +1,19 @@
 
-import React, { useEffect, useState, useRef } from 'react';
+import React, { useEffect, useState } from 'react';
 import { Button } from "@/components/ui/button";
 import { getCurrentUser, getUserData, logout } from '@/lib/auth';
 import { useNavigate } from 'react-router-dom';
 import KarmicMatrix from '@/components/KarmicMatrix';
 import MatrixInterpretations from '@/components/MatrixInterpretations';
-import { LogOut, RefreshCw } from 'lucide-react';
+import { Printer, LogOut, RefreshCw, Download } from 'lucide-react';
 import { toast } from "@/components/ui/use-toast";
 import { motion } from 'framer-motion';
 
 const MatrixResult = () => {
   const [userData, setUserData] = useState<any>(null);
   const [refreshing, setRefreshing] = useState(false);
+  const [isPrinting, setIsPrinting] = useState(false);
   const [loading, setLoading] = useState(true);
-  const [uniqueKey, setUniqueKey] = useState(Date.now()); // ID único para forçar re-render completo
-  const contentRef = useRef<HTMLDivElement>(null);
   const navigate = useNavigate();
   
   useEffect(() => {
@@ -64,6 +63,93 @@ const MatrixResult = () => {
     loadUserData();
   }, [navigate]);
   
+  // Detecta quando a impressão é concluída ou cancelada
+  useEffect(() => {
+    if (isPrinting) {
+      // Adicionar evento para quando o modal de impressão for fechado
+      const handleAfterPrint = () => {
+        setIsPrinting(false);
+        console.log("Impressão concluída ou cancelada");
+      };
+      
+      window.addEventListener('afterprint', handleAfterPrint);
+      
+      return () => {
+        window.removeEventListener('afterprint', handleAfterPrint);
+      };
+    }
+  }, [isPrinting]);
+  
+  const handlePrint = () => {
+    setIsPrinting(true);
+    
+    // Garantir que todos os estilos e imagens sejam carregados antes de imprimir
+    setTimeout(() => {
+      try {
+        // Adiciona a classe específica para modo de impressão
+        document.body.classList.add('printing-mode');
+        
+        // Usar o método de impressão nativo do navegador
+        window.print();
+        
+        // Remove a classe após um tempo
+        setTimeout(() => {
+          document.body.classList.remove('printing-mode');
+        }, 1000);
+        
+        // Em alguns navegadores, o evento afterprint pode não ser disparado
+        // Então definimos um timeout de segurança
+        setTimeout(() => {
+          if (isPrinting) {
+            setIsPrinting(false);
+          }
+        }, 5000);
+      } catch (error) {
+        console.error("Erro ao imprimir:", error);
+        setIsPrinting(false);
+        toast({
+          title: "Erro ao imprimir",
+          description: "Houve um problema ao gerar o PDF. Tente novamente.",
+          variant: "destructive"
+        });
+      }
+    }, 500); // Aumentado o delay para garantir carregamento completo
+  };
+  
+  // Função alternativa para quem tem problemas com a impressão direta
+  const handleExportPDF = () => {
+    toast({
+      title: "Exportando PDF",
+      description: "Use a opção 'Salvar como PDF' na janela de impressão que irá abrir."
+    });
+    
+    setTimeout(() => {
+      try {
+        // Adiciona a classe específica para modo de impressão
+        document.body.classList.add('printing-mode');
+        
+        const printOptions = {
+          destination: 'save-as-pdf'
+        };
+        
+        // Em navegadores modernos, isso deve abrir diretamente a opção de salvar como PDF
+        window.print();
+        
+        // Remove a classe após um tempo
+        setTimeout(() => {
+          document.body.classList.remove('printing-mode');
+        }, 1000);
+      } catch (error) {
+        console.error("Erro ao exportar PDF:", error);
+        toast({
+          title: "Erro ao exportar",
+          description: "Houve um problema ao exportar o PDF. Tente imprimir normalmente e escolha 'Salvar como PDF'.",
+          variant: "destructive"
+        });
+      }
+    }, 500);
+  };
+  
   const handleLogout = () => {
     logout();
     toast({
@@ -75,14 +161,12 @@ const MatrixResult = () => {
 
   const handleRefresh = () => {
     setRefreshing(true);
-    setUniqueKey(Date.now()); // Gerar nova chave única para forçar recriação do componente
-    
     toast({
       title: "Atualizando",
       description: "Recarregando sua Matriz Kármica..."
     });
     
-    // Simular um pequeno delay e então recarregar a página completamente
+    // Simular um pequeno delay e então recarregar
     setTimeout(() => {
       window.location.reload();
     }, 500);
@@ -124,6 +208,24 @@ const MatrixResult = () => {
             </Button>
             
             <Button 
+              onClick={handleExportPDF}
+              className="karmic-button flex items-center"
+              disabled={isPrinting}
+            >
+              <Download className="mr-2 h-4 w-4" />
+              Exportar PDF
+            </Button>
+            
+            <Button 
+              onClick={handlePrint}
+              className="karmic-button flex items-center"
+              disabled={isPrinting}
+            >
+              <Printer className={`mr-2 h-4 w-4 ${isPrinting ? 'animate-spin' : ''}`} />
+              {isPrinting ? 'Gerando PDF...' : 'Imprimir'}
+            </Button>
+            
+            <Button 
               onClick={handleLogout}
               variant="outline"
               className="karmic-button-outline flex items-center"
@@ -134,29 +236,23 @@ const MatrixResult = () => {
           </div>
         </div>
         
-        <div ref={contentRef}>
-          <motion.div
-            key={uniqueKey} // Usar chave única para forçar recriação completa do componente ao atualizar
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            transition={{ duration: 0.5 }}
-            className="text-center mb-10 print:mb-5"
-          >
-            <h2 className="text-xl md:text-2xl font-serif font-medium text-karmic-800 mb-2">
-              Sua Matriz Kármica
-            </h2>
-            <p className="text-karmic-600 mb-6 print:mb-3">
-              Data de Nascimento: <span className="font-medium">{userData?.birthDate || "Não informada"}</span>
-            </p>
-            
-            <KarmicMatrix 
-              key={uniqueKey} // Mesma chave única para garantir re-render completo
-              karmicData={userData?.karmicNumbers} 
-            />
-          </motion.div>
+        <motion.div
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ duration: 0.5 }}
+          className="text-center mb-10 print:mb-5"
+        >
+          <h2 className="text-xl md:text-2xl font-serif font-medium text-karmic-800 mb-2">
+            Sua Matriz Kármica
+          </h2>
+          <p className="text-karmic-600 mb-6 print:mb-3">
+            Data de Nascimento: <span className="font-medium">{userData?.birthDate || "Não informada"}</span>
+          </p>
           
-          <MatrixInterpretations karmicData={userData?.karmicNumbers} />
-        </div>
+          <KarmicMatrix karmicData={userData?.karmicNumbers} />
+        </motion.div>
+        
+        <MatrixInterpretations karmicData={userData?.karmicNumbers} />
       </div>
     </div>
   );
