@@ -21,15 +21,15 @@ const KarmicMatrix: React.FC<KarmicMatrixProps> = ({
   karmicData,
   backgroundImage = "https://darkorange-goldfinch-896244.hostingersite.com/wp-content/uploads/2025/02/Design-sem-nome-1.png"
 }) => {
-  // Define positions of the 8 boxes on the matrix image - ajustes ainda mais precisos
+  // Define positions of the 8 boxes on the matrix image - correções extremas nas direções corretas
   const boxPositions = [
-    { top: '7.5%', left: '25%', translateX: '-50%', translateY: '-50%' },   // Position 1 - top left square (3) - subir bem mais
-    { top: '7.5%', left: '76%', translateX: '-50%', translateY: '-50%' },   // Position 2 - top right square (1) - subir bem mais
+    { top: '14%', left: '25%', translateX: '-50%', translateY: '-50%' },   // Position 1 - top left square (3) - descer mais (ao invés de subir)
+    { top: '14%', left: '76%', translateX: '-50%', translateY: '-50%' },   // Position 2 - top right square (1) - descer mais (ao invés de subir)
     { top: '47%', left: '22%', translateX: '-50%', translateY: '-50%' },   // Position 3 - middle left square (9) - manter
     { top: '47%', left: '72%', translateX: '-50%', translateY: '-50%' },   // Position 4 - middle right square (4) - manter
-    { top: '88%', left: '25%', translateX: '-50%', translateY: '-50%' },   // Position 5 - bottom left square (11) - descer bem mais
+    { top: '80%', left: '25%', translateX: '-50%', translateY: '-50%' },   // Position 5 - bottom left square (11) - subir (ao invés de descer)
     { top: '74%', left: '48%', translateX: '-50%', translateY: '-50%' },   // Position 6 - bottom middle square (9) - manter
-    { top: '88%', left: '73%', translateX: '-50%', translateY: '-50%' },   // Position 7 - bottom right square (3) - descer bem mais e ir mais para esquerda
+    { top: '80%', left: '71%', translateX: '-50%', translateY: '-50%' },   // Position 7 - bottom right square (3) - subir e mais para a esquerda
     { top: '20%', left: '48%', translateX: '-50%', translateY: '-50%' }    // Position 8 - top middle square (11) - manter
   ];
 
