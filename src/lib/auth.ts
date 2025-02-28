@@ -6,7 +6,8 @@ import { toast } from "@/components/ui/use-toast";
 let authorizedEmails: string[] = [
   "test@example.com",
   "cliente@teste.com",
-  "user@example.com"
+  "user@example.com",
+  "teste@teste.com" // Adicionamos o email diretamente aqui também
 ];
 
 // Temporary storage for user data
@@ -31,6 +32,10 @@ export function addAuthorizedEmail(email: string): boolean {
   }
   
   authorizedEmails.push(email.toLowerCase());
+  
+  // Save to localStorage immediately after adding
+  localStorage.setItem('karmicAuthorizedEmails', JSON.stringify(authorizedEmails));
+  
   return true;
 }
 
@@ -38,6 +43,10 @@ export function removeAuthorizedEmail(email: string): boolean {
   const index = authorizedEmails.indexOf(email.toLowerCase());
   if (index > -1) {
     authorizedEmails.splice(index, 1);
+    
+    // Save to localStorage immediately after removing
+    localStorage.setItem('karmicAuthorizedEmails', JSON.stringify(authorizedEmails));
+    
     return true;
   }
   return false;
@@ -82,6 +91,9 @@ export function loadDatabaseFromStorage(): void {
     } catch (error) {
       console.error("Error parsing saved emails:", error);
     }
+  } else {
+    // Se não houver emails salvos, salva a lista inicial
+    localStorage.setItem('karmicAuthorizedEmails', JSON.stringify(authorizedEmails));
   }
   
   const savedUserData = localStorage.getItem('karmicUserData');
