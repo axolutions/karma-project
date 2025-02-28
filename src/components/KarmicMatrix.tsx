@@ -23,28 +23,28 @@ const KarmicMatrix: React.FC<KarmicMatrixProps> = ({
 }) => {
   // Coordenadas específicas para cada posição
   const positions = [
-    // Posição 0 - 3 da esquerda (topo)
+    // Posição 0 - 3 da esquerda (topo) - PROTEGIDO
     { top: "23%", left: "25%" },
     
-    // Posição 1 - 1 da direita (topo)
+    // Posição 1 - 1 da direita (topo) - PROTEGIDO
     { top: "13%", left: "85%" },
     
-    // Posição 2 - meio esquerda
-    { top: "47%", left: "21%" },
+    // Posição 2 - meio esquerda - AJUSTADO PARA SUBIR MUITO
+    { top: "28%", left: "21%" },
     
-    // Posição 3 - meio direita
+    // Posição 3 - meio direita - PROTEGIDO
     { top: "47%", left: "72%" },
     
-    // Posição 4 - 11 da esquerda (baixo)
+    // Posição 4 - 11 da esquerda (baixo) - PROTEGIDO
     { top: "89%", left: "25%" },
     
-    // Posição 5 - meio inferior
+    // Posição 5 - meio inferior - PROTEGIDO
     { top: "74%", left: "48%" },
     
-    // Posição 6 - 3 da direita (baixo)
+    // Posição 6 - 3 da direita (baixo) - PROTEGIDO
     { top: "87%", left: "85%" },
     
-    // Posição 7 - meio superior
+    // Posição 7 - meio superior - PROTEGIDO
     { top: "20%", left: "47%" }
   ];
 
