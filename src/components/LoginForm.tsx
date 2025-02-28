@@ -54,7 +54,9 @@ const LoginForm: React.FC = () => {
           // User already has a matrix, redirect to results
           navigate('/matrix');
         } else {
-          // User needs to fill profile, force reload to show profile form
+          // User needs to fill profile, redirect to profile page
+          navigate('/');
+          // Force reload to show profile form
           window.location.reload();
         }
       }, 1000);

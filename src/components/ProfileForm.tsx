@@ -1,11 +1,11 @@
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { MoveRight } from "lucide-react";
 import { calculateAllKarmicNumbers } from '@/lib/calculations';
 import { toast } from "@/components/ui/use-toast";
-import { saveUserData, getCurrentUser } from '@/lib/auth';
+import { saveUserData, getCurrentUser, getUserData } from '@/lib/auth';
 import { useNavigate } from 'react-router-dom';
 
 const ProfileForm: React.FC = () => {
@@ -13,7 +13,27 @@ const ProfileForm: React.FC = () => {
   const [birthDate, setBirthDate] = useState('');
   const [isValid, setIsValid] = useState(true);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [existingProfile, setExistingProfile] = useState(false);
   const navigate = useNavigate();
+  
+  useEffect(() => {
+    // Verificar se o usuário já tem um perfil gerado
+    const currentUser = getCurrentUser();
+    if (currentUser) {
+      const userData = getUserData(currentUser);
+      if (userData) {
+        // Usuário já possui perfil, redirecionar para a matriz
+        setExistingProfile(true);
+        setTimeout(() => {
+          toast({
+            title: "Matriz já gerada",
+            description: "Você já possui uma Matriz Kármica Pessoal. Redirecionando para visualização.",
+          });
+          navigate('/matrix');
+        }, 500);
+      }
+    }
+  }, [navigate]);
   
   const formatDate = (value: string) => {
     // Filter out non-numeric characters except /
@@ -70,6 +90,21 @@ const ProfileForm: React.FC = () => {
     e.preventDefault();
     setIsSubmitting(true);
     
+    // Verificar novamente se o usuário já tem perfil (dupla checagem)
+    const currentUser = getCurrentUser();
+    if (currentUser) {
+      const userData = getUserData(currentUser);
+      if (userData) {
+        toast({
+          title: "Matriz já gerada",
+          description: "Você já possui uma Matriz Kármica. Redirecionando para visualização.",
+        });
+        setIsSubmitting(false);
+        navigate('/matrix');
+        return;
+      }
+    }
+    
     if (!name.trim()) {
       toast({
         title: "Nome obrigatório",
@@ -125,6 +160,17 @@ const ProfileForm: React.FC = () => {
       navigate('/matrix');
     }, 1000);
   };
+
+  // Se o usuário já tem um perfil, não mostrar o formulário
+  if (existingProfile) {
+    return (
+      <div className="flex flex-col items-center justify-center space-y-4 py-8">
+        <p className="text-center text-karmic-700">
+          Redirecionando para sua Matriz Kármica Pessoal...
+        </p>
+      </div>
+    );
+  }
 
   return (
     <form onSubmit={handleSubmit} className="space-y-4 max-w-md mx-auto">
