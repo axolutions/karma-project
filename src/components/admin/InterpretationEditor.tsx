@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect, useRef } from 'react';
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -53,8 +52,8 @@ const InterpretationEditor: React.FC = () => {
     return () => clearInterval(interval);
   }, [selectedCategory, selectedNumber]);
   
-  const loadInterpretation = () => {
-    const interpretation = getInterpretation(selectedCategory, parseInt(selectedNumber));
+  const loadInterpretation = async () => {
+    const interpretation = await getInterpretation(selectedCategory, parseInt(selectedNumber));
     setTitle(interpretation.title);
     setContent(interpretation.content);
     
@@ -63,12 +62,12 @@ const InterpretationEditor: React.FC = () => {
   };
   
   const updateInterpretationsCount = () => {
-    const allInterpretations = exportInterpretations();
-    const count = Object.keys(allInterpretations).length;
+    const allInterpretations = getAllInterpretations();
+    const count = allInterpretations.length;
     setInterpretationsCount(count);
     
     // Generate debug info about stored interpretations
-    const debugText = generateDebugInfo(allInterpretations);
+    const debugText = generateDebugInfo(exportInterpretations());
     setDebugInfo(debugText);
   };
   

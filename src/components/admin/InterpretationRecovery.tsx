@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { Button } from "@/components/ui/button";
 import { toast } from "@/components/ui/use-toast";
@@ -6,7 +5,8 @@ import {
   getAllInterpretations, 
   getCategoryDisplayName, 
   getAllCategories,
-  exportInterpretations
+  exportInterpretations,
+  Interpretation
 } from '@/lib/interpretations';
 import { 
   RefreshCw, 
@@ -26,7 +26,7 @@ import {
 } from '@/lib/recovery';
 
 const InterpretationRecovery = () => {
-  const [interpretations, setInterpretations] = useState<any[]>([]);
+  const [interpretations, setInterpretations] = useState<Interpretation[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [categoryStats, setCategoryStats] = useState<Record<string, number>>({});
   const [isExpanded, setIsExpanded] = useState(false);
@@ -66,7 +66,7 @@ const InterpretationRecovery = () => {
   const refreshInterpretations = () => {
     setIsLoading(true);
     try {
-      // Obter todas as interpretações
+      // Obter todas as interpretações como array
       const allInterpretations = getAllInterpretations();
       setInterpretations(allInterpretations);
       

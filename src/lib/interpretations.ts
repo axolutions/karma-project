@@ -1,4 +1,3 @@
-
 import { toast } from "@/components/ui/use-toast";
 import { supabaseClient, isInOfflineMode } from '@/lib/supabase';
 
@@ -20,6 +19,112 @@ let isInitialized = false;
 // Helper to generate interpretation ID
 export function generateInterpretationId(category: string, number: number): string {
   return `${category}-${number}`;
+}
+
+// Get interpretation by category and number
+export async function getInterpretation(category: string, number: number): Promise<Interpretation> {
+  // Make sure interpretations are initialized
+  if (!isInitialized) {
+    await initInterpretations();
+  }
+  
+  const id = generateInterpretationId(category, number);
+  const interpretation = interpretations[id];
+  
+  if (interpretation) {
+    return interpretation;
+  }
+  
+  // Return a default interpretation if not found
+  return {
+    id,
+    title: `${getCategoryDisplayName(category)} ${number}`,
+    content: DEFAULT_INTERPRETATION
+  };
+}
+
+// Set interpretation (create or update)
+export async function setInterpretation(
+  category: string, 
+  number: number, 
+  title: string, 
+  content: string
+): Promise<void> {
+  // Make sure interpretations are initialized
+  if (!isInitialized) {
+    await initInterpretations();
+  }
+  
+  const id = generateInterpretationId(category, number);
+  
+  // Create or update interpretation
+  interpretations[id] = {
+    id,
+    title,
+    content,
+    updated_at: new Date().toISOString()
+  };
+  
+  // Save to localStorage
+  saveToLocalStorage();
+  
+  // Show success toast
+  toast({
+    title: "Interpretação salva",
+    description: "As alterações foram salvas com sucesso.",
+  });
+  
+  // Try to sync with Supabase if online
+  if (!isInOfflineMode()) {
+    try {
+      await forceSyncToSupabase();
+    } catch (error) {
+      console.error("Erro ao sincronizar com Supabase após salvar:", error);
+    }
+  }
+}
+
+// Delete interpretation
+export async function deleteInterpretation(category: string, number: number): Promise<void> {
+  // Make sure interpretations are initialized
+  if (!isInitialized) {
+    await initInterpretations();
+  }
+  
+  const id = generateInterpretationId(category, number);
+  
+  // Check if interpretation exists
+  if (!interpretations[id]) {
+    toast({
+      title: "Interpretação não encontrada",
+      description: "Não foi possível excluir pois a interpretação não existe.",
+      variant: "destructive"
+    });
+    return;
+  }
+  
+  // Delete interpretation
+  delete interpretations[id];
+  
+  // Save to localStorage
+  saveToLocalStorage();
+  
+  // Show success toast
+  toast({
+    title: "Interpretação excluída",
+    description: "A interpretação foi excluída com sucesso.",
+  });
+  
+  // Try to sync with Supabase if online
+  if (!isInOfflineMode()) {
+    try {
+      // For Supabase, we could have a deleted flag or actually delete the record
+      // This implementation just syncs the current state (where the interpretation is now missing)
+      await forceSyncToSupabase();
+    } catch (error) {
+      console.error("Erro ao sincronizar com Supabase após excluir:", error);
+    }
+  }
 }
 
 // Get display name for category
@@ -52,25 +157,13 @@ export function getAllCategories(): string[] {
   ];
 }
 
-// Get interpretation by category and number
-export async function getInterpretation(category: string, number: number): Promise<Interpretation | string> {
-  // Make sure interpretations are initialized
-  if (!isInitialized) {
-    await initInterpretations();
-  }
-  
-  const id = generateInterpretationId(category, number);
-  const interpretation = interpretations[id];
-  
-  if (interpretation) {
-    return interpretation;
-  }
-  
-  return DEFAULT_INTERPRETATION;
+// Get all interpretations as array for display
+export function getAllInterpretations(): Interpretation[] {
+  return Object.values(interpretations);
 }
 
-// Get all interpretations
-export function getAllInterpretations(): Record<string, Interpretation> {
+// Get all interpretations as Record
+export function exportInterpretations(): Record<string, Interpretation> {
   return { ...interpretations };
 }
 
@@ -239,11 +332,6 @@ export async function importInterpretations(data: Record<string, Interpretation>
     console.error("Erro durante importação:", error);
     return false;
   }
-}
-
-// Export all interpretations as data
-export function exportInterpretations(): Record<string, Interpretation> {
-  return { ...interpretations };
 }
 
 // Inicializar o sistema de interpretações
