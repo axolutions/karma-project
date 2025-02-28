@@ -75,8 +75,26 @@ const MatrixResult = () => {
         description: "Gerando imagem da sua matriz...",
       });
       
+      // Primeiro, vamos pré-carregar a imagem da matriz para garantir que ela esteja disponível
+      const preloadImage = (src: string) => {
+        return new Promise((resolve, reject) => {
+          const img = new Image();
+          img.crossOrigin = "anonymous";
+          img.onload = () => resolve(img);
+          img.onerror = () => reject(new Error("Erro ao carregar imagem"));
+          img.src = src;
+        });
+      };
+      
+      // Pré-carregar a imagem antes de capturar
+      try {
+        await preloadImage("https://darkorange-goldfinch-896244.hostingersite.com/wp-content/uploads/2025/02/Design-sem-nome-1.png");
+      } catch (error) {
+        console.warn("Aviso: Falha ao pré-carregar imagem, continuando com a captura...");
+      }
+      
       // Garantir que a imagem esteja carregada antes de capturar
-      await new Promise(resolve => setTimeout(resolve, 2000));
+      await new Promise(resolve => setTimeout(resolve, 3000));
       
       // Capturar apenas a matriz como imagem
       const matrixElement = document.querySelector('.karmic-matrix-wrapper');
@@ -91,18 +109,23 @@ const MatrixResult = () => {
         logging: false,
         useCORS: true, // Importante para imagens externas
         allowTaint: true, // Permite imagens de outros domínios
-        onclone: (document) => {
+        onclone: (clonedDoc) => {
           // Garantir que a imagem esteja visível no clone
-          const clonedMatrix = document.querySelector('.karmic-matrix-wrapper');
+          const clonedMatrix = clonedDoc.querySelector('.karmic-matrix-wrapper');
           if (clonedMatrix) {
             // Remover mensagens de erro ou spinners no clone
-            const errorMessages = clonedMatrix.querySelectorAll('.print\\:hidden');
+            const errorMessages = clonedMatrix.querySelectorAll('.print\\:hidden, .download-hidden');
             errorMessages.forEach(el => (el as HTMLElement).style.display = 'none');
             
             // Garantir que a imagem da matriz esteja visível
             const matrixImage = clonedMatrix.querySelector('img');
             if (matrixImage) {
               (matrixImage as HTMLElement).style.opacity = '1';
+              
+              // Forçar o carregamento da imagem específica no clone
+              if (!(matrixImage as HTMLImageElement).complete) {
+                (matrixImage as HTMLImageElement).src = "https://darkorange-goldfinch-896244.hostingersite.com/wp-content/uploads/2025/02/Design-sem-nome-1.png";
+              }
             }
           }
         }
@@ -325,7 +348,7 @@ const MatrixResult = () => {
           <h2 className="text-xl md:text-2xl font-serif font-medium text-karmic-800 mb-2">
             Sua Matriz Kármica
           </h2>
-          <p className="text-karmic-600 mb-6 print:mb-3">
+          <p className="text-karmic-600 mb-6 print:mb-3 download-hidden">
             Data de Nascimento: <span className="font-medium">{userData?.birthDate || "Não informada"}</span>
           </p>
           
