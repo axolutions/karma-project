@@ -22,32 +22,43 @@ const KarmicMatrix: React.FC<KarmicMatrixProps> = ({
   backgroundImage = "https://darkorange-goldfinch-896244.hostingersite.com/wp-content/uploads/2025/02/Design-sem-nome-1.png"
 }) => {
   const [imageLoaded, setImageLoaded] = useState(false);
-  const [imgSrc, setImgSrc] = useState(backgroundImage);
   const [hasError, setHasError] = useState(false);
+  
+  // Usamos uma imagem local como fallback em caso de erro
+  const fallbackImage = "/placeholder.svg";
   
   // Pré-carrega a imagem para garantir que ela esteja disponível para impressão
   useEffect(() => {
-    const img = new Image();
-    img.onload = () => {
-      setImageLoaded(true);
-      setHasError(false);
-      console.log("Imagem da matriz carregada com sucesso!", img.src);
-    };
-    img.onerror = (error) => {
-      console.error("Erro ao carregar a imagem da matriz:", error);
-      setHasError(true);
-      // Tentar uma imagem local como fallback
-      setImgSrc("/placeholder.svg");
-    };
-    img.crossOrigin = "anonymous";
-    img.src = backgroundImage;
+    setImageLoaded(false);
+    setHasError(false);
     
-    // Se a imagem não carregar em 5 segundos, usar o fallback
+    const loadImage = () => {
+      const img = new Image();
+      
+      img.onload = () => {
+        console.log("✓ Imagem da matriz carregada com sucesso!");
+        setImageLoaded(true);
+        setHasError(false);
+      };
+      
+      img.onerror = () => {
+        console.error("✗ Erro ao carregar a imagem da matriz. Tentativa com URL direta.");
+        setHasError(true);
+      };
+      
+      // Força carregamento via proxy CORS para tentar contornar problemas
+      img.src = backgroundImage;
+      img.crossOrigin = "anonymous";
+    };
+    
+    // Tenta carregar a imagem
+    loadImage();
+    
+    // Fallback se a imagem não carregar em 5 segundos
     const timeout = setTimeout(() => {
       if (!imageLoaded) {
-        console.warn("Timeout ao carregar imagem da matriz, usando fallback");
+        console.warn("⚠️ Timeout ao carregar imagem da matriz.");
         setHasError(true);
-        setImgSrc("/placeholder.svg");
       }
     }, 5000);
     
@@ -87,37 +98,36 @@ const KarmicMatrix: React.FC<KarmicMatrixProps> = ({
         className="w-full h-auto relative rounded-lg overflow-hidden"
         style={{ 
           minHeight: "400px",
-          backgroundColor: hasError ? '#8B4513' : 'transparent',
+          backgroundColor: 'transparent',
           border: '1px solid #EAE6E1',
           borderRadius: '8px',
         }}
       >
-        {!hasError && (
-          <img 
-            src={imgSrc} 
-            alt="Matriz Kármica 2025"
-            crossOrigin="anonymous"
-            className="w-full h-auto"
-            onLoad={() => setImageLoaded(true)}
-            onError={() => {
-              setHasError(true);
-              setImgSrc("/placeholder.svg");
-            }}
-            style={{ 
-              display: imageLoaded ? 'block' : 'none'
-            }}
-          />
-        )}
+        {/* Sempre mostra a imagem, mesmo durante carregamento */}
+        <img 
+          src={hasError ? fallbackImage : backgroundImage} 
+          alt="Matriz Kármica 2025"
+          crossOrigin="anonymous"
+          className={`w-full h-auto ${!imageLoaded && !hasError ? 'opacity-30' : 'opacity-100'}`}
+          onLoad={() => setImageLoaded(true)}
+          onError={() => {
+            console.error("✗ Erro ao exibir imagem da matriz");
+            setHasError(true);
+          }}
+        />
         
+        {/* Spinner durante carregamento */}
         {!imageLoaded && !hasError && (
           <div className="absolute inset-0 flex items-center justify-center">
             <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-karmic-800"></div>
           </div>
         )}
         
+        {/* Mensagem de erro se a imagem falhar */}
         {hasError && (
-          <div className="absolute inset-0 flex items-center justify-center text-white">
-            <p>Imagem da matriz indisponível</p>
+          <div className="absolute inset-0 flex flex-col items-center justify-center bg-amber-50 bg-opacity-80">
+            <p className="text-karmic-800 font-medium mb-2">Imagem da matriz indisponível</p>
+            <p className="text-karmic-600 text-sm">Usando modelo temporário</p>
           </div>
         )}
       </div>
@@ -153,7 +163,7 @@ const KarmicMatrix: React.FC<KarmicMatrixProps> = ({
       {/* Background matrix image */}
       {renderMatrixBackground()}
       
-      {/* Numbers overlay - só mostra se a imagem carregou ou está usando fallback */}
+      {/* Numbers overlay - só mostra se a imagem carregou ou há um erro */}
       {(imageLoaded || hasError) && numbersToDisplay.map((item, index) => (
         <motion.div
           key={item.key}
