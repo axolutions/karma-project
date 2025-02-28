@@ -1,5 +1,5 @@
 
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { getInterpretation, renderHTML } from '@/lib/interpretations';
 import { motion } from 'framer-motion';
 
@@ -21,8 +21,24 @@ const KarmicMatrix: React.FC<KarmicMatrixProps> = ({
   karmicData,
   backgroundImage = "https://darkorange-goldfinch-896244.hostingersite.com/wp-content/uploads/2025/02/Design-sem-nome-1.png"
 }) => {
+  const [imageLoaded, setImageLoaded] = useState(false);
+  const [imgSrc, setImgSrc] = useState(backgroundImage);
+  
+  // Pré-carrega a imagem para garantir que ela esteja disponível para impressão
+  useEffect(() => {
+    const img = new Image();
+    img.onload = () => {
+      setImageLoaded(true);
+    };
+    img.onerror = () => {
+      // Fallback para uma imagem local se a externa falhar
+      console.error("Erro ao carregar a imagem da matriz. Usando fallback.");
+      setImgSrc("/placeholder.svg");
+    };
+    img.src = backgroundImage;
+  }, [backgroundImage]);
+  
   // Vamos listar explicitamente as posições para cada número específico
-  // Isso elimina a confusão sobre qual número vai para qual posição
   const numberPositions = {
     // Para valor específico 11 (karmicSeal) - NÃO MUDAR
     karmicSeal: { top: "23%", left: "25%" },
@@ -49,16 +65,6 @@ const KarmicMatrix: React.FC<KarmicMatrixProps> = ({
     manifestationEnigma: { top: "20%", left: "47%" }
   };
 
-  // Verifica cada número e imprime no console para depuração
-  console.log("karmicSeal:", karmicData.karmicSeal);
-  console.log("destinyCall:", karmicData.destinyCall);
-  console.log("karmaPortal:", karmicData.karmaPortal);
-  console.log("karmicInheritance:", karmicData.karmicInheritance);
-  console.log("karmicReprogramming:", karmicData.karmicReprogramming);
-  console.log("cycleProphecy:", karmicData.cycleProphecy);
-  console.log("spiritualMark:", karmicData.spiritualMark);
-  console.log("manifestationEnigma:", karmicData.manifestationEnigma);
-
   // Simplificamos o mapeamento para usar os valores diretamente
   const numbersToDisplay = [
     { key: 'karmicSeal', value: karmicData.karmicSeal, title: "Selo Kármico 2025" },
@@ -75,19 +81,25 @@ const KarmicMatrix: React.FC<KarmicMatrixProps> = ({
     <div className="relative max-w-4xl mx-auto">
       {/* Background matrix image */}
       <img 
-        src={backgroundImage} 
+        src={imgSrc} 
         alt="Matriz Kármica 2025" 
         className="w-full h-auto"
+        onLoad={() => setImageLoaded(true)}
+        style={{ 
+          // Adiciona um contorno para caso a imagem não seja visível no PDF
+          border: '1px solid #EAE6E1',
+          borderRadius: '8px'
+        }}
       />
       
-      {/* Numbers overlay - agora usando posições específicas para cada número */}
-      {numbersToDisplay.map((item, index) => (
+      {/* Numbers overlay */}
+      {imageLoaded && numbersToDisplay.map((item, index) => (
         <motion.div
           key={item.key}
           initial={{ opacity: 0, scale: 0.8 }}
           animate={{ opacity: 1, scale: 1 }}
           transition={{ delay: index * 0.1, duration: 0.5 }}
-          className="absolute"
+          className="absolute print:!opacity-100"
           style={{ 
             top: numberPositions[item.key].top, 
             left: numberPositions[item.key].left,
@@ -95,7 +107,7 @@ const KarmicMatrix: React.FC<KarmicMatrixProps> = ({
           }}
         >
           <div className="flex items-center justify-center">
-            <span className="bg-white bg-opacity-80 rounded-full w-10 h-10 flex items-center justify-center text-lg font-serif font-bold text-karmic-800 shadow-lg">
+            <span className="bg-white bg-opacity-80 rounded-full w-10 h-10 flex items-center justify-center text-lg font-serif font-bold text-karmic-800 shadow-lg print:shadow-none print:border print:border-karmic-300">
               {item.value}
             </span>
           </div>

@@ -12,6 +12,7 @@ import { motion } from 'framer-motion';
 const MatrixResult = () => {
   const [userData, setUserData] = useState<any>(null);
   const [refreshing, setRefreshing] = useState(false);
+  const [isPrinting, setIsPrinting] = useState(false);
   const navigate = useNavigate();
   
   useEffect(() => {
@@ -35,8 +36,48 @@ const MatrixResult = () => {
     setUserData(data);
   }, [navigate]);
   
+  // Detecta quando a impressão é concluída ou cancelada
+  useEffect(() => {
+    if (isPrinting) {
+      // Adicionar evento para quando o modal de impressão for fechado
+      const handleAfterPrint = () => {
+        setIsPrinting(false);
+        console.log("Impressão concluída ou cancelada");
+      };
+      
+      window.addEventListener('afterprint', handleAfterPrint);
+      
+      return () => {
+        window.removeEventListener('afterprint', handleAfterPrint);
+      };
+    }
+  }, [isPrinting]);
+  
   const handlePrint = () => {
-    window.print();
+    setIsPrinting(true);
+    
+    // Garantir que todos os estilos e imagens sejam carregados antes de imprimir
+    setTimeout(() => {
+      try {
+        window.print();
+        
+        // Em alguns navegadores, o evento afterprint pode não ser disparado
+        // Então definimos um timeout de segurança
+        setTimeout(() => {
+          if (isPrinting) {
+            setIsPrinting(false);
+          }
+        }, 5000);
+      } catch (error) {
+        console.error("Erro ao imprimir:", error);
+        setIsPrinting(false);
+        toast({
+          title: "Erro ao imprimir",
+          description: "Houve um problema ao gerar o PDF. Tente novamente.",
+          variant: "destructive"
+        });
+      }
+    }, 300);
   };
   
   const handleLogout = () => {
@@ -98,9 +139,10 @@ const MatrixResult = () => {
             <Button 
               onClick={handlePrint}
               className="karmic-button flex items-center"
+              disabled={isPrinting}
             >
-              <Printer className="mr-2 h-4 w-4" />
-              Imprimir / PDF
+              <Printer className={`mr-2 h-4 w-4 ${isPrinting ? 'animate-spin' : ''}`} />
+              {isPrinting ? 'Gerando PDF...' : 'Imprimir / PDF'}
             </Button>
             
             <Button 
