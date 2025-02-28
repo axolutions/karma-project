@@ -5,17 +5,13 @@ import { getCurrentUser, getUserData, logout } from '@/lib/auth';
 import { useNavigate } from 'react-router-dom';
 import KarmicMatrix from '@/components/KarmicMatrix';
 import MatrixInterpretations from '@/components/MatrixInterpretations';
-import { Printer, LogOut, RefreshCw, Download, FileDown } from 'lucide-react';
+import { LogOut, RefreshCw } from 'lucide-react';
 import { toast } from "@/components/ui/use-toast";
 import { motion } from 'framer-motion';
-import html2canvas from 'html2canvas';
-import jsPDF from 'jspdf';
 
 const MatrixResult = () => {
   const [userData, setUserData] = useState<any>(null);
   const [refreshing, setRefreshing] = useState(false);
-  const [isPrinting, setIsPrinting] = useState(false);
-  const [isDownloading, setIsDownloading] = useState(false);
   const [loading, setLoading] = useState(true);
   const contentRef = useRef<HTMLDivElement>(null);
   const navigate = useNavigate();
@@ -66,177 +62,6 @@ const MatrixResult = () => {
     
     loadUserData();
   }, [navigate]);
-  
-  // Detecta quando a impressão é concluída ou cancelada
-  useEffect(() => {
-    if (isPrinting) {
-      // Adicionar evento para quando o modal de impressão for fechado
-      const handleAfterPrint = () => {
-        setIsPrinting(false);
-        console.log("Impressão concluída ou cancelada");
-      };
-      
-      window.addEventListener('afterprint', handleAfterPrint);
-      
-      // Também definimos um timeout para garantir que o estado de impressão não fique preso
-      const safetyTimeout = setTimeout(() => {
-        setIsPrinting(false);
-      }, 10000); // 10 segundos de timeout de segurança
-      
-      return () => {
-        window.removeEventListener('afterprint', handleAfterPrint);
-        clearTimeout(safetyTimeout);
-      };
-    }
-  }, [isPrinting]);
-  
-  const handlePrint = () => {
-    setIsPrinting(true);
-    
-    toast({
-      title: "Preparando impressão",
-      description: "Preparando sua Matriz Kármica para impressão..."
-    });
-    
-    // Garantir que todos os estilos e imagens sejam carregados antes de imprimir
-    setTimeout(() => {
-      try {
-        // Adiciona a classe específica para modo de impressão
-        document.body.classList.add('printing-mode');
-        
-        // Usar o método de impressão nativo do navegador
-        window.print();
-        
-        // Remove a classe após um tempo
-        setTimeout(() => {
-          document.body.classList.remove('printing-mode');
-        }, 1000);
-        
-        // Em alguns navegadores, o evento afterprint pode não ser disparado
-        // Então definimos um timeout de segurança
-        setTimeout(() => {
-          if (isPrinting) {
-            setIsPrinting(false);
-          }
-        }, 5000);
-      } catch (error) {
-        console.error("Erro ao imprimir:", error);
-        setIsPrinting(false);
-        toast({
-          title: "Erro ao imprimir",
-          description: "Houve um problema ao gerar o PDF. Tente novamente.",
-          variant: "destructive"
-        });
-      }
-    }, 500); // Aumentado o delay para garantir carregamento completo
-  };
-  
-  // Função alternativa para quem tem problemas com a impressão direta
-  const handleExportPDF = () => {
-    if (isPrinting) return; // Evita múltiplos cliques
-    
-    setIsPrinting(true);
-    
-    toast({
-      title: "Exportando PDF",
-      description: "Use a opção 'Salvar como PDF' na janela de impressão que irá abrir."
-    });
-    
-    // Preparação mais completa para exportação PDF
-    setTimeout(() => {
-      try {
-        // Adiciona a classe específica para modo de impressão
-        document.body.classList.add('printing-mode');
-        
-        // Em navegadores modernos, isso deve abrir diretamente a opção de salvar como PDF
-        window.print();
-        
-        // Remove a classe após um tempo
-        setTimeout(() => {
-          document.body.classList.remove('printing-mode');
-        }, 1000);
-        
-        // Definimos múltiplos timeouts em diferentes momentos para garantir que o estado seja resetado
-        setTimeout(() => {
-          if (isPrinting) setIsPrinting(false);
-        }, 3000);
-        
-        setTimeout(() => {
-          if (isPrinting) {
-            setIsPrinting(false);
-            toast({
-              title: "Processo concluído",
-              description: "Se você não viu a janela de impressão, tente novamente."
-            });
-          }
-        }, 8000);
-      } catch (error) {
-        console.error("Erro ao exportar PDF:", error);
-        setIsPrinting(false);
-        toast({
-          title: "Erro ao exportar",
-          description: "Houve um problema ao exportar o PDF. Tente imprimir normalmente e escolha 'Salvar como PDF'.",
-          variant: "destructive"
-        });
-      }
-    }, 800); // Delay maior para garantir que tudo esteja carregado
-  };
-  
-  // Nova função para download direto de PDF
-  const handleDirectDownload = async () => {
-    if (isDownloading || !contentRef.current) return;
-    
-    setIsDownloading(true);
-    
-    toast({
-      title: "Gerando PDF",
-      description: "Preparando o download do seu PDF, aguarde um momento..."
-    });
-    
-    try {
-      // Adiciona classe para melhorar a aparência no PDF
-      document.body.classList.add('printing-mode');
-      
-      // Captura o elemento com html2canvas
-      const canvas = await html2canvas(contentRef.current, {
-        scale: 2, // Melhor qualidade
-        useCORS: true,
-        logging: false,
-        allowTaint: true,
-        backgroundColor: '#ffffff'
-      });
-      
-      // Cria um novo documento PDF
-      const pdf = new jsPDF('p', 'mm', 'a4');
-      const imgData = canvas.toDataURL('image/png');
-      
-      // Calcula as dimensões para ajustar à página
-      const imgWidth = 210; // A4 width in mm (210mm)
-      const imgHeight = (canvas.height * imgWidth) / canvas.width;
-      
-      // Adiciona a imagem ao PDF
-      pdf.addImage(imgData, 'PNG', 0, 0, imgWidth, imgHeight);
-      
-      // Baixa o PDF com nome personalizado
-      const userName = userData?.name || 'Visitante';
-      pdf.save(`Matriz_Karmica_${userName}_${new Date().toISOString().slice(0, 10)}.pdf`);
-      
-      toast({
-        title: "Download concluído",
-        description: "Seu PDF foi gerado com sucesso!"
-      });
-    } catch (error) {
-      console.error("Erro ao gerar PDF:", error);
-      toast({
-        title: "Erro ao gerar PDF",
-        description: "Houve um problema ao gerar seu PDF. Por favor, tente novamente.",
-        variant: "destructive"
-      });
-    } finally {
-      document.body.classList.remove('printing-mode');
-      setIsDownloading(false);
-    }
-  };
   
   const handleLogout = () => {
     logout();
@@ -293,33 +118,6 @@ const MatrixResult = () => {
             >
               <RefreshCw className={`mr-2 h-4 w-4 ${refreshing ? 'animate-spin' : ''}`} />
               Atualizar
-            </Button>
-            
-            <Button 
-              onClick={handleDirectDownload}
-              className="karmic-button flex items-center"
-              disabled={isDownloading}
-            >
-              <FileDown className={`mr-2 h-4 w-4 ${isDownloading ? 'animate-spin' : ''}`} />
-              {isDownloading ? 'Baixando...' : 'Baixar PDF'}
-            </Button>
-            
-            <Button 
-              onClick={handleExportPDF}
-              className="karmic-button flex items-center"
-              disabled={isPrinting}
-            >
-              <Download className={`mr-2 h-4 w-4 ${isPrinting ? 'animate-spin' : ''}`} />
-              {isPrinting ? 'Preparando PDF...' : 'Exportar PDF'}
-            </Button>
-            
-            <Button 
-              onClick={handlePrint}
-              className="karmic-button flex items-center"
-              disabled={isPrinting}
-            >
-              <Printer className={`mr-2 h-4 w-4 ${isPrinting ? 'animate-spin' : ''}`} />
-              {isPrinting ? 'Gerando PDF...' : 'Imprimir'}
             </Button>
             
             <Button 
