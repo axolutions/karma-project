@@ -13,6 +13,7 @@ const MatrixResult = () => {
   const [userData, setUserData] = useState<any>(null);
   const [refreshing, setRefreshing] = useState(false);
   const [loading, setLoading] = useState(true);
+  const [uniqueKey, setUniqueKey] = useState(Date.now()); // ID único para forçar re-render completo
   const contentRef = useRef<HTMLDivElement>(null);
   const navigate = useNavigate();
   
@@ -74,12 +75,14 @@ const MatrixResult = () => {
 
   const handleRefresh = () => {
     setRefreshing(true);
+    setUniqueKey(Date.now()); // Gerar nova chave única para forçar recriação do componente
+    
     toast({
       title: "Atualizando",
       description: "Recarregando sua Matriz Kármica..."
     });
     
-    // Simular um pequeno delay e então recarregar
+    // Simular um pequeno delay e então recarregar a página completamente
     setTimeout(() => {
       window.location.reload();
     }, 500);
@@ -133,6 +136,7 @@ const MatrixResult = () => {
         
         <div ref={contentRef}>
           <motion.div
+            key={uniqueKey} // Usar chave única para forçar recriação completa do componente ao atualizar
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             transition={{ duration: 0.5 }}
@@ -145,7 +149,10 @@ const MatrixResult = () => {
               Data de Nascimento: <span className="font-medium">{userData?.birthDate || "Não informada"}</span>
             </p>
             
-            <KarmicMatrix karmicData={userData?.karmicNumbers} />
+            <KarmicMatrix 
+              key={uniqueKey} // Mesma chave única para garantir re-render completo
+              karmicData={userData?.karmicNumbers} 
+            />
           </motion.div>
           
           <MatrixInterpretations karmicData={userData?.karmicNumbers} />
