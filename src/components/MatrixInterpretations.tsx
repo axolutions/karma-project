@@ -25,7 +25,6 @@ const MatrixInterpretations: React.FC<MatrixInterpretationsProps> = ({ karmicDat
   const [interpretationsData, setInterpretationsData] = useState<Record<string, any>>({});
   const [loadError, setLoadError] = useState(false);
   const [rawStorageData, setRawStorageData] = useState<string>("");
-  const [totalInterpretations, setTotalInterpretations] = useState(0);
 
   // Function to force reload interpretations
   const forceReloadInterpretations = async () => {
@@ -42,7 +41,6 @@ const MatrixInterpretations: React.FC<MatrixInterpretationsProps> = ({ karmicDat
       // Try to get all interpretations
       const allInterpretations = getAllInterpretations();
       console.log("Total interpretations found:", allInterpretations.length);
-      setTotalInterpretations(allInterpretations.length);
       
       if (allInterpretations.length > 0) {
         // Display first 3 for diagnostics
@@ -94,7 +92,6 @@ const MatrixInterpretations: React.FC<MatrixInterpretationsProps> = ({ karmicDat
         // Obter a lista completa de interpretações para depuração
         const allInterpretations = getAllInterpretations();
         console.log("Total de interpretações encontradas:", allInterpretations.length);
-        setTotalInterpretations(allInterpretations.length);
         
         if (Object.keys(allData).length === 0) {
           console.warn("Nenhuma interpretação encontrada no armazenamento");
@@ -297,8 +294,6 @@ const MatrixInterpretations: React.FC<MatrixInterpretationsProps> = ({ karmicDat
         Interpretações da Sua Matriz Kármica
       </h2>
       
-      {/* Removemos o contador de interpretações disponíveis */}
-      
       {loadError && (
         <Button
           variant="outline"
@@ -369,8 +364,6 @@ const MatrixInterpretations: React.FC<MatrixInterpretationsProps> = ({ karmicDat
           const isExpanded = expandedSections.has(item.key);
           const processedContent = processContent(interpretation.content);
           
-          // Removemos a verificação para exibição do badge "Personalizado"
-          
           return (
             <motion.div
               key={item.key}
@@ -385,7 +378,6 @@ const MatrixInterpretations: React.FC<MatrixInterpretationsProps> = ({ karmicDat
               >
                 <h3 className="text-xl font-serif font-medium text-karmic-800">
                   {getCategoryDisplayName(item.key)}
-                  {/* Removemos o badge "Personalizado" */}
                 </h3>
                 <div className="flex items-center space-x-3">
                   <span className="karmic-number">{item.value}</span>

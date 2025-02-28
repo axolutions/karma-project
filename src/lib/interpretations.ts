@@ -290,52 +290,141 @@ function loadExampleInterpretations(): void {
     <p>Eu honro a sabedoria ancestral que corre em meu ser. Através da contemplação e do estudo, conecto-me com verdades universais que iluminam meu caminho.</p>`
   };
   
-  // Outros exemplos básicos
+  // Códex da Reprogramação
   interpretations[generateInterpretationId('karmicReprogramming', 5)] = {
     id: generateInterpretationId('karmicReprogramming', 5),
     title: "Códex da Reprogramação 5: O Agente da Mudança",
     content: `<p>Seu Códex da Reprogramação 5 indica que 2025 será um ano de <strong>transformações significativas e liberdade</strong>. Esta energia traz a necessidade de quebrar padrões limitantes e abraçar a mudança como forma de crescimento.</p>
+    
     <h3>Padrões a Transformar</h3>
-    <p>O número 5 está reprogramando sua resistência à mudança e convidando você a abraçar novas experiências. Antigas rotinas que não servem mais devem ser abandonadas.</p>
+    <p>Com o número 5 ativo em sua reprogramação kármica, você está sendo chamado a liberar qualquer resistência à mudança que tenha desenvolvido em vidas passadas ou na atual. Este é um ano para quebrar rotinas estagnadas e permitir-se explorar novos territórios - tanto externos quanto internos.</p>
+    
+    <p>Em 2025, situações surgirão que exigirão adaptabilidade e disposição para sair da zona de conforto. Estas não são coincidências, mas oportunidades cuidadosamente orquestradas para reprogramar antigos padrões de rigidez ou medo do desconhecido.</p>
+    
+    <h3>Ferramentas de Reprogramação</h3>
+    <ul>
+      <li>Práticas que estimulem a adaptabilidade e espontaneidade</li>
+      <li>Viagens e experiências que ampliem seus horizontes</li>
+      <li>Estudos de filosofias que promovam a liberdade interior</li>
+      <li>Atividades que desafiem seus limites percebidos</li>
+    </ul>
+    
+    <h3>Sintomas da Transformação</h3>
+    <p>Durante este processo de reprogramação, você pode experimentar:</p>
+    <ul>
+      <li>Inquietação ou desejo súbito de mudança</li>
+      <li>Sensação de que estruturas antes estáveis estão se dissolvendo</li>
+      <li>Maior disposição para correr riscos calculados</li>
+      <li>Desapego natural de situações, objetos ou relacionamentos que limitam sua evolução</li>
+    </ul>
+    
     <h3>Afirmação Kármica</h3>
     <p>Eu abraço a mudança como minha companheira constante. A liberdade de me reinventar é meu direito divino e minha maior aventura.</p>`
   };
   
+  // Profecia dos Ciclos
   interpretations[generateInterpretationId('cycleProphecy', 2)] = {
     id: generateInterpretationId('cycleProphecy', 2),
     title: "Profecia dos Ciclos 2: O Diplomata",
-    content: `<p>A Profecia dos Ciclos 2 revela que em 2025 seu foco kármico estará nas <strong>parcerias, cooperação e equilíbrio</strong>. Você estará trabalhando aspectos de receptividade e harmonização em suas relações.</p>
-    <h3>Energia Cíclica Principal</h3>
-    <p>Este é um ano para desenvolver paciência e diplomacia. Relacionamentos de todos os tipos assumirão um papel central em sua evolução espiritual.</p>
+    content: `<p>A Profecia dos Ciclos 2 revela que em 2025 seu foco kármico estará nas <strong>parcerias, cooperação e equilíbrio</strong>. Este ciclo profético traz uma energia de receptividade e harmonização para sua jornada espiritual.</p>
+    
+    <h3>Ciclo Energético Ativo</h3>
+    <p>Durante 2025, você estará sob a influência do ciclo profético número 2, que enfatiza a importância das conexões com os outros e a necessidade de desenvolver paciência e sensibilidade. Este não é um período para ações impulsivas ou individualistas, mas sim para cultivar relacionamentos e buscar soluções colaborativas.</p>
+    
+    <p>A profecia indica que você estará mais sensível às energias sutis e às necessidades dos outros, com uma capacidade aumentada de intuição e percepção empática.</p>
+    
+    <h3>Eventos Previstos</h3>
+    <ul>
+      <li>Oportunidades significativas para parcerias pessoais ou profissionais</li>
+      <li>Situações que exigirão mediação e diplomacia</li>
+      <li>Momentos de sincronicidade e conexões intuitivas</li>
+      <li>Possíveis desafios relacionados a dependência emocional</li>
+    </ul>
+    
+    <h3>Propósito do Ciclo</h3>
+    <p>Este ciclo profético visa desenvolver em você:</p>
+    <ul>
+      <li>Maior equilíbrio entre dar e receber</li>
+      <li>Capacidade de cooperação e trabalho em equipe</li>
+      <li>Receptividade às mensagens da sua intuição</li>
+      <li>Harmonização de polaridades em sua vida</li>
+    </ul>
+    
     <h3>Afirmação Kármica</h3>
     <p>Eu cultivo harmonia e cooperação em todas as minhas relações. Minha sensibilidade e diplomacia criam pontes de entendimento onde antes havia separação.</p>`
   };
   
+  // Marca Espiritual
   interpretations[generateInterpretationId('spiritualMark', 7)] = {
     id: generateInterpretationId('spiritualMark', 7),
     title: "Marca Espiritual 7: O Místico",
-    content: `<p>Sua Marca Espiritual 7 indica que 2025 será um período de <strong>introspecção, análise profunda e conexão espiritual</strong>. Este é o momento de buscar conhecimento e sabedoria em níveis mais profundos.</p>
-    <h3>Vibração Espiritual</h3>
-    <p>O número 7 está vibrando fortemente em sua aura, criando um campo energético propício para meditação, estudo e conexão com dimensões superiores da consciência.</p>
+    content: `<p>Sua Marca Espiritual 7 indica que 2025 será um período de <strong>introspecção, análise profunda e conexão espiritual</strong>. Esta marca vibra em sua aura trazendo uma energia de busca pelo conhecimento e sabedoria interior.</p>
+    
+    <h3>Assinatura Vibracional</h3>
+    <p>A Marca Espiritual 7 cria em sua aura uma assinatura vibracional de profundidade e busca pela verdade. Em 2025, esta marca estará particularmente ativa, criando um campo energético ao seu redor que favorece o estudo, a meditação e o desenvolvimento de faculdades intuitivas superiores.</p>
+    
+    <p>Pessoas perceberão em você uma qualidade contemplativa e uma sabedoria que vai além do conhecimento comum. Sua presença trará uma sensação de calma e profundidade aos ambientes que frequentar.</p>
+    
+    <h3>Manifestações Espirituais</h3>
+    <ul>
+      <li>Aumento da intuição e possíveis experiências de clarividência</li>
+      <li>Sonhos significativos com mensagens simbólicas</li>
+      <li>Sincronicidades relacionadas a números, especialmente o 7</li>
+      <li>Atração por locais tranquilos e energeticamente elevados</li>
+    </ul>
+    
+    <h3>Potencial de Desenvolvimento</h3>
+    <p>Esta marca espiritual traz potenciais específicos:</p>
+    <ul>
+      <li>Capacidade de análise profunda e discernimento</li>
+      <li>Conexão com conhecimentos universais e atemporais</li>
+      <li>Habilidade para pesquisa e investigação em qualquer área</li>
+      <li>Facilidade para acessar estados meditativos profundos</li>
+    </ul>
+    
     <h3>Afirmação Kármica</h3>
     <p>Eu mergulho nas profundezas de meu ser para encontrar a sabedoria universal. No silêncio da contemplação, descubro as respostas que minha alma busca.</p>`
   };
   
+  // Enigma da Manifestação
   interpretations[generateInterpretationId('manifestationEnigma', 6)] = {
     id: generateInterpretationId('manifestationEnigma', 6),
     title: "Enigma da Manifestação 6: O Harmonizador",
-    content: `<p>O Enigma da Manifestação 6 em sua matriz para 2025 destaca a importância do <strong>equilíbrio, responsabilidade e harmonia</strong> em suas criações. Você tem o poder de manifestar beleza e harmonia em seu ambiente.</p>
-    <h3>Poder de Criação</h3>
-    <p>Com o número 6, você manifesta a partir do coração, atraindo situações de harmonia e beleza. Seu poder criativo está fortemente ligado à sua capacidade de nutrir e cuidar.</p>
+    content: `<p>O Enigma da Manifestação 6 em sua matriz para 2025 destaca a importância do <strong>equilíbrio, responsabilidade e harmonia</strong> em suas criações. Este enigma revela como você manifesta realidades através da frequência vibracional do amor e da beleza.</p>
+    
+    <h3>Poder de Manifestação</h3>
+    <p>Com o Enigma da Manifestação 6, você possui a capacidade única de criar a partir do coração, manifestando ambientes e situações de harmonia, beleza e equilíbrio. Em 2025, seu poder de atração será especialmente forte para experiências que tragam um senso de ordem e perfeição.</p>
+    
+    <p>Diferente de outros números de manifestação, o 6 atrai não através da força de vontade ou visualização intensa, mas através da energia do amor, do cuidado e da responsabilidade. Quando você nutre genuinamente algo ou alguém, você ativa este enigma em sua matriz kármica.</p>
+    
+    <h3>Chaves de Manifestação</h3>
+    <ul>
+      <li>Criar beleza e harmonia em seu ambiente físico</li>
+      <li>Assumir responsabilidade por suas criações e relacionamentos</li>
+      <li>Equilibrar dar e receber em todas as áreas da vida</li>
+      <li>Cultivar amor incondicional como frequência de manifestação</li>
+    </ul>
+    
+    <h3>Desafios na Manifestação</h3>
+    <p>Este enigma também apresenta desafios específicos:</p>
+    <ul>
+      <li>Tendência ao perfeccionismo que pode atrasar manifestações</li>
+      <li>Possibilidade de assumir responsabilidades demais pelos outros</li>
+      <li>Idealização que pode criar expectativas irrealistas</li>
+      <li>Dificuldade em receber quando o foco está muito em dar</li>
+    </ul>
+    
     <h3>Afirmação Kármica</h3>
     <p>Eu crio harmonia e beleza em todos os aspectos da minha vida. Através do amor e da responsabilidade, manifesto um mundo onde todos podem prosperar em equilíbrio.</p>`
   };
-
+    
   // Adicionar números adicionais para os outros campos
   interpretations[generateInterpretationId('manifestationEnigma', 1)] = {
     id: generateInterpretationId('manifestationEnigma', 1),
     title: "Enigma da Manifestação 1: O Criador",
     content: `<p>O Enigma da Manifestação 1 revela que em 2025 você manifestará através da <strong>iniciativa e ação direta</strong>. Sua capacidade de criar está ligada à sua força de vontade e independência.</p>
+    <h3>Poder de Manifestação</h3>
+    <p>Com o Enigma 1, você manifesta realidades através do poder da intenção clara e da ação decisiva. Sua energia pioneira ativa o campo quântico da criação de forma direta e imediata.</p>
     <h3>Afirmação Kármica</h3>
     <p>Eu crio minha realidade através de minhas intenções claras e ações decididas. Sou o arquiteto original da minha vida.</p>`
   };
@@ -343,7 +432,9 @@ function loadExampleInterpretations(): void {
   interpretations[generateInterpretationId('cycleProphecy', 9)] = {
     id: generateInterpretationId('cycleProphecy', 9),
     title: "Profecia dos Ciclos 9: O Completador",
-    content: `<p>A Profecia dos Ciclos 9 indica que 2025 será um ano de <strong>conclusões e preparação para novos começos</strong>. Este é um momento de finalizar ciclos para que novos possam começar.</p>
+    content: `<p>A Profecia dos Ciclos 9 indica que 2025 será um ano de <strong>conclusões e preparação para novos começos</strong>. Este é um momento profético de finalizar ciclos para que novos possam começar.</p>
+    <h3>Ciclo Energético Ativo</h3>
+    <p>O ciclo 9 marca o fim de uma jornada espiritual de nove anos. É um período de colheita kármica, onde os frutos de ações passadas se manifestam plenamente, permitindo compreensão e liberação.</p>
     <h3>Afirmação Kármica</h3>
     <p>Eu completo ciclos com gratidão e sabedoria. Libero o passado com amor e me preparo para os novos começos que se aproximam.</p>`
   };
@@ -351,7 +442,9 @@ function loadExampleInterpretations(): void {
   interpretations[generateInterpretationId('spiritualMark', 4)] = {
     id: generateInterpretationId('spiritualMark', 4),
     title: "Marca Espiritual 4: O Fundador",
-    content: `<p>Sua Marca Espiritual 4 indica que em 2025 você está vibrando na frequência da <strong>estabilidade e construção espiritual</strong>. Seu desenvolvimento está ligado à criação de bases sólidas.</p>
+    content: `<p>Sua Marca Espiritual 4 indica que em 2025 você está vibrando na frequência da <strong>estabilidade e construção espiritual</strong>. Seu desenvolvimento está ligado à criação de bases sólidas para seu crescimento espiritual.</p>
+    <h3>Assinatura Vibracional</h3>
+    <p>A marca 4 cria em sua aura uma assinatura de ordem e estrutura. Pessoas ao seu redor sentirão sua presença como uma força estabilizadora e confiável, especialmente em momentos de caos.</p>
     <h3>Afirmação Kármica</h3>
     <p>Eu construo minha espiritualidade sobre alicerces sólidos. Minha disciplina e perseverança criam uma conexão estável com o divino.</p>`
   };
@@ -359,7 +452,9 @@ function loadExampleInterpretations(): void {
   interpretations[generateInterpretationId('karmicReprogramming', 8)] = {
     id: generateInterpretationId('karmicReprogramming', 8),
     title: "Códex da Reprogramação 8: O Mestre da Abundância",
-    content: `<p>Seu Códex da Reprogramação 8 indica que em 2025 você estará transformando sua relação com <strong>poder, autoridade e abundância material</strong>. Antigos padrões limitantes sobre prosperidade estão sendo reescritos.</p>
+    content: `<p>Seu Códex da Reprogramação 8 indica que em 2025 você estará transformando sua relação com <strong>poder, autoridade e abundância material</strong>. Antigos padrões limitantes sobre prosperidade estão sendo reescritos em seu código kármico.</p>
+    <h3>Padrões a Transformar</h3>
+    <p>O Códex 8 está ativo para reprogramar crenças limitantes sobre dinheiro, poder e sucesso que podem ter sido estabelecidas em vidas passadas ou na primeira infância nesta vida.</p>
     <h3>Afirmação Kármica</h3>
     <p>Eu mereço abundância e sucesso. Ao transformar minha relação com o poder, eu crio uma vida de prosperidade e equilíbrio.</p>`
   };
@@ -383,6 +478,9 @@ export async function setInterpretation(category: string, number: number, title:
   interpretations[id] = interpretationData;
   
   try {
+    // Primeiro, salvar no localStorage como medida de segurança
+    saveToLocalStorage();
+    
     // Salvar no Supabase
     const { error } = await supabaseClient
       .from('interpretations')
@@ -391,40 +489,30 @@ export async function setInterpretation(category: string, number: number, title:
     if (error) {
       console.error("Erro ao salvar no Supabase:", error);
       
-      // Fallback: salvar no localStorage se o Supabase falhar
-      saveToLocalStorage();
-      
       toast({
-        title: "Salvamento na nuvem falhou",
-        description: "A interpretação foi salva apenas localmente. O aplicativo tentará sincronizá-la mais tarde.",
-        variant: "destructive"
+        title: "Dados salvos localmente",
+        description: "A interpretação foi salva com sucesso no seu navegador. Sincronização com a nuvem tentará automaticamente mais tarde.",
       });
       
-      return false;
+      return true; // Retornamos true mesmo com erro no Supabase, pois os dados foram salvos localmente
     }
-    
-    // Também salvar no localStorage como backup
-    saveToLocalStorage();
     
     toast({
       title: "Interpretação Salva",
-      description: `A interpretação para ${getCategoryDisplayName(category)} número ${number} foi salva com sucesso na nuvem.`
+      description: `A interpretação para ${getCategoryDisplayName(category)} número ${number} foi salva com sucesso.`
     });
     
     return true;
   } catch (error) {
     console.error("Erro ao salvar interpretação:", error);
     
-    // Fallback: salvar no localStorage
-    saveToLocalStorage();
-    
+    // Se houve erro no processo, mas já salvamos no localStorage, informamos o usuário
     toast({
-      title: "Erro ao salvar na nuvem",
-      description: "A interpretação foi salva apenas localmente devido a um erro de conexão.",
-      variant: "destructive"
+      title: "Dados salvos localmente",
+      description: "Devido a um problema de conexão, a interpretação foi salva apenas localmente no seu navegador.",
     });
     
-    return false;
+    return true; // Retornamos true mesmo com erro, pois os dados foram salvos localmente
   }
 }
 
@@ -436,14 +524,10 @@ export function getInterpretation(category: string, number: number): Interpretat
   }
   
   const id = generateInterpretationId(category, number);
-  console.log("Loaded interpretation:", interpretations[id] || {
-    id,
-    title: `${getCategoryDisplayName(category)} ${number}`,
-    content: DEFAULT_INTERPRETATION
-  });
   
   // If not found, return a default interpretation
   if (!interpretations[id]) {
+    console.log(`Interpretação não encontrada para ${id}, usando padrão.`);
     return {
       id,
       title: `${getCategoryDisplayName(category)} ${number}`,
@@ -472,6 +556,9 @@ export async function deleteInterpretation(category: string, number: number): Pr
     // Remover do cache local
     delete interpretations[id];
     
+    // Atualizar localStorage primeiro
+    saveToLocalStorage();
+    
     try {
       // Remover do Supabase
       const { error } = await supabaseClient
@@ -481,41 +568,28 @@ export async function deleteInterpretation(category: string, number: number): Pr
       
       if (error) {
         console.error("Erro ao excluir do Supabase:", error);
-        
-        // Atualizar localStorage mesmo que o Supabase falhe
-        saveToLocalStorage();
-        
         toast({
-          title: "Exclusão na nuvem falhou",
-          description: "A interpretação foi removida apenas localmente.",
-          variant: "destructive"
+          title: "Exclusão concluída",
+          description: `A interpretação para ${getCategoryDisplayName(category)} número ${number} foi removida localmente.`
         });
-        
-        return false;
+        return true; // Retornamos true mesmo com erro no Supabase, pois os dados foram removidos localmente
       }
-      
-      // Atualizar localStorage
-      saveToLocalStorage();
       
       toast({
         title: "Interpretação Removida",
-        description: `A interpretação para ${getCategoryDisplayName(category)} número ${number} foi removida.`
+        description: `A interpretação para ${getCategoryDisplayName(category)} número ${number} foi removida com sucesso.`
       });
       
       return true;
     } catch (error) {
       console.error("Erro ao excluir interpretação:", error);
       
-      // Atualizar localStorage
-      saveToLocalStorage();
-      
       toast({
-        title: "Erro ao excluir na nuvem",
-        description: "A interpretação foi removida apenas localmente devido a um erro de conexão.",
-        variant: "destructive"
+        title: "Exclusão concluída",
+        description: `A interpretação para ${getCategoryDisplayName(category)} número ${number} foi removida localmente.`
       });
       
-      return false;
+      return true; // Retornamos true mesmo com erro, pois os dados foram removidos localmente
     }
   }
   
@@ -572,24 +646,29 @@ async function saveToSupabase(isFullSync: boolean = false): Promise<boolean> {
     console.log(`Salvando ${items.length} interpretações no Supabase...`);
     
     if (isFullSync) {
-      // Para sincronização completa, usar transação para garantir consistência
-      const { error } = await supabaseClient.rpc('sync_interpretations', {
-        interpretations_data: items
-      });
+      // Para sincronização completa, dividir em lotes menores para evitar sobrecarga
+      const batchSize = 50;
+      const batches = [];
       
-      if (error) {
-        console.error("Erro na sincronização completa:", error);
+      for (let i = 0; i < items.length; i += batchSize) {
+        batches.push(items.slice(i, i + batchSize));
+      }
+      
+      for (let i = 0; i < batches.length; i++) {
+        const batch = batches[i];
+        console.log(`Processando lote ${i + 1}/${batches.length} (${batch.length} itens)...`);
         
-        // Tentar método alternativo com upsert normal
-        const { error: upsertError } = await supabaseClient
+        const { error } = await supabaseClient
           .from('interpretations')
-          .upsert(items, { onConflict: 'id' });
+          .upsert(batch, { onConflict: 'id' });
         
-        if (upsertError) {
-          console.error("Erro no método alternativo de sincronização:", upsertError);
+        if (error) {
+          console.error(`Erro no lote ${i + 1}:`, error);
           return false;
         }
       }
+      
+      console.log("Sincronização em lotes completada com sucesso.");
     } else {
       // Para atualizações normais, usar upsert
       const { error } = await supabaseClient
@@ -614,7 +693,7 @@ async function saveToSupabase(isFullSync: boolean = false): Promise<boolean> {
 function saveToLocalStorage(): void {
   try {
     localStorage.setItem('karmicInterpretations', JSON.stringify(interpretations));
-    console.log("Backup das interpretações salvo no localStorage.");
+    console.log("Backup das interpretações salvo no localStorage. Total de itens:", Object.keys(interpretations).length);
   } catch (error) {
     console.error("Erro ao salvar backup no localStorage:", error);
   }
@@ -647,7 +726,9 @@ function loadFromLocalStorage(): Record<string, Interpretation> {
 // Force sync to Supabase
 export async function forceSyncToSupabase(): Promise<boolean> {
   try {
+    console.log("Iniciando sincronização forçada com Supabase...");
     const success = await saveToSupabase(true);
+    console.log("Sincronização forçada concluída:", success ? "Sucesso" : "Falha");
     return success;
   } catch (error) {
     console.error("Erro ao sincronizar com Supabase:", error);
@@ -688,15 +769,15 @@ export async function importInterpretations(data: Record<string, Interpretation>
     // Mesclar com dados existentes
     interpretations = { ...interpretations, ...validData };
     
+    // Salvar no localStorage primeiro
+    saveToLocalStorage();
+    
     // Salvar no Supabase
     const supabaseSuccess = await saveToSupabase(true);
     
     if (!supabaseSuccess) {
       console.warn("Não foi possível salvar no Supabase - salvando apenas localmente");
     }
-    
-    // Salvar no localStorage como backup
-    saveToLocalStorage();
     
     console.log(`Importadas ${validCount} interpretações com sucesso`);
     return true;
