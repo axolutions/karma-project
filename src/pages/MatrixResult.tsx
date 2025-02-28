@@ -80,7 +80,9 @@ const MatrixResult = () => {
       const canvas = await html2canvas(matrixElement as HTMLElement, {
         scale: 2, // Melhor qualidade
         backgroundColor: "#ffffff",
-        logging: false,
+        logging: true, // Habilita logs para depuração
+        useCORS: true, // Importante para imagens de outros domínios
+        allowTaint: true // Permite imagens de outros domínios
       });
       
       // Criar um link de download para a imagem
@@ -113,55 +115,94 @@ const MatrixResult = () => {
     try {
       setSending(true);
       
-      // Capturar apenas as interpretações
-      const interpretationsElement = document.querySelector('.matrix-interpretations');
-      if (!interpretationsElement) {
-        throw new Error("Não foi possível encontrar as interpretações para baixar");
-      }
-      
-      const canvas = await html2canvas(interpretationsElement as HTMLElement, {
-        scale: 1.5, // Qualidade adequada para PDF
-        backgroundColor: "#ffffff",
-        logging: false,
+      // Capturar todas as interpretações expandidas antes de gerar o PDF
+      const expandAllInterpretations = document.querySelectorAll('.matrix-interpretations .karmic-card');
+      expandAllInterpretations.forEach(card => {
+        if (!card.querySelector('.overflow-hidden')) {
+          // Se não estiver expandido, clique para expandir
+          const header = card.querySelector('.flex.justify-between');
+          if (header) {
+            (header as HTMLElement).click();
+          }
+        }
       });
       
-      const imgData = canvas.toDataURL('image/jpeg', 0.95);
-      
-      // Criar PDF
-      const pdf = new jsPDF({
-        orientation: 'portrait',
-        unit: 'mm',
-      });
-      
-      // Adicionar título
-      pdf.setFontSize(16);
-      pdf.text("Interpretações da Matriz Kármica", 105, 15, { align: 'center' });
-      pdf.setFontSize(12);
-      pdf.text(`${userData?.name || 'Cliente'} - ${userData?.birthDate || 'Data não informada'}`, 105, 25, { align: 'center' });
-      
-      // Calcular dimensões para manter proporções
-      const imgWidth = 190;
-      const imgHeight = canvas.height * imgWidth / canvas.width;
-      
-      // Adicionar imagem ao PDF
-      pdf.addImage(imgData, 'JPEG', 10, 35, imgWidth, imgHeight);
-      
-      // Baixar o PDF
-      pdf.save(`Interpretações-Matriz-Karmica-${userData?.name || 'Pessoal'}.pdf`);
-      
-      toast({
-        title: "Download concluído",
-        description: "As interpretações da sua Matriz Kármica foram baixadas com sucesso!",
-      });
+      // Atraso para garantir que todas as seções expandam antes de gerar o PDF
+      setTimeout(async () => {
+        try {
+          // Criar PDF
+          const pdf = new jsPDF({
+            orientation: 'portrait',
+            unit: 'mm',
+            format: 'a4',
+          });
+          
+          // Adicionar título
+          pdf.setFontSize(16);
+          pdf.text("Interpretações da Matriz Kármica", 105, 15, { align: 'center' });
+          pdf.setFontSize(12);
+          pdf.text(`${userData?.name || 'Cliente'} - ${userData?.birthDate || 'Data não informada'}`, 105, 25, { align: 'center' });
+          
+          // Capturar cada seção de interpretação individualmente e adicionar ao PDF
+          const interpretationCards = document.querySelectorAll('.matrix-interpretations .karmic-card');
+          let currentY = 35; // Posição Y inicial
+          
+          for (let i = 0; i < interpretationCards.length; i++) {
+            const card = interpretationCards[i];
+            
+            // Verificar se precisamos adicionar uma nova página
+            if (i > 0) {
+              pdf.addPage();
+              currentY = 15; // Resetar para o topo da nova página
+            }
+            
+            const canvas = await html2canvas(card as HTMLElement, {
+              scale: 1.5,
+              backgroundColor: "#ffffff",
+              logging: false,
+              useCORS: true,
+              allowTaint: true
+            });
+            
+            const imgData = canvas.toDataURL('image/jpeg', 0.95);
+            
+            // Calcular dimensões para manter proporções
+            const imgWidth = 190;
+            const imgHeight = canvas.height * imgWidth / canvas.width;
+            
+            // Adicionar imagem ao PDF
+            pdf.addImage(imgData, 'JPEG', 10, currentY, imgWidth, imgHeight);
+            
+            // Atualizar posição Y para o próximo item
+            currentY += imgHeight + 10;
+          }
+          
+          // Baixar o PDF
+          pdf.save(`Interpretações-Matriz-Karmica-${userData?.name || 'Pessoal'}.pdf`);
+          
+          toast({
+            title: "Download concluído",
+            description: "As interpretações da sua Matriz Kármica foram baixadas com sucesso!",
+          });
+        } catch (error) {
+          console.error("Erro ao gerar PDF das interpretações:", error);
+          toast({
+            title: "Erro ao gerar PDF",
+            description: "Não foi possível baixar as interpretações. Por favor, tente novamente mais tarde.",
+            variant: "destructive"
+          });
+        } finally {
+          setSending(false);
+        }
+      }, 1000);
     } catch (error) {
-      console.error("Erro ao gerar PDF das interpretações:", error);
+      console.error("Erro geral ao preparar PDF:", error);
+      setSending(false);
       toast({
-        title: "Erro ao gerar PDF",
-        description: "Não foi possível baixar as interpretações. Por favor, tente novamente mais tarde.",
+        title: "Erro ao preparar PDF",
+        description: "Houve um problema ao preparar o documento. Por favor, tente novamente.",
         variant: "destructive"
       });
-    } finally {
-      setSending(false);
     }
   };
   
