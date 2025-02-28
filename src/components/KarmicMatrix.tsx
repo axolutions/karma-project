@@ -21,16 +21,16 @@ const KarmicMatrix: React.FC<KarmicMatrixProps> = ({
   karmicData,
   backgroundImage = "https://darkorange-goldfinch-896244.hostingersite.com/wp-content/uploads/2025/02/Design-sem-nome-1.png"
 }) => {
-  // Define positions of the 8 boxes on the matrix image - adjusted to be in the small inner squares
+  // Define positions of the 8 boxes on the matrix image
   const boxPositions = [
-    { top: '15%', left: '25%', translateX: '-50%', translateY: '-50%' },   // Position 1 - top left square (3)
-    { top: '15%', left: '75%', translateX: '-50%', translateY: '-50%' },   // Position 2 - top right square (1)
-    { top: '47%', left: '25%', translateX: '-50%', translateY: '-50%' },   // Position 3 - middle left square (9)
-    { top: '47%', left: '75%', translateX: '-50%', translateY: '-50%' },   // Position 4 - middle right square (4)
-    { top: '77%', left: '25%', translateX: '-50%', translateY: '-50%' },   // Position 5 - bottom left square (11)
-    { top: '78%', left: '50%', translateX: '-50%', translateY: '-50%' },   // Position 6 - bottom middle square (9)
-    { top: '77%', left: '75%', translateX: '-50%', translateY: '-50%' },   // Position 7 - bottom right square (3)
-    { top: '33%', left: '50%', translateX: '-50%', translateY: '-50%' }    // Position 8 - top middle square (11)
+    { top: '15%', left: '25%', translateX: '-50%', translateY: '-50%' },   // Position 1 - top left square (3) - AJUSTADO
+    { top: '15%', left: '75%', translateX: '-50%', translateY: '-50%' },   // Position 2 - top right square (1) - AJUSTADO
+    { top: '47%', left: '25%', translateX: '-50%', translateY: '-50%' },   // Position 3 - middle left square (9) - JÁ ESTAVA CERTO
+    { top: '47%', left: '75%', translateX: '-50%', translateY: '-50%' },   // Position 4 - middle right square (4) - JÁ ESTAVA CERTO
+    { top: '77%', left: '25%', translateX: '-50%', translateY: '-50%' },   // Position 5 - bottom left square (11) - AJUSTADO
+    { top: '78%', left: '50%', translateX: '-50%', translateY: '-50%' },   // Position 6 - bottom middle square (9) - JÁ ESTAVA CERTO
+    { top: '77%', left: '75%', translateX: '-50%', translateY: '-50%' },   // Position 7 - bottom right square (3) - AJUSTADO
+    { top: '33%', left: '50%', translateX: '-50%', translateY: '-50%' }    // Position 8 - top middle square (11) - JÁ ESTAVA CERTO
   ];
 
   // Map data to positions
