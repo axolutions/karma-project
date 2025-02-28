@@ -77,6 +77,9 @@ const MatrixResult = () => {
         throw new Error("Não foi possível encontrar a matriz para baixar");
       }
       
+      // Pequeno delay para garantir que a imagem carregue
+      await new Promise(resolve => setTimeout(resolve, 1000));
+      
       const canvas = await html2canvas(matrixElement as HTMLElement, {
         scale: 2, // Melhor qualidade
         backgroundColor: "#ffffff",

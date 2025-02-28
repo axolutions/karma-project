@@ -22,22 +22,6 @@ const KarmicMatrix: React.FC<KarmicMatrixProps> = ({
   backgroundImage = "https://darkorange-goldfinch-896244.hostingersite.com/wp-content/uploads/2025/02/Design-sem-nome-1.png"
 }) => {
   const [imageLoaded, setImageLoaded] = useState(false);
-  const [imgSrc, setImgSrc] = useState(backgroundImage);
-  
-  // Pré-carrega a imagem para garantir que ela esteja disponível para impressão
-  useEffect(() => {
-    const img = new Image();
-    img.onload = () => {
-      setImageLoaded(true);
-    };
-    img.onerror = () => {
-      // Fallback para uma imagem local se a externa falhar
-      console.error("Erro ao carregar a imagem da matriz. Usando fallback.");
-      setImgSrc("/placeholder.svg");
-    };
-    img.crossOrigin = "anonymous"; // Importante para conseguir capturar a imagem em canvas
-    img.src = backgroundImage;
-  }, [backgroundImage]);
   
   // Vamos listar explicitamente as posições para cada número específico
   const numberPositions = {
@@ -71,7 +55,7 @@ const KarmicMatrix: React.FC<KarmicMatrixProps> = ({
     return (
       <div className="relative max-w-4xl mx-auto">
         <img 
-          src={imgSrc} 
+          src={backgroundImage} 
           alt="Matriz Kármica 2025"
           crossOrigin="anonymous"
           className="w-full h-auto"
@@ -104,7 +88,7 @@ const KarmicMatrix: React.FC<KarmicMatrixProps> = ({
     <div className="relative max-w-4xl mx-auto">
       {/* Background matrix image */}
       <img 
-        src={imgSrc} 
+        src={backgroundImage} 
         alt="Matriz Kármica 2025"
         crossOrigin="anonymous"
         className="w-full h-auto"
