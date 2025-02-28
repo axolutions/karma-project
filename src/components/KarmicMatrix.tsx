@@ -1,5 +1,5 @@
 
-import React, { useState, useEffect } from 'react';
+import React from 'react';
 import { getInterpretation, renderHTML } from '@/lib/interpretations';
 import { motion } from 'framer-motion';
 
@@ -21,29 +21,31 @@ const KarmicMatrix: React.FC<KarmicMatrixProps> = ({
   karmicData,
   backgroundImage = "https://darkorange-goldfinch-896244.hostingersite.com/wp-content/uploads/2025/02/Design-sem-nome-1.png"
 }) => {
-  // Positions configuradas como percentuais da imagem
-  // As posições são: [top, left] para cada ponto do selo kármico
-  const positionConfig = {
-    topLeft: [10, 20],        // 3 da esquerda (topo) - mais para cima e esquerda
-    topRight: [10, 80],       // 1 da direita (topo) - mais para cima e direita
-    middleLeft: [46, 21],     // meio esquerda (inalterado)
-    middleRight: [47, 72],    // meio direita (inalterado)
-    bottomLeft: [90, 20],     // 11 da esquerda (baixo) - mais para baixo e esquerda
-    bottomMiddle: [74, 48],   // meio inferior (inalterado)
-    bottomRight: [90, 80],    // 3 da direita (baixo) - mais para baixo e direita
-    topMiddle: [20, 47]       // meio superior (inalterado)
-  };
-
-  // Converte a configuração para o formato usado nos elementos
-  const boxPositions = [
-    { top: `${positionConfig.topLeft[0]}%`, left: `${positionConfig.topLeft[1]}%`, translateX: '-50%', translateY: '-50%' },       // 3 da esquerda
-    { top: `${positionConfig.topRight[0]}%`, left: `${positionConfig.topRight[1]}%`, translateX: '-50%', translateY: '-50%' },     // 1 da direita
-    { top: `${positionConfig.middleLeft[0]}%`, left: `${positionConfig.middleLeft[1]}%`, translateX: '-50%', translateY: '-50%' }, // meio esquerda
-    { top: `${positionConfig.middleRight[0]}%`, left: `${positionConfig.middleRight[1]}%`, translateX: '-50%', translateY: '-50%' }, // meio direita
-    { top: `${positionConfig.bottomLeft[0]}%`, left: `${positionConfig.bottomLeft[1]}%`, translateX: '-50%', translateY: '-50%' },  // 11 da esquerda
-    { top: `${positionConfig.bottomMiddle[0]}%`, left: `${positionConfig.bottomMiddle[1]}%`, translateX: '-50%', translateY: '-50%' }, // meio inferior
-    { top: `${positionConfig.bottomRight[0]}%`, left: `${positionConfig.bottomRight[1]}%`, translateX: '-50%', translateY: '-50%' }, // 3 da direita
-    { top: `${positionConfig.topMiddle[0]}%`, left: `${positionConfig.topMiddle[1]}%`, translateX: '-50%', translateY: '-50%' }    // meio superior
+  // Coordenadas específicas para cada posição
+  const positions = [
+    // Posição 0 - 3 da esquerda (topo)
+    { top: "13%", left: "15%" },
+    
+    // Posição 1 - 1 da direita (topo)
+    { top: "13%", left: "85%" },
+    
+    // Posição 2 - meio esquerda
+    { top: "46%", left: "21%" },
+    
+    // Posição 3 - meio direita
+    { top: "47%", left: "72%" },
+    
+    // Posição 4 - 11 da esquerda (baixo)
+    { top: "87%", left: "15%" },
+    
+    // Posição 5 - meio inferior
+    { top: "74%", left: "48%" },
+    
+    // Posição 6 - 3 da direita (baixo)
+    { top: "87%", left: "85%" },
+    
+    // Posição 7 - meio superior
+    { top: "20%", left: "47%" }
   ];
 
   // Map data to positions
@@ -98,9 +100,6 @@ const KarmicMatrix: React.FC<KarmicMatrixProps> = ({
     }
   ];
 
-  // Tamanho dos círculos ajustado para garantir que caibam nos quadrados
-  const circleSize = "w-12 h-12"; // Tamanho ainda menor para garantir que caibam
-
   return (
     <div className="relative max-w-4xl mx-auto">
       {/* Background matrix image */}
@@ -119,13 +118,13 @@ const KarmicMatrix: React.FC<KarmicMatrixProps> = ({
           transition={{ delay: index * 0.1, duration: 0.5 }}
           className="absolute"
           style={{ 
-            top: boxPositions[item.position].top, 
-            left: boxPositions[item.position].left,
-            transform: `translate(${boxPositions[item.position].translateX}, ${boxPositions[item.position].translateY})`
+            top: positions[item.position].top, 
+            left: positions[item.position].left,
+            transform: "translate(-50%, -50%)"
           }}
         >
           <div className="flex items-center justify-center">
-            <span className={`bg-white bg-opacity-80 rounded-full ${circleSize} flex items-center justify-center text-xl font-serif font-bold text-karmic-800 shadow-lg`}>
+            <span className="bg-white bg-opacity-80 rounded-full w-10 h-10 flex items-center justify-center text-lg font-serif font-bold text-karmic-800 shadow-lg">
               {item.value}
             </span>
           </div>
