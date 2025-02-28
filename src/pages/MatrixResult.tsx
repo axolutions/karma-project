@@ -1,4 +1,3 @@
-
 import React, { useEffect, useState } from 'react';
 import { Button } from "@/components/ui/button";
 import { getCurrentUser, getUserData, logout } from '@/lib/auth';
@@ -77,21 +76,30 @@ const MatrixResult = () => {
         throw new Error("Não foi possível encontrar a matriz para baixar");
       }
       
-      // Pequeno delay para garantir que a imagem carregue
-      await new Promise(resolve => setTimeout(resolve, 1000));
+      // Garantir que a imagem seja totalmente carregada antes de capturar
+      await new Promise(resolve => setTimeout(resolve, 1500));
       
+      // Opções específicas para preservar cores e transparência
       const canvas = await html2canvas(matrixElement as HTMLElement, {
-        scale: 2, // Melhor qualidade
-        backgroundColor: null, // Transparente para preservar as cores originais
-        logging: false, // Desabilita logs para evitar poluição do console
-        useCORS: true, // Importante para imagens de outros domínios
-        allowTaint: true, // Permite imagens de outros domínios
-        imageTimeout: 0, // Sem timeout para imagens
-        removeContainer: false // Não remove o container temporário
+        scale: 3, // Alta qualidade
+        backgroundColor: null, // Sem fundo para preservar transparência
+        logging: false,
+        useCORS: true,
+        allowTaint: true,
+        imageTimeout: 0,
+        removeContainer: false,
+        onclone: (document, clone) => {
+          // Procurar a imagem no clone do documento e garantir que esteja visível
+          const img = clone.querySelector('.karmic-matrix-container img');
+          if (img) {
+            (img as HTMLElement).style.opacity = '1';
+          }
+          return Promise.resolve();
+        }
       });
       
-      // Criar um link de download para a imagem
-      const imgData = canvas.toDataURL('image/png');
+      // Criar um link de download para a imagem com máxima qualidade
+      const imgData = canvas.toDataURL('image/png', 1.0);
       const link = document.createElement('a');
       link.href = imgData;
       link.download = `Matriz-Karmica-${userData?.name || 'Pessoal'}.png`;

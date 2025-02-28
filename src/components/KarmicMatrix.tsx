@@ -83,6 +83,7 @@ const KarmicMatrix: React.FC<KarmicMatrixProps> = ({
           src={hasError ? fallbackImage : backgroundImage} 
           alt="Matriz Kármica 2025"
           className={`w-full h-auto object-contain ${!imageLoaded && !hasError ? 'opacity-0' : 'opacity-100'}`}
+          style={{ maxHeight: '600px' }}
           onLoad={() => setImageLoaded(true)}
           onError={() => {
             console.error("✗ Erro ao exibir imagem da matriz");
