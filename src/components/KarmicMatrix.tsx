@@ -19,7 +19,7 @@ interface KarmicMatrixProps {
 
 const KarmicMatrix: React.FC<KarmicMatrixProps> = ({ 
   karmicData,
-  backgroundImage = "https://darkorange-goldfinch-896244.hostingersite.com/wp-content/uploads/2025/02/Design-sem-nome-1.png"
+  backgroundImage = "/lovable-uploads/77a4e867-ec94-4db5-b2be-656d9131268e.png"
 }) => {
   const [imageLoaded, setImageLoaded] = useState(false);
   const [imgSrc, setImgSrc] = useState(backgroundImage);
@@ -28,10 +28,6 @@ const KarmicMatrix: React.FC<KarmicMatrixProps> = ({
   useEffect(() => {
     const preloadImage = async () => {
       try {
-        // Tenta buscar a imagem via fetch primeiro para garantir que está acessível
-        const response = await fetch(backgroundImage, { mode: 'no-cors' });
-        
-        // Mesmo com no-cors, continuamos com o carregamento tradicional
         const img = new Image();
         img.crossOrigin = "anonymous";
         img.onload = () => {
