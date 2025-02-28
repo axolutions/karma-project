@@ -65,7 +65,7 @@ const MatrixInterpretations: React.FC<MatrixInterpretationsProps> = ({ karmicDat
         setLoadError(false);
         toast({
           title: "Interpretações carregadas",
-          description: `${Object.keys(allData).length} interpretações foram encontradas e carregadas.`
+          description: `Interpretações carregadas com sucesso.`
         });
       }
     } catch (error) {
@@ -297,26 +297,18 @@ const MatrixInterpretations: React.FC<MatrixInterpretationsProps> = ({ karmicDat
         Interpretações da Sua Matriz Kármica
       </h2>
       
-      <div className="flex justify-between items-center mb-4">
-        <div className="text-sm text-karmic-600">
-          {totalInterpretations > 0 ? (
-            <span className="text-green-600 font-medium">{totalInterpretations} interpretações disponíveis</span>
-          ) : (
-            <span className="text-amber-600 font-medium">Nenhuma interpretação personalizada encontrada</span>
-          )}
-        </div>
-        
-        {loadError && (
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={forceReloadInterpretations}
-            className="h-8 text-xs border-amber-400 text-amber-700 hover:bg-amber-100"
-          >
-            <RefreshCw className="h-3.5 w-3.5 mr-1.5" /> Recarregar
-          </Button>
-        )}
-      </div>
+      {/* Removemos o contador de interpretações disponíveis */}
+      
+      {loadError && (
+        <Button
+          variant="outline"
+          size="sm"
+          onClick={forceReloadInterpretations}
+          className="h-8 text-xs border-amber-400 text-amber-700 hover:bg-amber-100"
+        >
+          <RefreshCw className="h-3.5 w-3.5 mr-1.5" /> Recarregar Interpretações
+        </Button>
+      )}
       
       {loadError && (
         <div className="bg-amber-50 border-l-4 border-amber-400 p-4 mb-6 rounded-md">
@@ -377,9 +369,7 @@ const MatrixInterpretations: React.FC<MatrixInterpretationsProps> = ({ karmicDat
           const isExpanded = expandedSections.has(item.key);
           const processedContent = processContent(interpretation.content);
           
-          // Verificar se esta interpretação está disponível nos dados
-          const interpretationId = `${item.key}-${item.value}`;
-          const isCustomInterpretation = interpretationsData[interpretationId] !== undefined;
+          // Removemos a verificação para exibição do badge "Personalizado"
           
           return (
             <motion.div
@@ -395,11 +385,7 @@ const MatrixInterpretations: React.FC<MatrixInterpretationsProps> = ({ karmicDat
               >
                 <h3 className="text-xl font-serif font-medium text-karmic-800">
                   {getCategoryDisplayName(item.key)}
-                  {isCustomInterpretation && (
-                    <span className="ml-2 inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-green-100 text-green-800">
-                      Personalizado
-                    </span>
-                  )}
+                  {/* Removemos o badge "Personalizado" */}
                 </h3>
                 <div className="flex items-center space-x-3">
                   <span className="karmic-number">{item.value}</span>
