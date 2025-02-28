@@ -4,7 +4,8 @@ import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import EmailManager from '@/components/admin/EmailManager';
 import InterpretationEditor from '@/components/admin/InterpretationEditor';
-import { Users, Book, Info, Cloud } from 'lucide-react';
+import SupabaseSetup from '@/components/admin/SupabaseSetup';
+import { Users, Book, Info, Cloud, Database } from 'lucide-react';
 
 const Admin = () => {
   const [showInfoBox, setShowInfoBox] = useState(true);
@@ -43,9 +44,13 @@ const Admin = () => {
           </div>
         )}
         
+        <div className="bg-white rounded-xl p-6 shadow-sm border border-karmic-200 mb-6">
+          <SupabaseSetup />
+        </div>
+        
         <div className="bg-white rounded-xl p-6 shadow-sm border border-karmic-200">
           <Tabs defaultValue="interpretations" className="space-y-6">
-            <TabsList className="grid grid-cols-2 mb-6">
+            <TabsList className="grid grid-cols-3 mb-6">
               <TabsTrigger value="emails" className="flex items-center justify-center">
                 <Users className="h-4 w-4 mr-2" />
                 Emails Autorizados
@@ -53,6 +58,10 @@ const Admin = () => {
               <TabsTrigger value="interpretations" className="flex items-center justify-center">
                 <Book className="h-4 w-4 mr-2" />
                 Interpretações
+              </TabsTrigger>
+              <TabsTrigger value="database" className="flex items-center justify-center">
+                <Database className="h-4 w-4 mr-2" />
+                Banco de Dados
               </TabsTrigger>
             </TabsList>
             
@@ -62,6 +71,10 @@ const Admin = () => {
             
             <TabsContent value="interpretations">
               <InterpretationEditor />
+            </TabsContent>
+            
+            <TabsContent value="database">
+              <SupabaseSetup />
             </TabsContent>
           </Tabs>
         </div>

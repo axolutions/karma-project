@@ -15,6 +15,13 @@ export async function checkConnection(): Promise<boolean> {
     
     if (error) {
       console.error("Erro ao verificar conexão com Supabase:", error);
+      
+      // Se o erro for porque a tabela não existe, vamos tentar criar
+      if (error.code === '42P01') {  // Código para "relação não existe"
+        await setupDatabase();
+        return await checkConnection(); // Tenta novamente após criar tabela
+      }
+      
       return false;
     }
     
@@ -24,3 +31,64 @@ export async function checkConnection(): Promise<boolean> {
     return false;
   }
 }
+
+// Configurar o banco de dados Supabase
+export async function setupDatabase(): Promise<boolean> {
+  try {
+    console.log("Tentando criar tabela interpretations no Supabase...");
+    
+    // SQL para criar a tabela interpretations se ela não existir
+    const { error } = await supabaseClient.rpc('setup_interpretations_table');
+    
+    if (error) {
+      console.error("Erro ao configurar banco de dados:", error);
+      
+      // Tentativa alternativa: criar a tabela diretamente com SQL
+      const createTableResult = await supabaseClient.rpc('execute_sql', {
+        sql_query: `
+          CREATE TABLE IF NOT EXISTS public.interpretations (
+            id VARCHAR PRIMARY KEY,
+            title VARCHAR NOT NULL,
+            content TEXT NOT NULL,
+            updated_at TIMESTAMPTZ DEFAULT now()
+          );
+          
+          -- Configurar RLS (Row Level Security)
+          ALTER TABLE public.interpretations ENABLE ROW LEVEL SECURITY;
+          
+          -- Política para permitir operações anônimas
+          CREATE POLICY "Allow anonymous access" ON public.interpretations
+            FOR ALL
+            USING (true)
+            WITH CHECK (true);
+        `
+      });
+      
+      if (createTableResult.error) {
+        console.error("Erro ao criar tabela diretamente:", createTableResult.error);
+        
+        // Última tentativa: usar SQL bruto através da extensão pg_raw
+        const rawSqlResult = await supabaseClient.from('_postgrest_rpc').select().eq('name', 'execute_sql');
+        if (rawSqlResult.error) {
+          console.error("Todas as tentativas falharam, não foi possível criar a tabela.");
+          return false;
+        }
+      }
+    }
+    
+    console.log("Tabela interpretations configurada com sucesso!");
+    return true;
+  } catch (error) {
+    console.error("Erro crítico ao configurar banco de dados:", error);
+    return false;
+  }
+}
+
+// Executar setup imediatamente ao carregar
+setupDatabase().then(success => {
+  if (success) {
+    console.log("Banco de dados configurado com sucesso!");
+  } else {
+    console.warn("Não foi possível configurar o banco de dados automaticamente. Pode ser necessário criá-lo manualmente.");
+  }
+});
