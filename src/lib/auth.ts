@@ -13,7 +13,9 @@ let authorizedEmails: string[] = [
 // Admin emails list
 let adminEmails: string[] = [
   "test@example.com",
-  "admin@example.com"
+  "admin@example.com",
+  "cliente@teste.com", // Adicionando este email como admin também
+  "teste@teste.com"    // Adicionando este email como admin também
 ];
 
 // Temporary storage for user data
@@ -29,11 +31,13 @@ interface UserData {
 const userDatabase: Record<string, UserData> = {};
 
 export function isAdmin(email: string): boolean {
+  if (!email) return false;
   const normalizedEmail = email.toLowerCase().trim();
   return adminEmails.includes(normalizedEmail);
 }
 
 export function isAuthorizedEmail(email: string): boolean {
+  if (!email) return false;
   const normalizedEmail = email.toLowerCase().trim();
   console.log("Verificando autorização para:", normalizedEmail);
   console.log("Lista atual de emails:", authorizedEmails);
@@ -89,6 +93,8 @@ export function saveUserData(userData: Omit<UserData, 'createdAt'>): void {
 }
 
 export function getUserData(email: string): UserData | null {
+  if (!email) return null;
+  
   const normalizedEmail = email.toLowerCase().trim();
   
   // Check if we need to load from localStorage

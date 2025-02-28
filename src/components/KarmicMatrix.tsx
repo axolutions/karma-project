@@ -24,9 +24,10 @@ const KarmicMatrix: React.FC<KarmicMatrixProps> = ({
   const [imageLoaded, setImageLoaded] = useState(false);
   const [hasError, setHasError] = useState(false);
   
-  // Local fallback images
-  const fallbackImage = "/lovable-uploads/e3827c66-0547-4aea-8e5d-403dd2ac4af2.png"; 
+  // Local fallback images - usando a imagem enviada pelo usuário como principal fallback
+  const userProvidedFallback = "/lovable-uploads/f6b1f486-1d12-46d1-965d-ea69190f56e7.png";
   const uploadedFallbackImage = "/lovable-uploads/e5125d57-cbc7-4202-b746-eb90da348d92.png";
+  const fallbackImage = "/lovable-uploads/e3827c66-0547-4aea-8e5d-403dd2ac4af2.png"; 
   
   useEffect(() => {
     // Reset states when component mounts or backgroundImage changes
@@ -45,7 +46,7 @@ const KarmicMatrix: React.FC<KarmicMatrixProps> = ({
       setHasError(true);
     };
     
-    // Try to load the image directly without CORS proxy
+    // Try to load the image directly
     img.src = backgroundImage;
     
     // Fallback if image doesn't load in 5 seconds
@@ -71,7 +72,7 @@ const KarmicMatrix: React.FC<KarmicMatrixProps> = ({
     manifestationEnigma: { top: "20%", left: "50%" }
   };
 
-  // Matrix background rendering with fallback
+  // Matrix background rendering with improved fallback strategy
   const renderBackground = () => {
     // If original image loaded successfully, use it
     if (imageLoaded && !hasError) {
@@ -85,19 +86,26 @@ const KarmicMatrix: React.FC<KarmicMatrixProps> = ({
       );
     }
     
-    // Try first uploaded fallback
+    // Cascading fallback strategy - try user provided image first
     return (
       <div className="relative w-full h-full" style={{ minHeight: "500px" }}>
         <img 
-          src={uploadedFallbackImage} 
+          src={userProvidedFallback} 
           alt="Karmic Matrix 2025 (Fallback)"
           className="w-full h-auto transition-opacity duration-300"
           style={{ maxWidth: '100%' }}
-          onLoad={() => console.log("✓ Fallback image loaded successfully")}
+          onLoad={() => console.log("✓ User provided fallback image loaded successfully")}
           onError={(e) => {
-            console.error("✗ First fallback image failed to load, trying second fallback");
+            console.error("✗ User provided fallback image failed to load, trying next fallback");
             // If the first fallback fails, try the second one
-            (e.target as HTMLImageElement).src = fallbackImage;
+            (e.target as HTMLImageElement).src = uploadedFallbackImage;
+            (e.target as HTMLImageElement).onError = (ev) => {
+              console.error("✗ Second fallback image failed to load, trying final fallback");
+              (ev.target as HTMLImageElement).src = fallbackImage;
+              (ev.target as HTMLImageElement).onError = () => {
+                console.error("✗ All fallback images failed to load");
+              };
+            };
           }}
         />
         {hasError && (

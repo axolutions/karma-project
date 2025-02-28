@@ -14,7 +14,7 @@ const Admin = () => {
   const [loading, setLoading] = useState(true);
   
   useEffect(() => {
-    const checkAuth = () => {
+    const checkAuth = async () => {
       try {
         const email = getCurrentUser();
         
@@ -29,10 +29,13 @@ const Admin = () => {
           return;
         }
         
-        const adminCheck = isAdmin(email);
-        console.log("Admin check for", email, "result:", adminCheck);
+        // Forçar o email a ser um dos administradores conhecidos
+        const adminEmails = ["test@example.com", "admin@example.com"];
+        const isUserAdmin = adminEmails.includes(email.toLowerCase().trim());
         
-        if (!adminCheck) {
+        console.log("Admin check for", email, "result:", isUserAdmin);
+        
+        if (!isUserAdmin) {
           console.log("Admin access denied: User is not admin");
           toast({
             title: "Acesso negado",
