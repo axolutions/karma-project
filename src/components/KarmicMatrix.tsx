@@ -1,5 +1,5 @@
 
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useRef } from 'react';
 import { getInterpretation, renderHTML } from '@/lib/interpretations';
 import { motion } from 'framer-motion';
 
@@ -23,19 +23,38 @@ const KarmicMatrix: React.FC<KarmicMatrixProps> = ({
 }) => {
   const [imageLoaded, setImageLoaded] = useState(false);
   const [imgSrc, setImgSrc] = useState(backgroundImage);
+  const matrixRef = useRef<HTMLDivElement>(null);
   
   // Pré-carrega a imagem para garantir que ela esteja disponível para impressão
   useEffect(() => {
-    const img = new Image();
-    img.onload = () => {
-      setImageLoaded(true);
+    const preloadImage = async () => {
+      try {
+        // Usar fetch para verificar se a imagem está acessível
+        const response = await fetch(backgroundImage, { method: 'HEAD' });
+        if (!response.ok) {
+          throw new Error("Imagem da matriz não disponível");
+        }
+        
+        const img = new Image();
+        img.onload = () => {
+          setImageLoaded(true);
+          setImgSrc(backgroundImage);
+        };
+        img.onerror = () => {
+          // Fallback para uma imagem local se a externa falhar
+          console.error("Erro ao carregar a imagem da matriz. Usando fallback.");
+          setImgSrc("/placeholder.svg");
+          setImageLoaded(true); // Mesmo com erro, marcamos como carregada para continuar o fluxo
+        };
+        img.src = backgroundImage;
+      } catch (error) {
+        console.error("Erro ao verificar imagem da matriz:", error);
+        setImgSrc("/placeholder.svg");
+        setImageLoaded(true);
+      }
     };
-    img.onerror = () => {
-      // Fallback para uma imagem local se a externa falhar
-      console.error("Erro ao carregar a imagem da matriz. Usando fallback.");
-      setImgSrc("/placeholder.svg");
-    };
-    img.src = backgroundImage;
+    
+    preloadImage();
   }, [backgroundImage]);
   
   // Vamos listar explicitamente as posições para cada número específico
@@ -68,7 +87,7 @@ const KarmicMatrix: React.FC<KarmicMatrixProps> = ({
   // Se karmicData for undefined, mostramos apenas a imagem de fundo
   if (!karmicData) {
     return (
-      <div className="relative max-w-4xl mx-auto">
+      <div className="relative max-w-4xl mx-auto" ref={matrixRef}>
         <img 
           src={imgSrc} 
           alt="Matriz Kármica 2025" 
@@ -99,18 +118,19 @@ const KarmicMatrix: React.FC<KarmicMatrixProps> = ({
   ];
 
   return (
-    <div className="relative max-w-4xl mx-auto">
+    <div className="relative max-w-4xl mx-auto karmic-matrix" ref={matrixRef}>
       {/* Background matrix image */}
       <img 
         src={imgSrc} 
         alt="Matriz Kármica 2025" 
-        className="w-full h-auto"
+        className="w-full h-auto matrix-image"
         onLoad={() => setImageLoaded(true)}
         style={{ 
           // Adiciona um contorno para caso a imagem não seja visível no PDF
           border: '1px solid #EAE6E1',
           borderRadius: '8px'
         }}
+        crossOrigin="anonymous"
       />
       
       {/* Numbers overlay */}
@@ -120,7 +140,7 @@ const KarmicMatrix: React.FC<KarmicMatrixProps> = ({
           initial={{ opacity: 0, scale: 0.8 }}
           animate={{ opacity: 1, scale: 1 }}
           transition={{ delay: index * 0.1, duration: 0.5 }}
-          className="absolute print:!opacity-100"
+          className="absolute print:!opacity-100 matrix-number"
           style={{ 
             top: numberPositions[item.key as keyof typeof numberPositions].top, 
             left: numberPositions[item.key as keyof typeof numberPositions].left,
