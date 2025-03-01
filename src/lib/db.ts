@@ -83,7 +83,7 @@ export const getAllAuthorizedEmails = (): string[] => {
     if (emailsString) {
       return JSON.parse(emailsString);
     }
-    // Initialize with default emails
+    // Initialize with default emails, including teste@teste.com
     const initialEmails = ['example1@example.com', 'example2@example.com', 'teste@teste.com'];
     localStorage.setItem(AUTHORIZED_EMAILS_KEY, JSON.stringify(initialEmails));
     return initialEmails;

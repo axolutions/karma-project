@@ -2,7 +2,7 @@
 import React, { useState } from 'react';
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import { login, getUserData, isAuthorizedEmail } from '@/lib/auth';
+import { login, getUserData, isAuthorizedEmail, saveUserData } from '@/lib/auth';
 import { toast } from "@/components/ui/use-toast";
 import { useNavigate } from 'react-router-dom';
 import { MoveRight } from "lucide-react";
@@ -39,6 +39,20 @@ const LoginForm: React.FC = () => {
     
     // Login the user
     console.log("Tentativa de login para:", email);
+    
+    // Verificar se o usuário já existe, se não, criar um registro básico
+    let userData = getUserData(email);
+    
+    if (!userData) {
+      console.log("Usuário não encontrado, criando registro inicial");
+      // Cria um registro básico para o usuário
+      saveUserData({
+        email: email,
+        name: "",
+        id: crypto.randomUUID()
+      });
+    }
+    
     const success = login(email);
     if (success) {
       console.log("Login realizado com sucesso para:", email);
@@ -48,12 +62,12 @@ const LoginForm: React.FC = () => {
       });
       
       // Check if user has already completed profile
-      const userData = getUserData(email);
+      userData = getUserData(email);
       console.log("Obtendo dados do usuário. Email:", email, "Dados:", userData);
       
       setTimeout(() => {
         setIsSubmitting(false);
-        if (userData) {
+        if (userData && userData.name) {
           // User already has a matrix, redirect to results
           navigate('/matrix');
         } else {

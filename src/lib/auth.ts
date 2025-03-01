@@ -1,4 +1,3 @@
-
 import { 
   getDb, 
   saveUserData as saveData, 
@@ -40,24 +39,30 @@ export const getUserData = (email: string): UserProfile | null => {
     return db[email];
   }
   
-  console.log("Obtendo dados do usuário. Email:", email, "ID:", { undefined });
+  console.log("Usuário não encontrado. Email:", email);
   return null;
 };
 
 // Function to login the user
 export const login = (email: string): boolean => {
+  console.log("Tentando fazer login para o email:", email);
   const db = getDb();
-  if (db && db[email]) {
+  // Verifica se o email está autorizado
+  if (isAuthorizedEmail(email)) {
     localStorage.setItem('currentUser', email);
+    console.log("Login bem-sucedido para:", email);
     return true;
   }
+  console.log("Login falhou para:", email);
   return false;
 };
 
 // Function to check if the email is authorized
 export const isAuthorizedEmail = (email: string): boolean => {
   const authorizedEmails = getAllAuthorizedEmails();
-  return authorizedEmails.includes(email);
+  const isAuthorized = authorizedEmails.includes(email);
+  console.log("Verificando autorização para:", email, "Autorizado:", isAuthorized, "Lista:", authorizedEmails);
+  return isAuthorized;
 };
 
 // Function to logout the user
@@ -90,6 +95,7 @@ export const saveUserData = (data: { email: string; [key: string]: any }): strin
     ...data
   };
   
+  console.log("Salvando dados do usuário:", userData);
   saveData(email, userData);
   return userData.id || '';
 };
