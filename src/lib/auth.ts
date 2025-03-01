@@ -46,13 +46,17 @@ export const getUserData = (email: string): UserProfile | null => {
 // Function to login the user
 export const login = (email: string): boolean => {
   console.log("Tentando fazer login para o email:", email);
-  const db = getDb();
-  // Verifica se o email está autorizado
-  if (isAuthorizedEmail(email)) {
+  
+  // Check if the email is authorized first
+  const authorized = isAuthorizedEmail(email);
+  console.log("Email está autorizado?", authorized);
+  
+  if (authorized) {
     localStorage.setItem('currentUser', email);
     console.log("Login bem-sucedido para:", email);
     return true;
   }
+  
   console.log("Login falhou para:", email);
   return false;
 };
@@ -60,8 +64,11 @@ export const login = (email: string): boolean => {
 // Function to check if the email is authorized
 export const isAuthorizedEmail = (email: string): boolean => {
   const authorizedEmails = getAllAuthorizedEmails();
+  console.log("Lista completa de emails autorizados:", authorizedEmails);
+  
   const isAuthorized = authorizedEmails.includes(email);
-  console.log("Verificando autorização para:", email, "Autorizado:", isAuthorized, "Lista:", authorizedEmails);
+  console.log("Verificando autorização para:", email, "Autorizado:", isAuthorized);
+  
   return isAuthorized;
 };
 

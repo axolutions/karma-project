@@ -80,15 +80,25 @@ const AUTHORIZED_EMAILS_KEY = 'authorizedEmails';
 export const getAllAuthorizedEmails = (): string[] => {
   try {
     const emailsString = localStorage.getItem(AUTHORIZED_EMAILS_KEY);
+    // Add teste@teste.com to the default list
+    const defaultEmails = ['example1@example.com', 'example2@example.com', 'teste@teste.com'];
+    
     if (emailsString) {
-      return JSON.parse(emailsString);
+      const storedEmails = JSON.parse(emailsString);
+      // Ensure teste@teste.com is always included
+      if (!storedEmails.includes('teste@teste.com')) {
+        storedEmails.push('teste@teste.com');
+        localStorage.setItem(AUTHORIZED_EMAILS_KEY, JSON.stringify(storedEmails));
+      }
+      return storedEmails;
     }
-    // Initialize with default emails, including teste@teste.com
-    const initialEmails = ['example1@example.com', 'example2@example.com', 'teste@teste.com'];
-    localStorage.setItem(AUTHORIZED_EMAILS_KEY, JSON.stringify(initialEmails));
-    return initialEmails;
+    
+    // Initialize with default emails if none exist
+    localStorage.setItem(AUTHORIZED_EMAILS_KEY, JSON.stringify(defaultEmails));
+    return defaultEmails;
   } catch (error) {
     console.error('Error getting authorized emails:', error);
+    // Always include teste@teste.com in fallback
     return ['example1@example.com', 'example2@example.com', 'teste@teste.com'];
   }
 };
