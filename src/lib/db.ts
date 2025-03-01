@@ -1,4 +1,3 @@
-
 interface UserData {
   id: string;
   name: string;
@@ -85,12 +84,12 @@ export const getAllAuthorizedEmails = (): string[] => {
       return JSON.parse(emailsString);
     }
     // Initialize with default emails
-    const initialEmails = ['example1@example.com', 'example2@example.com'];
+    const initialEmails = ['example1@example.com', 'example2@example.com', 'teste@teste.com'];
     localStorage.setItem(AUTHORIZED_EMAILS_KEY, JSON.stringify(initialEmails));
     return initialEmails;
   } catch (error) {
     console.error('Error getting authorized emails:', error);
-    return ['example1@example.com', 'example2@example.com'];
+    return ['example1@example.com', 'example2@example.com', 'teste@teste.com'];
   }
 };
 
