@@ -1,9 +1,21 @@
-import { getDb } from './db'; // Assuming you have a function to get your database
+
+import { 
+  getDb, 
+  saveUserData as saveData, 
+  getAllUserDataByEmail as getAllUsers,
+  setCurrentMatrixId as setMatrixId,
+  getCurrentMatrixId as getMatrixId,
+  getAllAuthorizedEmails,
+  addAuthorizedEmail,
+  removeAuthorizedEmail
+} from './db';
 
 export interface UserProfile {
   id: string;
   name: string;
   email: string;
+  birthDate?: string;
+  currentMatrixId?: string;
   // Add other user profile fields as necessary
 }
 
@@ -44,11 +56,22 @@ export const login = (email: string): boolean => {
 
 // Function to check if the email is authorized
 export const isAuthorizedEmail = (email: string): boolean => {
-  const authorizedEmails = ['example1@example.com', 'example2@example.com']; // Replace with your authorized emails
+  const authorizedEmails = getAllAuthorizedEmails();
   return authorizedEmails.includes(email);
 };
 
 // Function to logout the user
 export const logout = (): void => {
   localStorage.removeItem('currentUser');
+};
+
+// Re-export needed functions from db.ts
+export const saveUserData = saveData;
+export const getAllUserDataByEmail = getAllUsers;
+export const setCurrentMatrixId = setMatrixId;
+export const getCurrentMatrixId = getMatrixId;
+export { 
+  getAllAuthorizedEmails, 
+  addAuthorizedEmail, 
+  removeAuthorizedEmail 
 };
