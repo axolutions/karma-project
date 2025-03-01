@@ -12,7 +12,7 @@ const LoginForm: React.FC = () => {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const navigate = useNavigate();
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsSubmitting(true);
     
@@ -38,8 +38,10 @@ const LoginForm: React.FC = () => {
     }
     
     // Login the user
+    console.log("Tentativa de login para:", email);
     const success = login(email);
     if (success) {
+      console.log("Login realizado com sucesso para:", email);
       toast({
         title: "Login realizado com sucesso",
         description: "Bem-vindo ao Sistema de Matriz Kármica Pessoal 2025.",
@@ -47,6 +49,7 @@ const LoginForm: React.FC = () => {
       
       // Check if user has already completed profile
       const userData = getUserData(email);
+      console.log("Obtendo dados do usuário. Email:", email, "Dados:", userData);
       
       setTimeout(() => {
         setIsSubmitting(false);
@@ -56,11 +59,16 @@ const LoginForm: React.FC = () => {
         } else {
           // User needs to fill profile, redirect to profile page
           navigate('/');
-          // Force reload to show profile form
-          window.location.reload();
+          // No need to force reload
         }
       }, 1000);
     } else {
+      console.log("Falha no login para:", email);
+      toast({
+        title: "Erro no login",
+        description: "Houve um problema ao processar seu login. Por favor, tente novamente.",
+        variant: "destructive"
+      });
       setIsSubmitting(false);
     }
   };

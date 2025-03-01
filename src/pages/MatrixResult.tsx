@@ -1,3 +1,4 @@
+
 import React, { useEffect, useState } from 'react';
 import { Button } from "@/components/ui/button";
 import { 
@@ -31,6 +32,7 @@ const MatrixResult = () => {
   const [refreshing, setRefreshing] = useState(false);
   const [isPrinting, setIsPrinting] = useState(false);
   const [canCreateNewMap, setCanCreateNewMap] = useState(false);
+  const [loading, setLoading] = useState(true);
   const navigate = useNavigate();
   
   useEffect(() => {
@@ -40,6 +42,7 @@ const MatrixResult = () => {
   
   const loadUserData = () => {
     try {
+      setLoading(true);
       const email = getCurrentUser();
       if (!email) {
         console.log("Nenhum usuário logado, redirecionando para a página inicial");
@@ -56,7 +59,12 @@ const MatrixResult = () => {
       // Se não for um array, tenta converter para array
       if (allMaps && !Array.isArray(allMaps)) {
         console.log("Convertendo objeto para array");
-        allMaps = [allMaps];
+        if (typeof allMaps === 'object') {
+          allMaps = [allMaps];
+        } else {
+          allMaps = [];
+          console.log("Dados não são um objeto nem um array:", typeof allMaps);
+        }
       }
       
       // Verificar se temos mapas válidos
@@ -130,6 +138,7 @@ const MatrixResult = () => {
       
       console.log("Definindo userData com:", currentData);
       setUserData(currentData);
+      setLoading(false);
     } catch (error) {
       console.error("Erro ao carregar dados:", error);
       toast({
@@ -137,6 +146,7 @@ const MatrixResult = () => {
         description: "Ocorreu um erro inesperado. Por favor, tente novamente.",
         variant: "destructive"
       });
+      setLoading(false);
       navigate('/');
     }
   };
@@ -149,50 +159,6 @@ const MatrixResult = () => {
     } else {
       setCanCreateNewMap(true);
     }
-  };
-  
-  // Detecta quando a impressão é concluída ou cancelada
-  useEffect(() => {
-    if (isPrinting) {
-      // Adicionar evento para quando o modal de impressão for fechado
-      const handleAfterPrint = () => {
-        setIsPrinting(false);
-        console.log("Impressão concluída ou cancelada");
-      };
-      
-      window.addEventListener('afterprint', handleAfterPrint);
-      
-      return () => {
-        window.removeEventListener('afterprint', handleAfterPrint);
-      };
-    }
-  }, [isPrinting]);
-  
-  const handlePrint = () => {
-    setIsPrinting(true);
-    
-    // Garantir que todos os estilos e imagens sejam carregados antes de imprimir
-    setTimeout(() => {
-      try {
-        window.print();
-        
-        // Em alguns navegadores, o evento afterprint pode não ser disparado
-        // Então definimos um timeout de segurança
-        setTimeout(() => {
-          if (isPrinting) {
-            setIsPrinting(false);
-          }
-        }, 5000);
-      } catch (error) {
-        console.error("Erro ao imprimir:", error);
-        setIsPrinting(false);
-        toast({
-          title: "Erro ao imprimir",
-          description: "Houve um problema ao gerar o PDF. Tente novamente.",
-          variant: "destructive"
-        });
-      }
-    }, 300);
   };
   
   const handleDownloadPDF = () => {
@@ -315,16 +281,33 @@ const MatrixResult = () => {
   };
   
   // Mostrar estado de carregamento se ainda não temos dados
-  if (!userData) {
-    console.log("Ainda não temos dados, exibindo carregamento");
+  if (loading) {
     return (
-      <div className="min-h-screen flex items-center justify-center">
-        <div className="text-center">
-          <p className="text-karmic-700">Carregando dados da matriz kármica...</p>
+      <div className="min-h-screen bg-gradient-to-b from-karmic-100 to-white flex items-center justify-center">
+        <div className="text-center p-6 bg-white shadow-sm rounded-xl border border-karmic-200">
+          <p className="text-karmic-700 mb-3">Carregando dados da matriz kármica...</p>
+          <div className="w-8 h-8 border-t-2 border-karmic-500 border-solid rounded-full animate-spin mx-auto mb-3"></div>
           <Button 
             onClick={() => navigate('/')}
             variant="link" 
             className="mt-4 text-karmic-500"
+          >
+            Voltar para a página inicial
+          </Button>
+        </div>
+      </div>
+    );
+  }
+  
+  if (!userData) {
+    return (
+      <div className="min-h-screen bg-gradient-to-b from-karmic-100 to-white flex items-center justify-center">
+        <div className="text-center p-6 bg-white shadow-sm rounded-xl border border-karmic-200">
+          <p className="text-karmic-700 mb-3">Não foi possível carregar os dados da matriz. Por favor, tente novamente.</p>
+          <Button 
+            onClick={() => navigate('/')}
+            variant="default" 
+            className="mt-4 karmic-button"
           >
             Voltar para a página inicial
           </Button>
