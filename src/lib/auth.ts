@@ -72,6 +72,16 @@ export const saveUserData = (data: { email: string; [key: string]: any }): strin
   }
   
   const email = data.email;
+  
+  // Ensure the data has id and name properties as required by UserData type
+  if (!data.id) {
+    data.id = crypto.randomUUID(); // Generate a unique ID if not provided
+  }
+  
+  if (!data.name) {
+    data.name = ""; // Provide a default empty name if not provided
+  }
+  
   saveData(email, data);
   return data.id || '';
 };
