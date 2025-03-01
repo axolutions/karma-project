@@ -64,13 +64,11 @@ export const addYampiCustomerToAuthorized = async (
     
     // Se for válido, adicionar à lista de emails autorizados
     const { addAuthorizedEmail } = await import('./auth');
-    const success = addAuthorizedEmail(email);
+    addAuthorizedEmail(email);
     
-    if (success) {
-      console.log(`Email ${email} adicionado automaticamente após compra na Yampi`);
-    }
+    console.log(`Email ${email} adicionado automaticamente após compra na Yampi`);
+    return true;
     
-    return success;
   } catch (error) {
     console.error('Erro ao processar compra da Yampi:', error);
     return false;

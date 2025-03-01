@@ -53,7 +53,7 @@ const MatrixResult = () => {
       console.log("Carregando dados para o email:", email);
       
       // Obter todos os mapas do usuário
-      let allMaps = getAllUserDataByEmail(email);
+      let allMaps = getAllUserDataByEmail();
       console.log("Dados brutos recebidos:", JSON.stringify(allMaps));
       
       // Se não for um array, tenta converter para array
@@ -108,7 +108,7 @@ const MatrixResult = () => {
       let currentData = null;
       
       if (currentMatrixId) {
-        currentData = getUserData(email, currentMatrixId);
+        currentData = validMaps.find(map => map.id === currentMatrixId);
         console.log("Dados da matriz obtidos por ID:", currentData);
       }
       
@@ -153,7 +153,7 @@ const MatrixResult = () => {
   
   const checkIfCanCreateNewMap = (email: string, mapCount: number) => {
     // Aqui verificamos se o usuário pode criar um novo mapa
-    if (mapCount > 0 && isAuthorizedEmail(email)) {
+    if (mapCount > 0 && !isAuthorizedEmail(email)) {
       // Simples verificação: se já tem mapas, não pode criar mais
       setCanCreateNewMap(false);
     } else {
@@ -238,12 +238,12 @@ const MatrixResult = () => {
   };
   
   const handleSwitchMap = (mapId: string) => {
-    const email = getCurrentUser();
-    if (!email) return;
+    setCurrentMatrixId(mapId);
     
-    const selectedMap = getUserData(email, mapId);
-    if (selectedMap && selectedMap.id) {
-      setCurrentMatrixId(mapId);
+    // Encontrar o mapa selecionado
+    const selectedMap = userMaps.find(map => map.id === mapId);
+    
+    if (selectedMap) {
       setUserData(selectedMap);
       
       toast({

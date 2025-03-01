@@ -22,7 +22,7 @@ const ProfileForm: React.FC = () => {
     const currentUser = getCurrentUser();
     if (currentUser) {
       console.log("ProfileForm: Usuário atual:", currentUser);
-      const userMaps = getAllUserDataByEmail(currentUser);
+      const userMaps = getAllUserDataByEmail();
       console.log("ProfileForm: Mapas encontrados:", userMaps);
       
       setExistingMaps(userMaps || []);
@@ -41,7 +41,7 @@ const ProfileForm: React.FC = () => {
   
   const checkIfCanCreateNewMap = (email: string, mapCount: number) => {
     // Aqui verificamos se o usuário pode criar um novo mapa
-    if (mapCount > 0 && isAuthorizedEmail(email)) {
+    if (mapCount > 0 && !isAuthorizedEmail(email)) {
       // Simples verificação: se já tem mapas, não pode criar mais
       setCanCreateNewMap(false);
     } else {

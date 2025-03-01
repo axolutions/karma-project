@@ -27,8 +27,8 @@ const EmailManager: React.FC = () => {
     // Calcular estatísticas - quantos mapas cada email possui
     const stats: Record<string, number> = {};
     authorizedEmails.forEach(email => {
-      const userMaps = getAllUserDataByEmail(email);
-      stats[email] = userMaps.length;
+      const userMaps = getAllUserDataByEmail();
+      stats[email] = userMaps.filter(map => map.email === email).length;
     });
     
     setEmailStats(stats);
@@ -58,7 +58,7 @@ const EmailManager: React.FC = () => {
     
     // Se o email já existe, perguntar se deseja conceder um novo acesso
     if (emailExists) {
-      const existingMaps = getAllUserDataByEmail(newEmail.toLowerCase());
+      const existingMaps = getAllUserDataByEmail().filter(map => map.email === newEmail.toLowerCase());
       
       if (existingMaps.length > 0) {
         const confirmAdd = confirm(
@@ -77,23 +77,14 @@ const EmailManager: React.FC = () => {
     }
     
     // Adicionar o email à lista de autorizados
-    const success = addAuthorizedEmail(newEmail);
+    addAuthorizedEmail(newEmail);
     
-    if (success) {
-      toast({
-        title: "Email adicionado",
-        description: `O email ${newEmail} foi adicionado com sucesso.`
-      });
-      setNewEmail('');
-      refreshEmails();
-    } else {
-      // Este caso só ocorrerá se houver algum problema na função addAuthorizedEmail
-      toast({
-        title: "Erro ao adicionar email",
-        description: `Não foi possível adicionar ${newEmail} à lista.`,
-        variant: "destructive"
-      });
-    }
+    toast({
+      title: "Email adicionado",
+      description: `O email ${newEmail} foi adicionado com sucesso.`
+    });
+    setNewEmail('');
+    refreshEmails();
   };
   
   const handleRemoveEmail = (email: string) => {
@@ -106,15 +97,13 @@ const EmailManager: React.FC = () => {
       }
     }
     
-    const success = removeAuthorizedEmail(email);
+    removeAuthorizedEmail(email);
     
-    if (success) {
-      toast({
-        title: "Email removido",
-        description: `O email ${email} foi removido com sucesso.`
-      });
-      refreshEmails();
-    }
+    toast({
+      title: "Email removido",
+      description: `O email ${email} foi removido com sucesso.`
+    });
+    refreshEmails();
   };
   
   const handleKeyPress = (e: React.KeyboardEvent) => {

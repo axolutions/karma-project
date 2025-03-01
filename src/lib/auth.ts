@@ -66,10 +66,35 @@ export const logout = (): void => {
 };
 
 // Re-export needed functions from db.ts
-export const saveUserData = saveData;
-export const getAllUserDataByEmail = getAllUsers;
-export const setCurrentMatrixId = setMatrixId;
-export const getCurrentMatrixId = getMatrixId;
+export const saveUserData = (data: { email: string; [key: string]: any }): string => {
+  if (!data.email) {
+    throw new Error('Email is required to save user data');
+  }
+  
+  const email = data.email;
+  saveData(email, data);
+  return data.id || '';
+};
+
+export const getAllUserDataByEmail = (): any[] => {
+  return getAllUsers();
+};
+
+export const setCurrentMatrixId = (id: string): void => {
+  const email = getCurrentUser();
+  if (email) {
+    setMatrixId(email, id);
+  }
+};
+
+export const getCurrentMatrixId = (): string | null => {
+  const email = getCurrentUser();
+  if (email) {
+    return getMatrixId(email);
+  }
+  return null;
+};
+
 export { 
   getAllAuthorizedEmails, 
   addAuthorizedEmail, 
