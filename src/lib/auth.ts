@@ -82,8 +82,16 @@ export const saveUserData = (data: { email: string; [key: string]: any }): strin
     data.name = ""; // Provide a default empty name if not provided
   }
   
-  saveData(email, data);
-  return data.id || '';
+  // Create a properly typed object to pass to saveData
+  const userData = {
+    id: data.id,
+    name: data.name,
+    email: data.email,
+    ...data
+  };
+  
+  saveData(email, userData);
+  return userData.id || '';
 };
 
 export const getAllUserDataByEmail = (): any[] => {
