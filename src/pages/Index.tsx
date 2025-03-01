@@ -10,31 +10,49 @@ import { getCurrentUser, isLoggedIn, getUserData } from '@/lib/auth';
 const Index = () => {
   const [userLoggedIn, setUserLoggedIn] = useState(false);
   const [hasProfile, setHasProfile] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
   const navigate = useNavigate();
   
   useEffect(() => {
     // Check if user is logged in
-    const loggedIn = isLoggedIn();
-    setUserLoggedIn(loggedIn);
-    console.log("Index: Usuário logado?", loggedIn);
-    
-    if (loggedIn) {
-      // Check if user has created profile
-      const email = getCurrentUser();
-      if (email) {
-        const userData = getUserData(email);
-        console.log("Index: Dados do usuário:", userData);
-        if (userData && userData.id) {
-          console.log("Usuário já tem perfil, redirecionando para matriz");
-          setHasProfile(true);
-          // Redirect to matrix page
-          navigate('/matrix');
-        } else {
-          console.log("Usuário logado, mas sem perfil");
+    try {
+      const loggedIn = isLoggedIn();
+      setUserLoggedIn(loggedIn);
+      console.log("Index: Usuário logado?", loggedIn);
+      
+      if (loggedIn) {
+        // Check if user has created profile
+        const email = getCurrentUser();
+        if (email) {
+          const userData = getUserData(email);
+          console.log("Index: Dados do usuário:", userData);
+          if (userData && userData.name) {
+            console.log("Usuário já tem perfil, redirecionando para matriz");
+            setHasProfile(true);
+            // Redirect to matrix page
+            navigate('/matrix');
+          } else {
+            console.log("Usuário logado, mas sem perfil");
+          }
         }
       }
+    } catch (error) {
+      console.error("Erro ao verificar login:", error);
+    } finally {
+      setIsLoading(false);
     }
   }, [navigate]);
+
+  if (isLoading) {
+    return (
+      <div className="min-h-screen bg-gradient-to-b from-karmic-100 to-white py-12 flex items-center justify-center">
+        <div className="text-center">
+          <div className="inline-block h-8 w-8 animate-spin rounded-full border-4 border-solid border-karmic-700 border-r-transparent"></div>
+          <p className="mt-4 text-karmic-700">Carregando...</p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-karmic-100 to-white py-12">
