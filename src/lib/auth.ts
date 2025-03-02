@@ -18,6 +18,7 @@ export interface UserProfile {
   email: string;
   birthDate?: string;
   currentMatrixId?: string;
+  createdAt?: string; // Add createdAt property to fix type errors
   // Add other user profile fields as necessary
 }
 
