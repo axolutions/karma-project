@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
@@ -45,8 +44,7 @@ const ProfileForm: React.FC<ProfileFormProps> = ({ viewMode = 'create' }) => {
       const validMaps = userMaps.filter(map => 
         map && 
         map.id && 
-        map.email === currentUser &&
-        map.name !== undefined
+        map.email === currentUser
       );
       
       console.log("ProfileForm: Mapas válidos após filtragem:", validMaps);
@@ -208,18 +206,18 @@ const ProfileForm: React.FC<ProfileFormProps> = ({ viewMode = 'create' }) => {
       const karmicNumbers = calculateAllKarmicNumbers(birthDate);
       console.log("ProfileForm: Números kármicos calculados:", karmicNumbers);
       
-      // Save user data with a unique ID
-      console.log("ProfileForm: Salvando dados do usuário");
+      // Save user data with a unique ID and ensure name is properly saved
+      console.log("ProfileForm: Salvando dados do usuário com nome:", name);
       const newMapId = saveUserData({
         id: crypto.randomUUID(), // Ensure each map has a unique ID
         email,
-        name,
+        name: name.trim(), // Ensure name is properly saved and trimmed
         birthDate,
         karmicNumbers,
         createdAt: new Date().toISOString() // Add creation timestamp
       });
       
-      console.log("ProfileForm: Mapa criado com ID:", newMapId);
+      console.log("ProfileForm: Mapa criado com ID:", newMapId, "e nome:", name);
       
       // Definir o ID do mapa atual para visualização
       setCurrentMatrixId(newMapId);
@@ -266,7 +264,7 @@ const ProfileForm: React.FC<ProfileFormProps> = ({ viewMode = 'create' }) => {
               if (!map || !map.id) return null;
               
               // Mostrar informações disponíveis ou placeholders
-              const mapName = map.name || 'Nome indisponível';
+              const mapName = map.name && map.name.trim() ? map.name : 'Mapa sem nome';
               const mapDate = map.birthDate || 'Data indisponível';
               const createdAt = map.createdAt ? new Date(map.createdAt).toLocaleDateString() : '';
               
@@ -352,7 +350,7 @@ const ProfileForm: React.FC<ProfileFormProps> = ({ viewMode = 'create' }) => {
               if (!map || !map.id) return null;
               
               // Mostrar informações disponíveis ou placeholders
-              const mapName = map.name || 'Nome indisponível';
+              const mapName = map.name && map.name.trim() ? map.name : 'Mapa sem nome';
               const mapDate = map.birthDate || 'Data indisponível';
               const createdAt = map.createdAt ? new Date(map.createdAt).toLocaleDateString() : '';
               

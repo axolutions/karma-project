@@ -1,3 +1,4 @@
+
 import React from 'react';
 import { Button } from "@/components/ui/button";
 import { LogOut, RefreshCw, ChevronDown, Plus, ShoppingCart, FileDown, Download, ArrowLeft } from 'lucide-react';
@@ -111,7 +112,7 @@ const MatrixHeader: React.FC<MatrixHeaderProps> = ({
                       onClick={() => onSwitchMap(map.id)}
                       className={map.id === currentMapId ? "bg-karmic-100 font-medium" : ""}
                     >
-                      {map.name} - {map.birthDate}
+                      {map.name && map.name.trim() ? map.name : 'Mapa sem nome'} - {map.birthDate || 'Data indisponível'}
                       <span className="text-xs ml-2 text-karmic-500">
                         ({map.createdAt ? new Date(map.createdAt).toLocaleDateString() : 'Data desconhecida'})
                       </span>
