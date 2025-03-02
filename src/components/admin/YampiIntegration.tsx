@@ -1,48 +1,80 @@
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { toast } from "@/components/ui/use-toast";
-import { syncYampiCustomers } from '@/lib/yampi';
-import { Loader2, RefreshCw, Save } from 'lucide-react';
+import { syncYampiCustomers, configureYampi, loadYampiConfig, getYampiWebhookUrl } from '@/lib/yampi';
+import { Loader2, RefreshCw, Save, Plus, Trash2, Copy } from 'lucide-react';
 
 const YampiIntegration: React.FC = () => {
   const [yampiApiKey, setYampiApiKey] = useState('');
-  const [yampiStoreId, setYampiStoreId] = useState('');
-  const [yampiProductId, setYampiProductId] = useState('');
+  const [yampiProductIds, setYampiProductIds] = useState<string[]>(['']);
+  const [yampiCheckoutUrl, setYampiCheckoutUrl] = useState('');
   const [isSaving, setIsSaving] = useState(false);
   const [isSyncing, setIsSyncing] = useState(false);
+  const webhookUrl = getYampiWebhookUrl();
   
   // Carregar configurações salvas quando o componente é montado
-  React.useEffect(() => {
-    const savedApiKey = localStorage.getItem('yampi_api_key');
-    const savedStoreId = localStorage.getItem('yampi_store_id');
-    const savedProductId = localStorage.getItem('yampi_product_id');
-    
-    if (savedApiKey) setYampiApiKey(savedApiKey);
-    if (savedStoreId) setYampiStoreId(savedStoreId);
-    if (savedProductId) setYampiProductId(savedProductId);
+  useEffect(() => {
+    const config = loadYampiConfig();
+    if (config) {
+      setYampiApiKey(config.apiKey);
+      setYampiProductIds(config.productIds);
+      if (config.checkoutUrl) {
+        setYampiCheckoutUrl(config.checkoutUrl);
+      }
+    }
   }, []);
+  
+  const handleAddProductId = () => {
+    setYampiProductIds([...yampiProductIds, '']);
+  };
+  
+  const handleRemoveProductId = (index: number) => {
+    if (yampiProductIds.length > 1) {
+      const newProductIds = [...yampiProductIds];
+      newProductIds.splice(index, 1);
+      setYampiProductIds(newProductIds);
+    }
+  };
+  
+  const handleProductIdChange = (index: number, value: string) => {
+    const newProductIds = [...yampiProductIds];
+    newProductIds[index] = value;
+    setYampiProductIds(newProductIds);
+  };
+  
+  const handleCopyWebhook = () => {
+    navigator.clipboard.writeText(webhookUrl);
+    toast({
+      title: "URL copiada",
+      description: "URL do webhook copiada para a área de transferência."
+    });
+  };
   
   const handleSaveConfig = () => {
     setIsSaving(true);
     
     // Validar campos
-    if (!yampiApiKey || !yampiStoreId || !yampiProductId) {
+    if (!yampiApiKey || yampiProductIds.some(id => !id)) {
       toast({
         title: "Campos incompletos",
-        description: "Por favor, preencha todos os campos da configuração da Yampi.",
+        description: "Por favor, preencha a chave de API e todos os IDs de produtos.",
         variant: "destructive"
       });
       setIsSaving(false);
       return;
     }
     
-    // Salvar configurações no localStorage
-    // Em uma implementação real, isso seria enviado para um backend seguro
-    localStorage.setItem('yampi_api_key', yampiApiKey);
-    localStorage.setItem('yampi_store_id', yampiStoreId);
-    localStorage.setItem('yampi_product_id', yampiProductId);
+    // Filtrar IDs vazios (caso existam)
+    const filteredProductIds = yampiProductIds.filter(id => id.trim() !== '');
+    
+    // Salvar configurações
+    configureYampi({
+      apiKey: yampiApiKey,
+      productIds: filteredProductIds,
+      checkoutUrl: yampiCheckoutUrl || undefined
+    });
     
     toast({
       title: "Configuração salva",
@@ -101,34 +133,86 @@ const YampiIntegration: React.FC = () => {
           </div>
           
           <div>
-            <label htmlFor="yampi_store_id" className="text-sm font-medium text-karmic-700 block mb-2">
-              ID da Loja
+            <label htmlFor="yampi_checkout_url" className="text-sm font-medium text-karmic-700 block mb-2">
+              URL do Checkout Yampi (opcional)
             </label>
             <Input
-              id="yampi_store_id"
-              placeholder="Ex: sua-loja"
-              value={yampiStoreId}
-              onChange={(e) => setYampiStoreId(e.target.value)}
+              id="yampi_checkout_url"
+              placeholder="Ex: https://checkout.yampi.com.br/seu-checkout"
+              value={yampiCheckoutUrl}
+              onChange={(e) => setYampiCheckoutUrl(e.target.value)}
             />
           </div>
           
           <div>
-            <label htmlFor="yampi_product_id" className="text-sm font-medium text-karmic-700 block mb-2">
-              ID do Produto
+            <div className="flex justify-between items-center mb-2">
+              <label className="text-sm font-medium text-karmic-700">
+                IDs dos Produtos
+              </label>
+              <Button 
+                type="button" 
+                variant="outline" 
+                size="sm" 
+                onClick={handleAddProductId}
+                className="text-xs"
+              >
+                <Plus className="h-3 w-3 mr-1" />
+                Adicionar
+              </Button>
+            </div>
+            
+            {yampiProductIds.map((productId, index) => (
+              <div key={index} className="flex gap-2 mb-2">
+                <Input
+                  placeholder={`ID do produto ${index + 1}`}
+                  value={productId}
+                  onChange={(e) => handleProductIdChange(index, e.target.value)}
+                />
+                {yampiProductIds.length > 1 && (
+                  <Button 
+                    type="button" 
+                    variant="ghost" 
+                    size="icon" 
+                    onClick={() => handleRemoveProductId(index)}
+                    className="flex-shrink-0"
+                  >
+                    <Trash2 className="h-4 w-4 text-red-500" />
+                  </Button>
+                )}
+              </div>
+            ))}
+          </div>
+          
+          <div>
+            <label className="text-sm font-medium text-karmic-700 block mb-2">
+              URL do Webhook para Notificações
             </label>
-            <Input
-              id="yampi_product_id"
-              placeholder="ID do produto da Matriz Kármica"
-              value={yampiProductId}
-              onChange={(e) => setYampiProductId(e.target.value)}
-            />
+            <div className="flex gap-2">
+              <Input
+                value={webhookUrl}
+                readOnly
+                className="bg-gray-50"
+              />
+              <Button 
+                type="button" 
+                variant="outline" 
+                size="icon" 
+                onClick={handleCopyWebhook}
+                className="flex-shrink-0"
+              >
+                <Copy className="h-4 w-4" />
+              </Button>
+            </div>
+            <p className="text-xs text-karmic-500 mt-1">
+              Configure este URL no painel da Yampi para notificações de pedidos.
+            </p>
           </div>
           
           <div className="flex justify-between pt-2">
             <Button
               type="button"
               onClick={handleSyncCustomers}
-              disabled={isSyncing || !yampiApiKey || !yampiStoreId || !yampiProductId}
+              disabled={isSyncing || !yampiApiKey || yampiProductIds.some(id => !id)}
               className="karmic-button-outline"
             >
               {isSyncing ? (
@@ -169,10 +253,12 @@ const YampiIntegration: React.FC = () => {
       <div className="border-t border-karmic-200 pt-4 mt-4">
         <h4 className="text-sm font-medium text-karmic-700 mb-2">Como funciona</h4>
         <ul className="text-sm text-karmic-600 space-y-1 list-disc pl-4">
-          <li>Configure os dados da sua loja Yampi</li>
-          <li>Quando um cliente compra o produto, seu email é automaticamente autorizado</li>
+          <li>Configure a chave de API da Yampi</li>
+          <li>Adicione os IDs dos produtos que devem ser verificados</li>
+          <li>Opcionalmente, adicione a URL do seu checkout Yampi</li>
+          <li>Configure o webhook em sua conta Yampi para receber notificações de pedidos</li>
+          <li>Quando um cliente compra qualquer um dos produtos configurados, seu email é automaticamente autorizado</li>
           <li>Use "Sincronizar Clientes" para atualizar todos os compradores de uma vez</li>
-          <li>Você pode sempre adicionar emails manualmente na aba "Emails Autorizados"</li>
         </ul>
       </div>
     </div>

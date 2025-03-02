@@ -7,8 +7,50 @@ interface YampiPurchase {
   email: string;
   status: string;
   created_at: string;
-  product_id: string;
+  product_ids: string[]; // Alterado para array de IDs de produtos
 }
+
+// Interface para configuração da Yampi
+interface YampiConfig {
+  apiKey: string;
+  productIds: string[]; // Array de IDs de produtos 
+  checkoutUrl?: string; // URL opcional do checkout
+}
+
+// Armazenar configuração
+let yampiConfig: YampiConfig | null = null;
+
+// Função para configurar a integração Yampi
+export const configureYampi = (config: YampiConfig): void => {
+  yampiConfig = config;
+  localStorage.setItem('yampi_api_key', config.apiKey);
+  localStorage.setItem('yampi_product_ids', JSON.stringify(config.productIds));
+  if (config.checkoutUrl) {
+    localStorage.setItem('yampi_checkout_url', config.checkoutUrl);
+  }
+  console.log('Configuração Yampi atualizada', config);
+};
+
+// Carregar configuração do localStorage
+export const loadYampiConfig = (): YampiConfig | null => {
+  const apiKey = localStorage.getItem('yampi_api_key');
+  const productIdsStr = localStorage.getItem('yampi_product_ids');
+  const checkoutUrl = localStorage.getItem('yampi_checkout_url');
+  
+  if (!apiKey || !productIdsStr) return null;
+  
+  try {
+    const productIds = JSON.parse(productIdsStr);
+    return {
+      apiKey,
+      productIds,
+      checkoutUrl: checkoutUrl || undefined
+    };
+  } catch (e) {
+    console.error('Erro ao carregar configuração Yampi:', e);
+    return null;
+  }
+};
 
 // Função para verificar se um email está em uma lista de compradores
 // Na implementação real, isso faria uma chamada à API da Yampi
@@ -18,6 +60,12 @@ export const verifyYampiPurchase = async (email: string): Promise<boolean> => {
   console.log(`Verificando compra na Yampi para o email: ${email}`);
   
   try {
+    const config = loadYampiConfig();
+    if (!config) {
+      console.warn('Configuração Yampi não encontrada');
+      return false;
+    }
+    
     // Simular uma chamada à API
     // Em produção, substitua por uma chamada real à API da Yampi
     
@@ -26,7 +74,7 @@ export const verifyYampiPurchase = async (email: string): Promise<boolean> => {
     const response = await fetch('https://api.yampi.com.br/v1/orders', {
       method: 'GET',
       headers: {
-        'Authorization': `Bearer ${YAMPI_API_KEY}`,
+        'Authorization': `Bearer ${config.apiKey}`,
         'Content-Type': 'application/json'
       }
     });
@@ -38,7 +86,8 @@ export const verifyYampiPurchase = async (email: string): Promise<boolean> => {
     const data = await response.json();
     return data.some(order => 
       order.customer.email.toLowerCase() === email.toLowerCase() && 
-      order.status === 'paid'
+      order.status === 'paid' &&
+      order.items.some(item => config.productIds.includes(item.product_id))
     );
     */
     
@@ -85,6 +134,12 @@ export const syncYampiCustomers = async (): Promise<{
   console.log('Iniciando sincronização com a Yampi...');
   
   try {
+    const config = loadYampiConfig();
+    if (!config) {
+      console.warn('Configuração Yampi não encontrada');
+      return { added: 0, failed: 0 };
+    }
+    
     // Aqui faria uma chamada à API da Yampi para obter todos os clientes
     // com compras válidas do produto específico
     
@@ -92,7 +147,7 @@ export const syncYampiCustomers = async (): Promise<{
     /*
     const response = await fetch('https://api.yampi.com.br/v1/customers', {
       headers: {
-        'Authorization': `Bearer ${YAMPI_API_KEY}`,
+        'Authorization': `Bearer ${config.apiKey}`,
         'Content-Type': 'application/json'
       }
     });
@@ -109,7 +164,7 @@ export const syncYampiCustomers = async (): Promise<{
       // Verificar se tem compra paga do produto específico
       const ordersResponse = await fetch(`https://api.yampi.com.br/v1/customers/${customer.id}/orders`, {
         headers: {
-          'Authorization': `Bearer ${YAMPI_API_KEY}`,
+          'Authorization': `Bearer ${config.apiKey}`,
           'Content-Type': 'application/json'
         }
       });
@@ -118,7 +173,7 @@ export const syncYampiCustomers = async (): Promise<{
         const orders = await ordersResponse.json();
         if (orders.some(order => 
           order.status === 'paid' && 
-          order.items.some(item => item.product_id === 'SEU_PRODUTO_ID')
+          order.items.some(item => config.productIds.includes(item.product_id))
         )) {
           validCustomers.push(customer);
         }
@@ -150,9 +205,19 @@ export const syncYampiCustomers = async (): Promise<{
   }
 };
 
+// Obter URL de webhook para processar pedidos
+export const getYampiWebhookUrl = (): string => {
+  // Esta seria a URL que a Yampi deve chamar após uma compra
+  // Normalmente seria um endpoint em seu backend
+  return window.location.origin + '/api/yampi-webhook';
+};
+
 // Exportar as funções e tipos
 export default {
   verifyYampiPurchase,
   addYampiCustomerToAuthorized,
-  syncYampiCustomers
+  syncYampiCustomers,
+  configureYampi,
+  loadYampiConfig,
+  getYampiWebhookUrl
 };
