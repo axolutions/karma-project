@@ -118,7 +118,7 @@ const MatrixHeader: React.FC<MatrixHeaderProps> = ({
           className="flex items-center"
         >
           <Download className="mr-2 h-4 w-4" />
-          Baixar Matriz
+          Baixar Matriz em HTML
         </Button>
         
         <Button 

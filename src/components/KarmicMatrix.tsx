@@ -47,11 +47,11 @@ const KarmicMatrix: React.FC<KarmicMatrixProps> = ({
     img.src = backgroundImage;
   }, [backgroundImage]);
   
-  // Função para baixar a matriz como PNG
-  const handleDownloadPNG = async () => {
+  // Função para baixar a matriz como HTML
+  const handleDownloadHTML = () => {
     if (!matrixRef.current) {
       toast({
-        title: "Erro ao gerar imagem",
+        title: "Erro ao gerar HTML",
         description: "Não foi possível encontrar o elemento da matriz.",
         variant: "destructive"
       });
@@ -60,31 +60,114 @@ const KarmicMatrix: React.FC<KarmicMatrixProps> = ({
     
     try {
       toast({
-        title: "Gerando imagem",
+        title: "Gerando HTML",
         description: "Preparando sua Matriz Kármica para download..."
       });
       
-      const canvas = await html2canvas(matrixRef.current, {
-        backgroundColor: null,
-        scale: 2, // Melhor qualidade
-        logging: false
-      });
+      // Criar HTML completo com a matriz
+      const matrixClone = matrixRef.current.cloneNode(true) as HTMLElement;
+      
+      // Criar documento HTML completo
+      const htmlContent = `
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Matriz Kármica 2025</title>
+    <style>
+        body {
+            font-family: sans-serif;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            background-color: #f9f5f1;
+            margin: 0;
+            padding: 20px;
+        }
+        .matrix-container {
+            max-width: 800px;
+            width: 100%;
+            margin: 0 auto;
+            position: relative;
+        }
+        .image-container {
+            max-width: 100%;
+            text-align: center;
+            position: relative;
+        }
+        .matrix-image {
+            max-width: 100%;
+            height: auto;
+            border-radius: 8px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+            border: 1px solid #EAE6E1;
+        }
+        .number-overlay {
+            position: absolute;
+            transform: translate(-50%, -50%);
+        }
+        .number-circle {
+            background-color: rgba(255, 255, 255, 0.8);
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 18px;
+            font-weight: bold;
+            color: #4a4a4a;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+        }
+        h1 {
+            text-align: center;
+            color: #4a4a4a;
+            margin-bottom: 20px;
+        }
+    </style>
+</head>
+<body>
+    <div class="matrix-container">
+        <h1>Matriz Kármica 2025</h1>
+        <div class="image-container">
+            <img src="${imgSrc}" alt="Matriz Kármica 2025" class="matrix-image">
+            ${Object.keys(numberPositions).map(key => {
+                const pos = numberPositions[key];
+                const value = safeKarmicData[key];
+                return `
+                <div class="number-overlay" style="top: ${pos.top}; left: ${pos.left};">
+                    <div class="number-circle">${value}</div>
+                </div>
+                `;
+            }).join('')}
+        </div>
+    </div>
+</body>
+</html>
+      `;
+      
+      // Criar um Blob com o conteúdo HTML
+      const blob = new Blob([htmlContent], { type: 'text/html' });
       
       // Criar um link de download
-      const dataUrl = canvas.toDataURL('image/png');
       const link = document.createElement('a');
-      link.download = 'Matriz-Karmica-2025.png';
-      link.href = dataUrl;
+      link.download = 'Matriz-Karmica-2025.html';
+      link.href = URL.createObjectURL(blob);
       link.click();
+      
+      // Limpar recursos
+      URL.revokeObjectURL(link.href);
       
       toast({
         title: "Download concluído",
-        description: "Sua Matriz Kármica foi salva com sucesso."
+        description: "Sua Matriz Kármica foi salva como HTML. Você pode abrir esse arquivo em qualquer navegador."
       });
     } catch (error) {
-      console.error("Erro ao gerar imagem:", error);
+      console.error("Erro ao gerar HTML:", error);
       toast({
-        title: "Erro ao gerar imagem",
+        title: "Erro ao gerar HTML",
         description: "Ocorreu um erro inesperado. Por favor, tente novamente.",
         variant: "destructive"
       });
@@ -144,12 +227,12 @@ const KarmicMatrix: React.FC<KarmicMatrixProps> = ({
     <div className="relative max-w-4xl mx-auto">
       <div className="mb-4 flex justify-end print:hidden">
         <Button 
-          onClick={handleDownloadPNG}
+          onClick={handleDownloadHTML}
           variant="outline"
           className="karmic-button-outline flex items-center gap-2"
         >
           <Download className="h-4 w-4" />
-          Baixar Matriz como PNG
+          Baixar Matriz em HTML
         </Button>
       </div>
       

@@ -15,43 +15,144 @@ export const downloadMatrixAsPNG = (matrixRef: React.RefObject<HTMLDivElement>, 
   }
   
   toast({
-    title: "Processando imagem",
+    title: "Processando HTML",
     description: "Preparando sua matriz para download..."
   });
   
-  const scale = 2; // Increase quality
-  
-  html2canvas(matrixRef.current, {
-    scale: scale,
-    useCORS: true,
-    backgroundColor: "#ffffff",
-    logging: false
-  }).then(canvas => {
-    // Convert to PNG and download
-    const imgData = canvas.toDataURL('image/png');
-    const link = document.createElement('a');
+  try {
+    // Obter a imagem de fundo e números da matriz
+    const matrixElement = matrixRef.current;
+    const imgElement = matrixElement.querySelector('img') as HTMLImageElement;
+    const imgSrc = imgElement?.src || "";
     
-    // Create filename
-    const fileName = `Matriz-Karmica-${userName?.replace(/\s+/g, '-') || 'Usuario'}.png`;
+    // Extrair os números da matriz
+    const numberElements = matrixElement.querySelectorAll('.absolute');
+    const numbers: {position: {top: string, left: string}, value: string}[] = [];
     
-    link.download = fileName;
-    link.href = imgData;
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
+    numberElements.forEach(el => {
+      const style = (el as HTMLElement).style;
+      const numberSpan = el.querySelector('span');
+      
+      if (style && numberSpan) {
+        numbers.push({
+          position: {
+            top: style.top,
+            left: style.left
+          },
+          value: numberSpan.textContent || "0"
+        });
+      }
+    });
+    
+    // Criar HTML completo com a matriz
+    const htmlContent = `
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Matriz Kármica 2025</title>
+    <style>
+        body {
+            font-family: sans-serif;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            background-color: #f9f5f1;
+            margin: 0;
+            padding: 20px;
+        }
+        .matrix-container {
+            max-width: 800px;
+            width: 100%;
+            margin: 0 auto;
+            position: relative;
+        }
+        .image-container {
+            max-width: 100%;
+            text-align: center;
+            position: relative;
+        }
+        .matrix-image {
+            max-width: 100%;
+            height: auto;
+            border-radius: 8px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+            border: 1px solid #EAE6E1;
+        }
+        .number-overlay {
+            position: absolute;
+            transform: translate(-50%, -50%);
+        }
+        .number-circle {
+            background-color: rgba(255, 255, 255, 0.8);
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 18px;
+            font-weight: bold;
+            color: #4a4a4a;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+        }
+        h1 {
+            text-align: center;
+            color: #4a4a4a;
+            margin-bottom: 20px;
+        }
+    </style>
+</head>
+<body>
+    <div class="matrix-container">
+        <h1>Matriz Kármica 2025</h1>
+        <div class="image-container">
+            <img src="${imgSrc}" alt="Matriz Kármica 2025" class="matrix-image">
+            ${numbers.map(num => `
+                <div class="number-overlay" style="top: ${num.position.top}; left: ${num.position.left};">
+                    <div class="number-circle">${num.value}</div>
+                </div>
+            `).join('')}
+        </div>
+    </div>
+</body>
+</html>
+    `;
+    
+    // Criar um Blob com o conteúdo HTML
+    const blob = new Blob([htmlContent], { type: 'text/html' });
+    
+    // Criar um link de download
+    const fileName = `Matriz-Karmica-${userName?.replace(/\s+/g, '-') || 'Usuario'}.html`;
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = fileName;
+    document.body.appendChild(a);
+    
+    // Disparar o download
+    a.click();
+    
+    // Limpar recursos
+    setTimeout(() => {
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+    }, 100);
     
     toast({
       title: "Download concluído",
-      description: "Sua matriz kármica foi salva como imagem PNG."
+      description: "Sua matriz kármica foi salva como HTML. Você pode abri-la em qualquer navegador."
     });
-  }).catch(error => {
-    console.error('Erro ao gerar imagem:', error);
+  } catch (error) {
+    console.error('Erro ao gerar HTML:', error);
     toast({
       title: "Erro ao exportar",
-      description: "Ocorreu um problema ao gerar a imagem da matriz.",
+      description: "Ocorreu um problema ao gerar o HTML da matriz.",
       variant: "destructive"
     });
-  });
+  }
 };
 
 export const downloadInterpretationsAsHTML = (karmicNumbers: any, userName: string) => {
