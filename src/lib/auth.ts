@@ -114,7 +114,9 @@ export const getAllUserDataByEmail = (): any[] => {
   
   // Se temos um usuário atual, converter o objeto de usuários em um array
   // e retornar apenas os registros que pertencem ao usuário logado
-  const userDataArray = Object.values(allUsers);
+  const userDataArray = Object.values(allUsers).filter(user => 
+    user && user.email === currentUser
+  );
   
   console.log(`Filtrando dados para o usuário logado: ${currentUser}`);
   return userDataArray;
