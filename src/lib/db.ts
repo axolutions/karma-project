@@ -55,6 +55,19 @@ export const saveUserData = (email: string, data: UserData): void => {
   // Initialize array for this email if it doesn't exist
   if (!db[email]) {
     db[email] = [];
+  } else if (!Array.isArray(db[email])) {
+    // If the existing data is not an array, convert it to an array
+    db[email] = [db[email]];
+  }
+  
+  // Make sure we have a valid array
+  if (!Array.isArray(db[email])) {
+    db[email] = [];
+  }
+  
+  // Add created timestamp if not present
+  if (!data.createdAt) {
+    data.createdAt = new Date().toISOString();
   }
   
   // Add the new data as a new entry in the array
@@ -67,14 +80,27 @@ export const saveUserData = (email: string, data: UserData): void => {
 export const getAllUserDataByEmail = (email?: string): UserData[] => {
   const db = getDb();
   if (email) {
+    if (!db[email]) {
+      return [];
+    }
+    
+    // Handle case where the data might not be an array
+    if (!Array.isArray(db[email])) {
+      console.log(`Converting non-array data for email ${email} to array:`, db[email]);
+      return [db[email] as any];
+    }
+    
     return db[email] || [];
   }
   
   // If no email provided, collect all user data
   const allUserData: UserData[] = [];
-  Object.values(db).forEach(userDataArray => {
+  Object.entries(db).forEach(([email, userDataArray]) => {
     if (Array.isArray(userDataArray)) {
       allUserData.push(...userDataArray);
+    } else if (userDataArray) {
+      // Handle case where the data might not be an array
+      allUserData.push(userDataArray as any);
     }
   });
   

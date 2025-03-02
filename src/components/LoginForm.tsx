@@ -46,12 +46,24 @@ const LoginForm: React.FC = () => {
       
       if (!userData) {
         console.log("Usuário não encontrado, criando registro inicial");
-        // Cria um registro básico para o usuário
-        saveUserData({
-          email: email,
-          name: "",
-          id: crypto.randomUUID()
-        });
+        try {
+          // Cria um registro básico para o usuário
+          saveUserData({
+            email: email,
+            name: "",
+            id: crypto.randomUUID(),
+            createdAt: new Date().toISOString()
+          });
+        } catch (err) {
+          console.error("Erro ao criar usuário:", err);
+          toast({
+            title: "Erro ao criar usuário",
+            description: "Houve um problema ao criar seu perfil. Por favor, tente novamente.",
+            variant: "destructive"
+          });
+          setIsSubmitting(false);
+          return;
+        }
       }
       
       const success = login(email);
