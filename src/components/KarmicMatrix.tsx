@@ -112,10 +112,10 @@ const KarmicMatrix: React.FC<KarmicMatrixProps> = ({
         #chamado_destino { top: 25%; left: 15%; }
         #portal_karma { top: 25%; left: 57%; }
         #heranca_karmica { top: 45%; left: 20%; }
-        #codex_reprogramacao { top: 80%; left: 47%; }
-        #profecia_ciclos { top: 35%; left: 65%; }
-        #marca_espiritual { top: 65%; left: 29%; }
-        #enigma_manifestacao { top: 80%; left: 85%; }
+        #codex_reprogramacao { top: 50%; left: 47%; }
+        #profecia_ciclos { top: 25%; left: 85%; }
+        #marca_espiritual { top: 85%; left: 10%; }
+        #enigma_manifestacao { top: 85%; left: 75%; }
     </style>
 </head>
 <body>
@@ -186,16 +186,16 @@ const KarmicMatrix: React.FC<KarmicMatrixProps> = ({
               Object.assign(positionStyle, { top: '45%', left: '20%' });
               break;
             case 'codex_reprogramacao':
-              Object.assign(positionStyle, { top: '80%', left: '47%' });
+              Object.assign(positionStyle, { top: '50%', left: '47%' });
               break;
             case 'profecia_ciclos':
-              Object.assign(positionStyle, { top: '35%', left: '65%' });
+              Object.assign(positionStyle, { top: '25%', left: '85%' });
               break;
             case 'marca_espiritual':
-              Object.assign(positionStyle, { top: '65%', left: '29%' });
+              Object.assign(positionStyle, { top: '85%', left: '10%' });
               break;
             case 'enigma_manifestacao':
-              Object.assign(positionStyle, { top: '80%', left: '85%' });
+              Object.assign(positionStyle, { top: '85%', left: '75%' });
               break;
           }
           
