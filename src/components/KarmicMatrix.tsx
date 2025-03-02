@@ -45,7 +45,7 @@ const KarmicMatrix: React.FC<KarmicMatrixProps> = ({
   // Posições atualizadas dos números baseadas no HTML fornecido
   const numberPositions = {
     karmicSeal: { top: "5.5%", left: "47%" },       // selo_karmico
-    destinyCall: { top: "24%", left: "17%" },       // chamado_destino
+    destinyCall: { top: "24%", left: "25%" },       // chamado_destino - ajustado para o centro
     karmaPortal: { top: "24%", left: "77%" },       // portal_karma
     karmicInheritance: { top: "45%", left: "10%" }, // heranca_karmica
     karmicReprogramming: { top: "45%", left: "47%" }, // codex_reprogramacao
