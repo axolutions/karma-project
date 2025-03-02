@@ -1,4 +1,3 @@
-
 interface UserData {
   id: string;
   name: string;
@@ -208,10 +207,22 @@ export const getRemainingMatrixCount = (email: string): number => {
   
   // Get all maps for this email from local array
   const userMaps = getAllUserDataByEmail(email);
-  const mapsCreated = userMaps.length;
   
-  // Total authorized count for this email
-  const totalAuthorized = counts[email] || 0;
+  // Total authorized count for this email - ensure it's at least 3 for projetovmtd@gmail.com
+  let totalAuthorized = counts[email] || 0;
+  
+  // Special case for projetovmtd@gmail.com - ensure they have at least 3 authorizations
+  if (email === 'projetovmtd@gmail.com' && totalAuthorized < 3) {
+    totalAuthorized = 3;
+    
+    // Update the counts in localStorage
+    counts[email] = totalAuthorized;
+    saveEmailAuthCounts(counts);
+    console.log(`Updated authorization count for ${email} to ${totalAuthorized}`);
+  }
+  
+  // Calculate how many maps are already created
+  const mapsCreated = Array.isArray(userMaps) ? userMaps.length : 0;
   
   console.log(`Remaining matrix count calculation: email=${email}, totalAuthorized=${totalAuthorized}, mapsCreated=${mapsCreated}`);
   

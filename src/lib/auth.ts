@@ -167,6 +167,16 @@ export const getCurrentMatrixId = (): string | null => {
 
 // Export the missing functions being referenced
 export const getRemainingMatrixCount = (email: string): number => {
+  // Special case for projetovmtd@gmail.com - ensure they have 3 credits
+  if (email === 'projetovmtd@gmail.com') {
+    const counts = getAuthCounts();
+    if (!counts[email] || counts[email] < 3) {
+      counts[email] = 3;
+      const { saveEmailAuthCounts } = require('./db');
+      saveEmailAuthCounts(counts);
+      console.log(`Ensuring projetovmtd@gmail.com has at least 3 credits. Current count:`, counts[email]);
+    }
+  }
   return getRemaining(email);
 };
 
