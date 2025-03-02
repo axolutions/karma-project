@@ -105,22 +105,15 @@ const MatrixHeader: React.FC<MatrixHeaderProps> = ({
                     </DropdownMenuItem>
                   ) : null
                 ))}
-                <DropdownMenuSeparator />
-                <DropdownMenuItem 
-                  onClick={onCreateNewMap} 
-                  className={canCreateNewMap ? "text-karmic-700" : "text-gray-400 cursor-not-allowed"}
-                  disabled={!canCreateNewMap}
-                >
-                  {!canCreateNewMap ? (
-                    <>
-                      <ShoppingCart className="mr-2 h-4 w-4" /> Adquira novo acesso
-                    </>
-                  ) : (
-                    <>
+                
+                {canCreateNewMap && (
+                  <>
+                    <DropdownMenuSeparator />
+                    <DropdownMenuItem onClick={handleCreateNewMap}>
                       <Plus className="mr-2 h-4 w-4" /> Criar novo mapa
-                    </>
-                  )}
-                </DropdownMenuItem>
+                    </DropdownMenuItem>
+                  </>
+                )}
               </DropdownMenuContent>
             </DropdownMenu>
           )}
@@ -182,7 +175,7 @@ const MatrixHeader: React.FC<MatrixHeaderProps> = ({
           </div>
           <Button 
             className="karmic-button px-6 py-6 h-auto text-base"
-            onClick={onCreateNewMap}
+            onClick={handleCreateNewMap}
           >
             <Plus className="mr-2 h-5 w-5" />
             Criar Novo Mapa

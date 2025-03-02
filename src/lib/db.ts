@@ -51,7 +51,15 @@ export const getUserDataByEmail = (email: string): UserData | null => {
 // Save user data
 export const saveUserData = (email: string, data: UserData): void => {
   const db = getDb();
-  db[email] = { ...db[email], ...data };
+  
+  // If this is a new entry for this email, initialize it as an array
+  if (!db[email]) {
+    db[email] = { ...data };
+  } else {
+    // Update existing data
+    db[email] = { ...db[email], ...data };
+  }
+  
   saveDb(db);
 };
 
