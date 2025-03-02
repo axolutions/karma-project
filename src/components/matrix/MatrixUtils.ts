@@ -123,8 +123,8 @@ export const downloadMatrixAsPNG = (matrixRef: React.RefObject<HTMLDivElement>, 
     // Criar um Blob com o conteúdo HTML
     const blob = new Blob([htmlContent], { type: 'text/html' });
     
-    // Criar um link de download
-    const fileName = `Matriz-Karmica-${userName?.replace(/\s+/g, '-') || 'Usuario'}.html`;
+    // Criar um link de download com "matrizkarmica" em vez do nome do usuário
+    const fileName = `Matriz-Karmica-2025.html`;
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
     a.href = url;
@@ -176,8 +176,8 @@ export const downloadInterpretationsAsHTML = (karmicNumbers: any, userName: stri
     // Criar um Blob com o conteúdo HTML
     const blob = new Blob([htmlContent], { type: 'text/html' });
     
-    // Criar um link de download
-    const fileName = `Interpretacoes-Karmicas-${userName?.replace(/\s+/g, '-') || 'Usuario'}.html`;
+    // Criar um link de download com "matrizkarmica" em vez do nome do usuário
+    const fileName = `Interpretacoes-Karmicas-2025.html`;
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
     a.href = url;

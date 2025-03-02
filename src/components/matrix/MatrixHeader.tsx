@@ -47,7 +47,6 @@ const MatrixHeader: React.FC<MatrixHeaderProps> = ({
   
   const handleCreateNewMap = () => {
     if (canCreateNewMap) {
-      // Chamar a função onCreateNewMap para redirecionar para a criação do mapa
       onCreateNewMap();
     } else {
       toast({
@@ -160,33 +159,27 @@ const MatrixHeader: React.FC<MatrixHeaderProps> = ({
       
       {/* Banner de destaque para criação de novos mapas */}
       {remainingCount > 0 && (
-        <div 
-          onClick={handleCreateNewMap}
-          className="bg-gradient-to-r from-karmic-300 to-karmic-200 p-4 rounded-lg border border-karmic-400 
-                    shadow-sm hover:shadow-md cursor-pointer transition-all duration-300 
-                    flex items-center justify-between animate-fade-in"
-        >
+        <div className="bg-gradient-to-r from-karmic-300 to-karmic-200 p-6 rounded-lg border border-karmic-400 
+                      shadow-sm hover:shadow-md transition-all duration-300 
+                      flex items-center justify-between animate-fade-in">
           <div className="flex items-center">
-            <div className="bg-white p-3 rounded-full shadow-sm mr-4">
-              <Plus className="h-6 w-6 text-karmic-700" />
+            <div className="bg-white p-4 rounded-full shadow-sm mr-5">
+              <Plus className="h-7 w-7 text-karmic-700" />
             </div>
             <div>
-              <h3 className="font-medium text-karmic-800 text-lg">
+              <h3 className="font-medium text-karmic-800 text-xl">
                 Você ainda pode criar {remainingCount} {remainingCount === 1 ? 'mapa kármico' : 'mapas kármicos'} adicional!
               </h3>
-              <p className="text-karmic-700">
+              <p className="text-karmic-700 text-lg">
                 Clique aqui para criar um novo mapa para você ou para alguém especial
               </p>
             </div>
           </div>
           <Button 
-            className="karmic-button"
-            onClick={(e) => {
-              e.stopPropagation();
-              handleCreateNewMap();
-            }}
+            className="karmic-button px-6 py-6 h-auto text-base"
+            onClick={handleCreateNewMap}
           >
-            <Plus className="mr-2 h-4 w-4" />
+            <Plus className="mr-2 h-5 w-5" />
             Criar Novo Mapa
           </Button>
         </div>

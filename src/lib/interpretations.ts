@@ -141,7 +141,7 @@ export function generateInterpretationsHTML(karmicData: any): string {
     <head>
       <meta charset="UTF-8">
       <meta name="viewport" content="width=device-width, initial-scale=1.0">
-      <title>Suas Interpretações Kármicas</title>
+      <title>Interpretações Kármicas 2025</title>
       <style>
         body { 
           font-family: Arial, sans-serif; 
@@ -205,11 +205,17 @@ export function generateInterpretationsHTML(karmicData: any): string {
           margin: 0 auto 20px auto;
           display: block;
         }
+        .footer {
+          text-align: center;
+          margin-top: 40px;
+          font-size: 14px;
+          color: #666;
+        }
       </style>
     </head>
     <body>
       <div class="header">
-        <h1>Suas Interpretações Kármicas</h1>
+        <h1>Interpretações Kármicas 2025</h1>
         <div class="date">Gerado em: ${new Date().toLocaleDateString('pt-BR')}</div>
       </div>
   `;
@@ -253,7 +259,11 @@ export function generateInterpretationsHTML(karmicData: any): string {
     `;
   }
   
+  // Adicionar rodapé
   htmlContent += `
+      <div class="footer">
+        <p>© Matriz Kármica 2025 - Todos os direitos reservados</p>
+      </div>
     </body>
     </html>
   `;
