@@ -1,7 +1,7 @@
 
 import React from 'react';
 import { Button } from "@/components/ui/button";
-import { LogOut, RefreshCw, ChevronDown, Plus, ShoppingCart, FileDown, Download } from 'lucide-react';
+import { LogOut, RefreshCw, ChevronDown, Plus, ShoppingCart, FileDown, Download, ArrowLeft } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { toast } from "@/components/ui/use-toast";
 import { logout, getRemainingMatrixCount, getCurrentUser } from '@/lib/auth';
@@ -47,7 +47,7 @@ const MatrixHeader: React.FC<MatrixHeaderProps> = ({
   
   const handleCreateNewMap = () => {
     if (canCreateNewMap) {
-      // Force a full page navigation to ensure the Index component fully remounts
+      // Redirect to profile form for new map creation
       window.location.href = '/?create=new';
     } else {
       toast({
@@ -56,6 +56,11 @@ const MatrixHeader: React.FC<MatrixHeaderProps> = ({
         variant: "destructive"
       });
     }
+  };
+  
+  const handleViewAllMaps = () => {
+    // Redirect to profile form to view all maps
+    window.location.href = '/?view=maps';
   };
   
   // Filtra mapas duplicados com base no ID
@@ -81,6 +86,15 @@ const MatrixHeader: React.FC<MatrixHeaderProps> = ({
         </div>
         
         <div className="flex space-x-3">
+          <Button
+            onClick={handleViewAllMaps}
+            variant="outline"
+            className="karmic-button-outline flex items-center"
+          >
+            <ArrowLeft className="mr-2 h-4 w-4" />
+            Meus Mapas
+          </Button>
+        
           {uniqueMaps.length > 1 && (
             <DropdownMenu>
               <DropdownMenuTrigger asChild>

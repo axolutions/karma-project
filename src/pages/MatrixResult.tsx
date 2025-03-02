@@ -16,7 +16,7 @@ import MatrixHeader from '@/components/matrix/MatrixHeader';
 import MatrixLoading from '@/components/matrix/MatrixLoading';
 import MatrixError from '@/components/matrix/MatrixError';
 import MatrixInfo from '@/components/matrix/MatrixInfo';
-import { downloadMatrixAsPNG, downloadInterpretationsAsHTML, checkIfCanCreateNewMap } from '@/components/matrix/MatrixUtils';
+import { downloadMatrixAsPNG, downloadInterpretationsAsHTML } from '@/components/matrix/MatrixUtils';
 
 const MatrixResult = () => {
   const [userData, setUserData] = useState<any>(null);
@@ -45,11 +45,11 @@ const MatrixResult = () => {
       
       console.log("Carregando dados para o email:", email);
       
-      // Obter todos os mapas do usuário - Forçamos uma nova consulta ao localStorage
+      // Force a fresh query to localStorage
       let allMaps = getAllUserDataByEmail();
       console.log("Dados brutos recebidos:", JSON.stringify(allMaps));
       
-      // Filtrar apenas os mapas válidos do usuário atual
+      // Filter only valid maps for the current user
       let userMaps = allMaps.filter(map => 
         map && 
         map.email === email && 
@@ -60,7 +60,7 @@ const MatrixResult = () => {
       
       console.log("Mapas filtrados para o usuário atual:", userMaps);
       
-      // Se não for um array, tenta converter para array
+      // Convert to array if needed
       if (userMaps && !Array.isArray(userMaps)) {
         console.log("Convertendo objeto para array");
         if (typeof userMaps === 'object') {
@@ -71,7 +71,7 @@ const MatrixResult = () => {
         }
       }
       
-      // Verificar se temos mapas válidos
+      // Check if we have valid maps
       if (!userMaps || !Array.isArray(userMaps) || userMaps.length === 0) {
         console.log("Nenhum mapa encontrado para este usuário");
         toast({
@@ -83,12 +83,11 @@ const MatrixResult = () => {
         return;
       }
       
-      // Garantir que userMaps seja um array válido e ordenar por data de criação (mais recente primeiro)
+      // Sort maps by creation date (newest first)
       const validMaps = Array.isArray(userMaps) ? 
         userMaps
           .filter(map => map && typeof map === 'object')
           .sort((a, b) => {
-            // Se tiver data de criação, ordena pela data (mais recente primeiro)
             if (a.createdAt && b.createdAt) {
               return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
             }
@@ -110,12 +109,13 @@ const MatrixResult = () => {
       
       setUserMaps(validMaps);
       
-      // Verificar se o usuário pode criar novos mapas
+      // Check remaining map credits - this needs to be recalculated 
+      // AFTER we've loaded all the maps to get the correct count
       const remainingCount = getRemainingMatrixCount(email);
       setCanCreateNewMap(remainingCount > 0);
       console.log("Usuário pode criar novos mapas?", remainingCount > 0, "Restantes:", remainingCount);
       
-      // Tentar obter o mapa específico definido na sessão
+      // Try to get the specific map defined in the session
       const currentMatrixId = getCurrentMatrixId();
       console.log("ID da matriz atual:", currentMatrixId);
       
@@ -126,16 +126,16 @@ const MatrixResult = () => {
         console.log("Dados da matriz obtidos por ID:", currentData);
       }
       
-      // Se não encontrar o mapa específico, usar o mais recente
+      // If we can't find the specific map, use the most recent one
       if (!currentData || !currentData.id) {
         console.log("Usando o mapa mais recente");
-        currentData = validMaps[0]; // Já ordenamos por data, então o primeiro é o mais recente
+        currentData = validMaps[0]; // Already sorted by date
         if (currentData && currentData.id) {
           setCurrentMatrixId(currentData.id);
         }
       }
       
-      // Garantir que temos números kármicos, mesmo que vazios
+      // Ensure we have karmic numbers, even if empty
       if (!currentData.karmicNumbers) {
         console.log("Números kármicos ausentes, criando objeto vazio");
         currentData.karmicNumbers = {
@@ -189,7 +189,7 @@ const MatrixResult = () => {
       description: "Recarregando sua Matriz Kármica..."
     });
     
-    // Simular um pequeno delay e então recarregar
+    // Reload page after a short delay
     setTimeout(() => {
       window.location.reload();
     }, 500);
@@ -198,7 +198,7 @@ const MatrixResult = () => {
   const handleSwitchMap = (mapId: string) => {
     setCurrentMatrixId(mapId);
     
-    // Encontrar o mapa selecionado
+    // Find the selected map
     const selectedMap = userMaps.find(map => map.id === mapId);
     
     if (selectedMap) {
@@ -240,11 +240,11 @@ const MatrixResult = () => {
       return;
     }
     
-    // Redireciona para a página inicial com modo de criação
+    // Redirect to the initial page with creation mode
     window.location.href = '/?create=new';
   };
   
-  // Mostrar estado de carregamento se ainda não temos dados
+  // Show loading state if we don't have data yet
   if (loading) {
     return <MatrixLoading message="Carregando dados da matriz kármica..." />;
   }
