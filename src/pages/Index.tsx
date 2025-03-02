@@ -29,10 +29,13 @@ const Index = () => {
           if (userData && userData.name) {
             console.log("Usuário já tem perfil, redirecionando para matriz");
             setHasProfile(true);
-            // Redirect to matrix page
-            navigate('/matrix');
+            // Redirect to matrix page with a small delay to ensure state is updated
+            setTimeout(() => {
+              navigate('/matrix');
+            }, 100);
           } else {
             console.log("Usuário logado, mas sem perfil");
+            setHasProfile(false);
           }
         }
       }

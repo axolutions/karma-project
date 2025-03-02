@@ -65,15 +65,17 @@ const LoginForm: React.FC = () => {
       userData = getUserData(email);
       console.log("Obtendo dados do usuário. Email:", email, "Dados:", userData);
       
+      // Garantindo que o redirecionamento aconteça após um pequeno delay
       setTimeout(() => {
         setIsSubmitting(false);
         if (userData && userData.name) {
-          // User already has a matrix, redirect to results
+          // User already has a profile, redirect to matrix
+          console.log("Redirecionando para /matrix porque o usuário já tem perfil");
           navigate('/matrix');
         } else {
-          // User needs to fill profile, redirect to profile page
-          navigate('/');
-          // No need to force reload
+          // User needs to fill profile, refresh page to show profile form
+          console.log("Recarregando a página para mostrar o formulário de perfil");
+          window.location.reload(); // Força recarregamento para exibir o formulário de perfil
         }
       }, 1000);
     } else {
