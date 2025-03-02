@@ -6,7 +6,8 @@ import {
   getAllUserDataByEmail, 
   getCurrentMatrixId, 
   setCurrentMatrixId, 
-  logout
+  logout,
+  getRemainingMatrixCount
 } from '@/lib/auth';
 import { useNavigate } from 'react-router-dom';
 import MatrixInterpretations from '@/components/MatrixInterpretations';
@@ -95,7 +96,7 @@ const MatrixResult = () => {
       setUserMaps(validMaps);
       
       // Verificar se o usuário pode criar novos mapas
-      setCanCreateNewMap(checkIfCanCreateNewMap(email, validMaps.length));
+      setCanCreateNewMap(checkIfCanCreateNewMap(email));
       
       // Tentar obter o mapa específico definido na sessão
       const currentMatrixId = getCurrentMatrixId();
@@ -200,10 +201,22 @@ const MatrixResult = () => {
   };
   
   const handleCreateNewMap = () => {
-    if (!canCreateNewMap) {
+    const email = getCurrentUser();
+    if (!email) {
+      toast({
+        title: "Sessão expirada",
+        description: "Sua sessão expirou. Por favor, faça login novamente.",
+        variant: "destructive"
+      });
+      navigate('/');
+      return;
+    }
+    
+    // Check again if the user can create more maps
+    if (!checkIfCanCreateNewMap(email)) {
       toast({
         title: "Limite atingido",
-        description: "Você já atingiu o limite de mapas que pode criar. Adquira um novo acesso para criar mais mapas.",
+        description: "Você já utilizou todas as suas autorizações para criar mapas kármicos. Adquira um novo acesso para criar mais mapas.",
         variant: "destructive"
       });
       return;

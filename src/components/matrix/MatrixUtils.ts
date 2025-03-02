@@ -1,8 +1,7 @@
-
 import { toast } from "@/components/ui/use-toast";
 import { generateInterpretationsHTML } from '@/lib/interpretations';
 import html2canvas from 'html2canvas';
-import { isAuthorizedEmail } from '@/lib/auth';
+import { isAuthorizedEmail, getRemainingMatrixCount } from '@/lib/auth';
 
 export const downloadMatrixAsPNG = (matrixRef: React.RefObject<HTMLDivElement>, userName: string) => {
   if (!matrixRef.current) {
@@ -209,12 +208,7 @@ export const downloadInterpretationsAsHTML = (karmicNumbers: any, userName: stri
   }
 };
 
-export const checkIfCanCreateNewMap = (email: string, mapCount: number): boolean => {
-  // Here we check if the user can create a new map
-  if (mapCount > 0 && !isAuthorizedEmail(email)) {
-    // Simple check: if they already have maps, they can't create more
-    return false;
-  } else {
-    return true;
-  }
+export const checkIfCanCreateNewMap = (email: string): boolean => {
+  // Use the new function to check if the user can create more maps
+  return getRemainingMatrixCount(email) > 0;
 };

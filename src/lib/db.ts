@@ -1,3 +1,4 @@
+
 interface UserData {
   id: string;
   name: string;
@@ -76,6 +77,31 @@ export const setCurrentMatrixId = (email: string, matrixId: string): void => {
 
 // Authorized email management
 const AUTHORIZED_EMAILS_KEY = 'authorizedEmails';
+const EMAIL_AUTH_COUNTS_KEY = 'emailAuthCounts';
+
+// Get counts of authorizations for each email
+export const getEmailAuthCounts = (): Record<string, number> => {
+  try {
+    const countsString = localStorage.getItem(EMAIL_AUTH_COUNTS_KEY);
+    if (countsString) {
+      return JSON.parse(countsString);
+    }
+    // Initialize with empty counts if none exist
+    return {};
+  } catch (error) {
+    console.error('Error getting email auth counts:', error);
+    return {};
+  }
+};
+
+// Save authorization counts
+export const saveEmailAuthCounts = (counts: Record<string, number>): void => {
+  try {
+    localStorage.setItem(EMAIL_AUTH_COUNTS_KEY, JSON.stringify(counts));
+  } catch (error) {
+    console.error('Error saving email auth counts:', error);
+  }
+};
 
 export const getAllAuthorizedEmails = (): string[] => {
   try {
@@ -105,6 +131,13 @@ export const getAllAuthorizedEmails = (): string[] => {
 
 export const addAuthorizedEmail = (email: string): void => {
   const emails = getAllAuthorizedEmails();
+  const counts = getEmailAuthCounts();
+  
+  // Increment the authorization count for this email
+  counts[email] = (counts[email] || 0) + 1;
+  saveEmailAuthCounts(counts);
+  
+  // Only add the email if it's not already in the list
   if (!emails.includes(email)) {
     emails.push(email);
     localStorage.setItem(AUTHORIZED_EMAILS_KEY, JSON.stringify(emails));
@@ -113,6 +146,27 @@ export const addAuthorizedEmail = (email: string): void => {
 
 export const removeAuthorizedEmail = (email: string): void => {
   const emails = getAllAuthorizedEmails();
+  const counts = getEmailAuthCounts();
+  
+  // Remove the email from the counts
+  delete counts[email];
+  saveEmailAuthCounts(counts);
+  
   const newEmails = emails.filter(e => e !== email);
   localStorage.setItem(AUTHORIZED_EMAILS_KEY, JSON.stringify(newEmails));
+};
+
+// Check how many matrices a user can create
+export const getRemainingMatrixCount = (email: string): number => {
+  const counts = getEmailAuthCounts();
+  const userMaps = getAllUserDataByEmail().filter(map => map && map.email === email);
+  
+  // Total authorized count for this email
+  const totalAuthorized = counts[email] || 0;
+  
+  // Number of maps already created
+  const mapsCreated = userMaps.length;
+  
+  // Return remaining count (minimum 0)
+  return Math.max(0, totalAuthorized - mapsCreated);
 };

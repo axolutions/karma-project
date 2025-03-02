@@ -4,7 +4,15 @@ import { Button } from "@/components/ui/button";
 import { MoveRight, ShoppingCart, Eye, LogOut } from "lucide-react";
 import { calculateAllKarmicNumbers } from '@/lib/calculations';
 import { toast } from "@/components/ui/use-toast";
-import { saveUserData, getCurrentUser, getAllUserDataByEmail, setCurrentMatrixId, isAuthorizedEmail, logout } from '@/lib/auth';
+import { 
+  saveUserData, 
+  getCurrentUser, 
+  getAllUserDataByEmail, 
+  setCurrentMatrixId, 
+  isAuthorizedEmail, 
+  logout,
+  getRemainingMatrixCount
+} from '@/lib/auth';
 import { useNavigate } from 'react-router-dom';
 
 const ProfileForm: React.FC = () => {
@@ -13,6 +21,7 @@ const ProfileForm: React.FC = () => {
   const [isValid, setIsValid] = useState(true);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [existingMaps, setExistingMaps] = useState<any[]>([]);
+  const [remainingMatrixCount, setRemainingMatrixCount] = useState(0);
   const navigate = useNavigate();
   
   useEffect(() => {
@@ -39,6 +48,9 @@ const ProfileForm: React.FC = () => {
       if (validMaps && validMaps.length > 0) {
         setName(validMaps[validMaps.length - 1].name || '');
       }
+      
+      // Check how many matrices the user can still create
+      setRemainingMatrixCount(getRemainingMatrixCount(currentUser));
     } else {
       console.log("ProfileForm: Nenhum usuário logado");
     }
@@ -162,6 +174,17 @@ const ProfileForm: React.FC = () => {
       return;
     }
     
+    // Check if user can create more matrices
+    if (remainingMatrixCount <= 0) {
+      toast({
+        title: "Limite atingido",
+        description: "Você já utilizou todas as suas autorizações para criar mapas kármicos.",
+        variant: "destructive"
+      });
+      setIsSubmitting(false);
+      return;
+    }
+    
     try {
       console.log("ProfileForm: Calculando números kármicos para data:", birthDate);
       // Calculate karmic numbers
@@ -248,10 +271,19 @@ const ProfileForm: React.FC = () => {
         )}
       </div>
       
+      {remainingMatrixCount > 0 && (
+        <div className="p-3 bg-green-100 rounded-md">
+          <p className="text-sm text-green-700">
+            <span className="font-medium">Você pode criar {remainingMatrixCount} {remainingMatrixCount === 1 ? 'novo mapa' : 'novos mapas'} kármico{remainingMatrixCount === 1 ? '' : 's'}!</span> 
+            {hasValidMaps && ' Além dos mapas que você já possui.'}
+          </p>
+        </div>
+      )}
+      
       {hasValidMaps && (
         <div className="p-3 bg-karmic-100 rounded-md">
           <p className="text-sm text-karmic-700 mb-2 font-medium">
-            Você já possui {existingMaps.length} {existingMaps.length === 1 ? 'mapa' : 'mapas'} a ser {existingMaps.length === 1 ? 'gerado' : 'gerados'}:
+            Você já possui {existingMaps.length} {existingMaps.length === 1 ? 'mapa' : 'mapas'} kármico{existingMaps.length === 1 ? '' : 's'}:
           </p>
           <ul className="text-xs space-y-2 text-karmic-600">
             {existingMaps.map((map, index) => {
@@ -290,11 +322,17 @@ const ProfileForm: React.FC = () => {
         <Button 
           type="submit" 
           className="karmic-button w-full group"
-          disabled={isSubmitting}
+          disabled={isSubmitting || remainingMatrixCount <= 0}
         >
           {isSubmitting ? 'Processando...' : hasValidMaps ? 'Gerar Novo Mapa Kármico 2025' : 'Gerar Minha Matriz Kármica 2025'}
           <MoveRight className="ml-2 h-4 w-4 transition-transform group-hover:translate-x-1" />
         </Button>
+        
+        {remainingMatrixCount <= 0 && (
+          <p className="text-amber-600 text-sm text-center">
+            Você já utilizou todas as suas autorizações para criar mapas kármicos.
+          </p>
+        )}
         
         {hasValidMaps && (
           <div className="text-center flex justify-center space-x-3">

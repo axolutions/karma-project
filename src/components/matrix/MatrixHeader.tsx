@@ -4,7 +4,7 @@ import { Button } from "@/components/ui/button";
 import { LogOut, RefreshCw, ChevronDown, Plus, ShoppingCart, FileDown, Download } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { toast } from "@/components/ui/use-toast";
-import { logout } from '@/lib/auth';
+import { logout, getRemainingMatrixCount, getCurrentUser } from '@/lib/auth';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -41,6 +41,9 @@ const MatrixHeader: React.FC<MatrixHeaderProps> = ({
   onLogout,
   onCreateNewMap
 }) => {
+  const email = getCurrentUser();
+  const remainingCount = email ? getRemainingMatrixCount(email) : 0;
+  
   return (
     <div className="flex justify-between items-center mb-8 print:hidden">
       <div>
@@ -52,6 +55,11 @@ const MatrixHeader: React.FC<MatrixHeaderProps> = ({
           {userMaps.length > 1 && (
             <span className="text-xs ml-2 text-karmic-500">
               (Você possui {userMaps.length} mapas kármicos)
+            </span>
+          )}
+          {remainingCount > 0 && (
+            <span className="text-xs ml-2 text-green-600">
+              (Você pode criar mais {remainingCount} {remainingCount === 1 ? 'mapa' : 'mapas'})
             </span>
           )}
         </p>
