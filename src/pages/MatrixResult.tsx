@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useRef } from 'react';
 import { Button } from "@/components/ui/button";
 import { 
   getCurrentUser, 
@@ -12,10 +12,11 @@ import {
 import { useNavigate } from 'react-router-dom';
 import KarmicMatrix from '@/components/KarmicMatrix';
 import MatrixInterpretations from '@/components/MatrixInterpretations';
-import { LogOut, RefreshCw, ChevronDown, Plus, ShoppingCart, FileDown } from 'lucide-react';
+import { LogOut, RefreshCw, ChevronDown, Plus, ShoppingCart, FileDown, Download } from 'lucide-react';
 import { toast } from "@/components/ui/use-toast";
 import { motion } from 'framer-motion';
 import { generateInterpretationsHTML } from '@/lib/interpretations';
+import html2canvas from 'html2canvas';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -32,6 +33,7 @@ const MatrixResult = () => {
   const [isPrinting, setIsPrinting] = useState(false);
   const [canCreateNewMap, setCanCreateNewMap] = useState(false);
   const [loading, setLoading] = useState(true);
+  const matrixRef = useRef<HTMLDivElement>(null);
   const navigate = useNavigate();
   
   useEffect(() => {
@@ -162,6 +164,56 @@ const MatrixResult = () => {
     } else {
       setCanCreateNewMap(true);
     }
+  };
+  
+  const handleDownloadPNG = () => {
+    if (!matrixRef.current) {
+      toast({
+        title: "Erro ao exportar",
+        description: "Não foi possível encontrar a matriz para exportar.",
+        variant: "destructive"
+      });
+      return;
+    }
+    
+    toast({
+      title: "Processando imagem",
+      description: "Preparando sua matriz para download..."
+    });
+    
+    const scale = 2; // Increase quality
+    
+    html2canvas(matrixRef.current, {
+      scale: scale,
+      useCORS: true,
+      backgroundColor: "#ffffff",
+      logging: false
+    }).then(canvas => {
+      // Convert to PNG and download
+      const imgData = canvas.toDataURL('image/png');
+      const link = document.createElement('a');
+      
+      // Create filename
+      const fileName = `Matriz-Karmica-${userData.name?.replace(/\s+/g, '-') || 'Usuario'}.png`;
+      
+      link.download = fileName;
+      link.href = imgData;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      
+      toast({
+        title: "Download concluído",
+        description: "Sua matriz kármica foi salva como imagem PNG."
+      });
+    }).catch(error => {
+      console.error('Erro ao gerar imagem:', error);
+      toast({
+        title: "Erro ao exportar",
+        description: "Ocorreu um problema ao gerar a imagem da matriz.",
+        variant: "destructive"
+      });
+    });
   };
   
   const handleDownloadPDF = () => {
@@ -402,6 +454,15 @@ const MatrixResult = () => {
             </Button>
             
             <Button 
+              onClick={handleDownloadPNG}
+              variant="download"
+              className="flex items-center"
+            >
+              <Download className="mr-2 h-4 w-4" />
+              Baixar Matriz
+            </Button>
+            
+            <Button 
               onClick={handleDownloadPDF}
               className="karmic-button flex items-center"
             >
@@ -425,6 +486,7 @@ const MatrixResult = () => {
           animate={{ opacity: 1 }}
           transition={{ duration: 0.5 }}
           className="text-center mb-10 print:mb-5"
+          ref={matrixRef}
         >
           <h2 className="text-xl md:text-2xl font-serif font-medium text-karmic-800 mb-2">
             Sua Matriz Kármica
