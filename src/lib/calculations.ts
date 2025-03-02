@@ -4,6 +4,7 @@
  */
 
 // Função para calcular dígito único (soma dos dígitos até resultar em um único dígito)
+// Preserva números mestres: 11, 22, 33, 44
 export function calculateSingleDigit(number: number): number {
   console.log("Calculando dígito único para:", number);
   
@@ -126,10 +127,10 @@ export function calculateKarmaPortal(birthDate: string): number {
     const [day, month] = birthDate.split('/').map(Number);
     const currentYear = 2025;
     
-    // Soma dia + mês + ano atual
+    // Soma ano atual + dia + mês 
     const sum = currentYear + day + month;
     
-    // Reduzir a um dígito único
+    // Reduzir a um dígito único (preservando números mestres)
     const result = calculateSingleDigit(sum);
     
     console.log("Portal do Karma calculado:", result);
@@ -175,7 +176,7 @@ export function calculateKarmicInheritance(birthDate: string): number {
     // Somar os desafios
     const sum = challenges.reduce((acc, val) => acc + val, 0);
     
-    // Reduzir a um dígito único
+    // Reduzir a um dígito único (preservando números mestres)
     const result = calculateSingleDigit(sum);
     
     console.log("Herança Kármica calculada:", result);
@@ -184,6 +185,26 @@ export function calculateKarmicInheritance(birthDate: string): number {
     console.error("Erro ao calcular Herança Kármica:", error);
     return 0;
   }
+}
+
+// Calcular o Número do Destino (soma dos dígitos da data de nascimento)
+function calculateDestinyNumber(day: number, month: number, year: number): number {
+  // Converter cada componente para string, garantindo dois dígitos para dia e mês
+  const dayStr = day.toString().padStart(2, '0');
+  const monthStr = month.toString().padStart(2, '0');
+  const yearStr = year.toString();
+  
+  // Somar todos os dígitos individualmente
+  const sum = (dayStr + monthStr + yearStr).split('').reduce((acc, digit) => acc + parseInt(digit), 0);
+  
+  // Reduzir a um dígito único (preservando números mestres)
+  return calculateSingleDigit(sum);
+}
+
+// Calcular o Ano Pessoal 2025
+function calculatePersonalYear2025(day: number, month: number): number {
+  const sum = day + month + 2025;
+  return calculateSingleDigit(sum);
 }
 
 // 5. Códex da Reprogramação Kármica 2025
@@ -199,16 +220,16 @@ export function calculateKarmicReprogramming(birthDate: string): number {
     
     const [day, month, year] = birthDate.split('/').map(Number);
     
-    // Calcular Número do Destino (data de nascimento reduzida)
-    const destinyNumber = calculateSingleDigit(day + month + year);
+    // Calcular Número do Destino (soma de todos os dígitos da data de nascimento)
+    const destinyNumber = calculateDestinyNumber(day, month, year);
     
     // Calcular Ano Pessoal 2025 (dia + mês + 2025)
-    const personalYear2025 = calculateSingleDigit(day + month + 2025);
+    const personalYear2025 = calculatePersonalYear2025(day, month);
     
     // Soma Destino + Ano Pessoal
     const sum = destinyNumber + personalYear2025;
     
-    // Reduzir a um dígito único
+    // Reduzir a um dígito único (preservando números mestres)
     const result = calculateSingleDigit(sum);
     
     console.log("Códex da Reprogramação calculado:", result);
@@ -220,7 +241,7 @@ export function calculateKarmicReprogramming(birthDate: string): number {
 }
 
 // 6. Profecia dos Ciclos 2025
-// Cálculo: (Dia + Mês + 2025), reduzido a um dígito
+// Cálculo: (Dia + Mês + 2025), reduzido a um dígito (exceto 11 e 22)
 export function calculateCycleProphecy(birthDate: string): number {
   console.log("Calculando Profecia dos Ciclos para data:", birthDate);
   try {
@@ -236,13 +257,8 @@ export function calculateCycleProphecy(birthDate: string): number {
     // Soma dia + mês + 2025
     const sum = day + month + currentYear;
     
-    // Reduzir a um dígito único (preservando 11 e 22)
-    let result = calculateSingleDigit(sum);
-    
-    // Se o resultado não for 11 ou 22, mas for um número mestre (33, 44), reduzi-lo
-    if (result !== 11 && result !== 22 && (result === 33 || result === 44)) {
-      result = calculateSingleDigit(result);
-    }
+    // Reduzir a um dígito único (preservando números mestres)
+    const result = calculateSingleDigit(sum);
     
     console.log("Profecia dos Ciclos calculada:", result);
     return result;
@@ -265,20 +281,16 @@ export function calculateSpiritualMark(birthDate: string): number {
     
     const [day, month, year] = birthDate.split('/').map(Number);
     
-    // Calcular o Número do Destino completo (soma de todos os dígitos da data)
-    // Exemplo: 04/05/1983 -> 0+4+0+5+1+9+8+3 = 30
-    const destinySum = Array.from(day.toString().padStart(2, '0')).concat(
-      Array.from(month.toString().padStart(2, '0')),
-      Array.from(year.toString())
-    ).reduce((sum, digit) => sum + parseInt(digit), 0);
+    // Calcular o Número do Destino (soma de todos os dígitos da data)
+    const destinyNumber = calculateDestinyNumber(day, month, year);
     
     // Destino - Dia de Nascimento
-    let result = destinySum - day;
+    let result = destinyNumber - day;
     
     // Se for negativo, converter para positivo
     if (result < 0) result = Math.abs(result);
     
-    // Reduzir a um dígito único
+    // Reduzir a um dígito único (preservando números mestres)
     result = calculateSingleDigit(result);
     
     console.log("Marca Espiritual calculada:", result);
@@ -303,7 +315,7 @@ export function calculateManifestationEnigma(birthDate: string): number {
     const [day, month, year] = birthDate.split('/').map(Number);
     
     // Calcular Ano Pessoal 2025 (dia + mês + 2025)
-    const personalYear2025 = calculateSingleDigit(day + month + 2025);
+    const personalYear2025 = calculatePersonalYear2025(day, month);
     
     // Obter os últimos 2 dígitos do ano de nascimento
     const lastTwoDigitsYear = year % 100;
@@ -311,7 +323,7 @@ export function calculateManifestationEnigma(birthDate: string): number {
     // Soma Ano Pessoal + últimos 2 dígitos do ano
     const sum = personalYear2025 + lastTwoDigitsYear;
     
-    // Reduzir a um dígito único
+    // Reduzir a um dígito único (preservando números mestres)
     const result = calculateSingleDigit(sum);
     
     console.log("Enigma da Manifestação calculado:", result);
