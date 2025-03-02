@@ -7,7 +7,7 @@ interface UserData {
 }
 
 interface Database {
-  [email: string]: UserData[];
+  [email: string]: UserData;
 }
 
 // Initialize or retrieve the database from localStorage
@@ -44,66 +44,20 @@ export const getAllUserData = (): Database => {
 // Get user data by email
 export const getUserDataByEmail = (email: string): UserData | null => {
   const db = getDb();
-  return db[email]?.[0] || null;
+  return db[email] || null;
 };
 
 // Save user data
 export const saveUserData = (email: string, data: UserData): void => {
   const db = getDb();
-  
-  // Initialize array for this email if it doesn't exist
-  if (!db[email]) {
-    db[email] = [];
-  } else if (!Array.isArray(db[email])) {
-    // If the existing data is not an array, convert it to an array
-    db[email] = [db[email]];
-  }
-  
-  // Make sure we have a valid array
-  if (!Array.isArray(db[email])) {
-    db[email] = [];
-  }
-  
-  // Add created timestamp if not present
-  if (!data.createdAt) {
-    data.createdAt = new Date().toISOString();
-  }
-  
-  // Add the new data as a new entry in the array
-  db[email].push({ ...data });
-  
+  db[email] = { ...db[email], ...data };
   saveDb(db);
 };
 
 // Get all user data by email (returns an array of all user data)
-export const getAllUserDataByEmail = (email?: string): UserData[] => {
+export const getAllUserDataByEmail = (): UserData[] => {
   const db = getDb();
-  if (email) {
-    if (!db[email]) {
-      return [];
-    }
-    
-    // Handle case where the data might not be an array
-    if (!Array.isArray(db[email])) {
-      console.log(`Converting non-array data for email ${email} to array:`, db[email]);
-      return [db[email] as any];
-    }
-    
-    return db[email] || [];
-  }
-  
-  // If no email provided, collect all user data
-  const allUserData: UserData[] = [];
-  Object.entries(db).forEach(([email, userDataArray]) => {
-    if (Array.isArray(userDataArray)) {
-      allUserData.push(...userDataArray);
-    } else if (userDataArray) {
-      // Handle case where the data might not be an array
-      allUserData.push(userDataArray as any);
-    }
-  });
-  
-  return allUserData;
+  return Object.values(db);
 };
 
 // Current matrix tracking
@@ -122,31 +76,6 @@ export const setCurrentMatrixId = (email: string, matrixId: string): void => {
 
 // Authorized email management
 const AUTHORIZED_EMAILS_KEY = 'authorizedEmails';
-const EMAIL_AUTH_COUNTS_KEY = 'emailAuthCounts';
-
-// Get counts of authorizations for each email
-export const getEmailAuthCounts = (): Record<string, number> => {
-  try {
-    const countsString = localStorage.getItem(EMAIL_AUTH_COUNTS_KEY);
-    if (countsString) {
-      return JSON.parse(countsString);
-    }
-    // Initialize with empty counts if none exist
-    return {};
-  } catch (error) {
-    console.error('Error getting email auth counts:', error);
-    return {};
-  }
-};
-
-// Save authorization counts
-export const saveEmailAuthCounts = (counts: Record<string, number>): void => {
-  try {
-    localStorage.setItem(EMAIL_AUTH_COUNTS_KEY, JSON.stringify(counts));
-  } catch (error) {
-    console.error('Error saving email auth counts:', error);
-  }
-};
 
 export const getAllAuthorizedEmails = (): string[] => {
   try {
@@ -176,13 +105,6 @@ export const getAllAuthorizedEmails = (): string[] => {
 
 export const addAuthorizedEmail = (email: string): void => {
   const emails = getAllAuthorizedEmails();
-  const counts = getEmailAuthCounts();
-  
-  // Increment the authorization count for this email
-  counts[email] = (counts[email] || 0) + 1;
-  saveEmailAuthCounts(counts);
-  
-  // Only add the email if it's not already in the list
   if (!emails.includes(email)) {
     emails.push(email);
     localStorage.setItem(AUTHORIZED_EMAILS_KEY, JSON.stringify(emails));
@@ -191,33 +113,6 @@ export const addAuthorizedEmail = (email: string): void => {
 
 export const removeAuthorizedEmail = (email: string): void => {
   const emails = getAllAuthorizedEmails();
-  const counts = getEmailAuthCounts();
-  
-  // Remove the email from the counts
-  delete counts[email];
-  saveEmailAuthCounts(counts);
-  
   const newEmails = emails.filter(e => e !== email);
   localStorage.setItem(AUTHORIZED_EMAILS_KEY, JSON.stringify(newEmails));
-};
-
-// Check how many matrices a user can create - limit to ONE per email
-export const getRemainingMatrixCount = (email: string): number => {
-  // Get all maps for this email from local array
-  const userMaps = getAllUserDataByEmail(email);
-  
-  // Calculate how many maps are already created
-  const mapsCreated = Array.isArray(userMaps) ? userMaps.length : 0;
-  
-  // Special case for projetovmtd@gmail.com - ensure they have exactly ONE credit
-  if (email === 'projetovmtd@gmail.com') {
-    // If they haven't created any maps yet, they have 1 remaining
-    return mapsCreated === 0 ? 1 : 0;
-  }
-  
-  // For all other users, allow exactly ONE map per email
-  // If they already have a map, return 0, otherwise return 1
-  console.log(`Remaining matrix count calculation: email=${email}, mapsCreated=${mapsCreated}`);
-  
-  return mapsCreated === 0 ? 1 : 0;
 };

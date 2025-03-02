@@ -7,8 +7,7 @@ import {
   getAllAuthorizedEmails, 
   addAuthorizedEmail, 
   removeAuthorizedEmail,
-  getAllUserDataByEmail,
-  getEmailAuthCounts
+  getAllUserDataByEmail
 } from '@/lib/auth';
 import { X, Plus, Map } from 'lucide-react';
 
@@ -16,7 +15,6 @@ const EmailManager: React.FC = () => {
   const [emails, setEmails] = useState<string[]>([]);
   const [newEmail, setNewEmail] = useState('');
   const [emailStats, setEmailStats] = useState<Record<string, number>>({});
-  const [authCounts, setAuthCounts] = useState<Record<string, number>>({});
   
   useEffect(() => {
     refreshEmails();
@@ -26,11 +24,7 @@ const EmailManager: React.FC = () => {
     const authorizedEmails = getAllAuthorizedEmails();
     setEmails(authorizedEmails);
     
-    // Get authorization counts
-    const counts = getEmailAuthCounts();
-    setAuthCounts(counts);
-    
-    // Calculate how many maps each email has created
+    // Calcular estatísticas - quantos mapas cada email possui
     const stats: Record<string, number> = {};
     authorizedEmails.forEach(email => {
       const userMaps = getAllUserDataByEmail();
@@ -59,12 +53,35 @@ const EmailManager: React.FC = () => {
       return;
     }
     
-    // Add the email (or increment its auth count if it already exists)
-    addAuthorizedEmail(newEmail.toLowerCase());
+    // Verificar se o email já existe na lista
+    const emailExists = emails.includes(newEmail.toLowerCase());
+    
+    // Se o email já existe, perguntar se deseja conceder um novo acesso
+    if (emailExists) {
+      const existingMaps = getAllUserDataByEmail().filter(map => map.email === newEmail.toLowerCase());
+      
+      if (existingMaps.length > 0) {
+        const confirmAdd = confirm(
+          `O email ${newEmail} já está na lista e possui ${existingMaps.length} mapa(s) criado(s). ` +
+          `Adicioná-lo novamente concederá permissão para criar um novo mapa. Deseja continuar?`
+        );
+        
+        if (!confirmAdd) {
+          return;
+        }
+        
+        // Se confirmou, remova primeiro para depois adicionar novamente
+        // Isso simula a renovação do acesso
+        removeAuthorizedEmail(newEmail);
+      }
+    }
+    
+    // Adicionar o email à lista de autorizados
+    addAuthorizedEmail(newEmail);
     
     toast({
-      title: "Email autorizado",
-      description: `O email ${newEmail} foi autorizado a criar um novo mapa.`
+      title: "Email adicionado",
+      description: `O email ${newEmail} foi adicionado com sucesso.`
     });
     setNewEmail('');
     refreshEmails();
@@ -136,21 +153,14 @@ const EmailManager: React.FC = () => {
                 key={email} 
                 className="flex justify-between items-center p-3 bg-karmic-100 rounded-md"
               >
-                <div className="flex items-center flex-wrap">
+                <div className="flex items-center">
                   <span>{email}</span>
-                  <div className="flex items-center ml-3 space-x-2">
-                    {emailStats[email] > 0 && (
-                      <div className="flex items-center text-xs bg-karmic-200 text-karmic-700 px-2 py-1 rounded-full">
-                        <Map className="h-3 w-3 mr-1" />
-                        {emailStats[email]} {emailStats[email] === 1 ? 'mapa criado' : 'mapas criados'}
-                      </div>
-                    )}
-                    {(authCounts[email] || 0) > 0 && (
-                      <div className="flex items-center text-xs bg-green-100 text-green-700 px-2 py-1 rounded-full">
-                        {authCounts[email]} {authCounts[email] === 1 ? 'acesso autorizado' : 'acessos autorizados'}
-                      </div>
-                    )}
-                  </div>
+                  {emailStats[email] > 0 && (
+                    <div className="ml-3 flex items-center text-xs bg-karmic-200 text-karmic-700 px-2 py-1 rounded-full">
+                      <Map className="h-3 w-3 mr-1" />
+                      {emailStats[email]} {emailStats[email] === 1 ? 'mapa' : 'mapas'}
+                    </div>
+                  )}
                 </div>
                 <Button 
                   size="sm" 
@@ -172,7 +182,6 @@ const EmailManager: React.FC = () => {
           <li>Cada email adicionado dá direito a criar um mapa kármico</li>
           <li>Para conceder acesso a um novo mapa, adicione o mesmo email novamente</li>
           <li>Quando um email é adicionado novamente, ele recebe permissão para criar um novo mapa</li>
-          <li>O sistema agora rastreia quantos acessos cada email tem autorização para usar</li>
           <li>Remover um email impedirá que o usuário acesse todos os mapas criados com esse email</li>
         </ul>
       </div>

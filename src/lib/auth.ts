@@ -1,3 +1,4 @@
+
 import { 
   getDb, 
   saveUserData as saveData, 
@@ -6,9 +7,7 @@ import {
   getCurrentMatrixId as getMatrixId,
   getAllAuthorizedEmails,
   addAuthorizedEmail,
-  removeAuthorizedEmail,
-  getRemainingMatrixCount as getRemaining,
-  getEmailAuthCounts as getAuthCounts
+  removeAuthorizedEmail
 } from './db';
 
 export interface UserProfile {
@@ -17,7 +16,6 @@ export interface UserProfile {
   email: string;
   birthDate?: string;
   currentMatrixId?: string;
-  createdAt?: string; // Add createdAt property to fix type errors
   // Add other user profile fields as necessary
 }
 
@@ -37,9 +35,9 @@ export const getUserData = (email: string): UserProfile | null => {
   const db = getDb();
   
   // Verifica se o email existe no banco de dados
-  if (db && db[email] && db[email].length > 0) {
-    console.log("Obtendo dados do usuário. Email:", email, "Dados:", db[email][0]);
-    return db[email][0];
+  if (db && db[email]) {
+    console.log("Obtendo dados do usuário. Email:", email, "Dados:", db[email]);
+    return db[email];
   }
   
   console.log("Usuário não encontrado. Email:", email);
@@ -110,43 +108,16 @@ export const saveUserData = (data: { email: string; [key: string]: any }): strin
   return userData.id || '';
 };
 
-export const getAllUserDataByEmail = (): UserProfile[] => {
+export const getAllUserDataByEmail = (): any[] => {
+  const allUsers = getAllUsers();
   const currentUser = getCurrentUser();
   
-  if (!currentUser) {
-    console.log("Nenhum usuário logado para buscar dados");
-    return [];
-  }
+  // Se temos um usuário atual, converter o objeto de usuários em um array
+  // e retornar apenas os registros que pertencem ao usuário logado
+  const userDataArray = Object.values(allUsers);
   
-  // Get all data for the current user
-  const userDataArray = getAllUsers(currentUser);
-  
-  if (!Array.isArray(userDataArray)) {
-    console.log("Dados retornados não são um array:", userDataArray);
-    return [];
-  }
-  
-  // Validate each map to ensure it has the necessary data
-  const validMaps = userDataArray.filter((map): map is UserProfile => {
-    if (!map) return false;
-    
-    // Verify the map has required fields
-    const hasRequiredFields = 
-      typeof map === 'object' && 
-      'id' in map && 
-      'email' in map && 
-      map.email === currentUser;
-    
-    // Only for logging
-    if (!hasRequiredFields) {
-      console.log("Mapa inválido encontrado e removido:", map);
-    }
-    
-    return hasRequiredFields;
-  });
-  
-  console.log(`Filtrando dados para o usuário logado: ${currentUser}. Total de mapas válidos: ${validMaps.length}`);
-  return validMaps;
+  console.log(`Filtrando dados para o usuário logado: ${currentUser}`);
+  return userDataArray;
 };
 
 export const setCurrentMatrixId = (id: string): void => {
@@ -162,16 +133,6 @@ export const getCurrentMatrixId = (): string | null => {
     return getMatrixId(email);
   }
   return null;
-};
-
-// Export the missing functions being referenced
-export const getRemainingMatrixCount = (email: string): number => {
-  // Simply forward to the db implementation which now enforces the one-map-per-email rule
-  return getRemaining(email);
-};
-
-export const getEmailAuthCounts = (): Record<string, number> => {
-  return getAuthCounts();
 };
 
 export { 
