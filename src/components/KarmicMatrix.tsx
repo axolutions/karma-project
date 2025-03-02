@@ -83,67 +83,44 @@ const KarmicMatrix: React.FC<KarmicMatrixProps> = ({
         .container {
             width: 100%;
             max-width: 600px;
+            height: 800px;
             margin: 20px auto;
-            padding: 20px;
-            background: white;
-            border-radius: 10px;
-            box-shadow: 0px 0px 10px rgba(0,0,0,0.1);
+            position: relative;
             background-image: url('${backgroundImage}');
             background-size: cover;
             background-position: center;
-            position: relative;
-            height: 800px;
         }
-        .grid {
-            display: grid;
-            grid-template-columns: repeat(3, 1fr);
-            gap: 50px;
+        .numero {
             position: absolute;
-            top: 35%;
-            left: 50%;
-            transform: translate(-50%, -35%);
-            width: 70%;
-        }
-        .grid div {
             background: rgba(255, 255, 255, 0.8);
-            padding: 20px;
+            padding: 10px 15px;
             border-radius: 8px;
             font-size: 1.5em;
             font-weight: bold;
             text-align: center;
             color: #333;
         }
-        .titulo {
-            font-size: 2em;
-            font-weight: bold;
-            margin-top: 20px;
-            color: #fff;
-            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5);
-        }
-        @media print {
-            .container {
-                box-shadow: none;
-                height: 700px;
-            }
-            body {
-                background-color: white;
-            }
-        }
+        /* Posições exatas dos números */
+        #selo_karmico { top: 10%; left: 45%; }
+        #chamado_destino { top: 30%; left: 20%; }
+        #portal_karma { top: 30%; left: 70%; }
+        #heranca_karmica { top: 50%; left: 15%; }
+        #codex_reprogramacao { top: 50%; left: 50%; }
+        #profecia_ciclos { top: 50%; left: 85%; }
+        #marca_espiritual { top: 70%; left: 30%; }
+        #enigma_manifestacao { top: 70%; left: 70%; }
     </style>
 </head>
 <body>
     <div class="container">
-        <div class="titulo">Matriz Kármica 2025</div>
-        <div class="grid">
-            <div id="selo_karmico">${matrizKarmica.selo_karmico}</div>
-            <div id="chamado_destino">${matrizKarmica.chamado_destino}</div>
-            <div id="portal_karma">${matrizKarmica.portal_karma}</div>
-            <div id="heranca_karmica">${matrizKarmica.heranca_karmica}</div>
-            <div id="codex_reprogramacao">${matrizKarmica.codex_reprogramacao}</div>
-            <div id="profecia_ciclos">${matrizKarmica.profecia_ciclos}</div>
-            <div id="marca_espiritual">${matrizKarmica.marca_espiritual}</div>
-            <div id="enigma_manifestacao">${matrizKarmica.enigma_manifestacao}</div>
-        </div>
+        <div id="selo_karmico" class="numero">${matrizKarmica.selo_karmico}</div>
+        <div id="chamado_destino" class="numero">${matrizKarmica.chamado_destino}</div>
+        <div id="portal_karma" class="numero">${matrizKarmica.portal_karma}</div>
+        <div id="heranca_karmica" class="numero">${matrizKarmica.heranca_karmica}</div>
+        <div id="codex_reprogramacao" class="numero">${matrizKarmica.codex_reprogramacao}</div>
+        <div id="profecia_ciclos" class="numero">${matrizKarmica.profecia_ciclos}</div>
+        <div id="marca_espiritual" class="numero">${matrizKarmica.marca_espiritual}</div>
+        <div id="enigma_manifestacao" class="numero">${matrizKarmica.enigma_manifestacao}</div>
     </div>
 </body>
 </html>
@@ -172,29 +149,60 @@ const KarmicMatrix: React.FC<KarmicMatrixProps> = ({
 
   return (
     <div className="relative max-w-4xl mx-auto">
-      {/* Container da matriz com estilo inspirado no HTML fornecido */}
-      <div className="w-full max-w-[600px] mx-auto bg-white rounded-lg shadow-md relative print:shadow-none" 
+      {/* Container da matriz com posicionamento absoluto para os números */}
+      <div className="w-full max-w-[600px] mx-auto relative print:shadow-none" 
         style={{
           backgroundImage: `url(${backgroundImage})`,
           backgroundSize: 'cover',
           backgroundPosition: 'center',
           height: '800px'
         }}>
-        <div className="text-2xl font-bold mt-5 text-white text-shadow">Matriz Kármica 2025</div>
         
-        {/* Grid para os números kármicos */}
-        <div className="grid grid-cols-3 gap-12 absolute top-[35%] left-1/2 transform -translate-x-1/2 -translate-y-[35%] w-[70%]">
-          {Object.entries(idToKeyMap).map(([htmlId, dataKey]) => (
+        {/* Números kármicos com posicionamento absoluto */}
+        {Object.entries(idToKeyMap).map(([htmlId, dataKey]) => {
+          // Estilo de posicionamento para cada número
+          const positionStyle = {};
+          
+          // Definir posição de acordo com o ID
+          switch(htmlId) {
+            case 'selo_karmico':
+              Object.assign(positionStyle, { top: '10%', left: '45%' });
+              break;
+            case 'chamado_destino':
+              Object.assign(positionStyle, { top: '30%', left: '20%' });
+              break;
+            case 'portal_karma':
+              Object.assign(positionStyle, { top: '30%', left: '70%' });
+              break;
+            case 'heranca_karmica':
+              Object.assign(positionStyle, { top: '50%', left: '15%' });
+              break;
+            case 'codex_reprogramacao':
+              Object.assign(positionStyle, { top: '50%', left: '50%' });
+              break;
+            case 'profecia_ciclos':
+              Object.assign(positionStyle, { top: '50%', left: '85%' });
+              break;
+            case 'marca_espiritual':
+              Object.assign(positionStyle, { top: '70%', left: '30%' });
+              break;
+            case 'enigma_manifestacao':
+              Object.assign(positionStyle, { top: '70%', left: '70%' });
+              break;
+          }
+          
+          return (
             <div 
               key={htmlId}
               id={htmlId}
-              className="bg-white bg-opacity-80 p-5 rounded-lg text-xl font-bold text-gray-800"
+              className="absolute bg-white bg-opacity-80 px-4 py-2 rounded-lg text-xl font-bold text-gray-800"
+              style={positionStyle}
               title={keyToTitleMap[dataKey]}
             >
               {safeKarmicData[dataKey]}
             </div>
-          ))}
-        </div>
+          );
+        })}
       </div>
       
       {/* Botão de download */}
