@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { Button } from "@/components/ui/button";
 import { LogOut, RefreshCw, ChevronDown, Plus, ShoppingCart, FileDown, Download } from 'lucide-react';
@@ -47,7 +46,8 @@ const MatrixHeader: React.FC<MatrixHeaderProps> = ({
   
   const handleCreateNewMap = () => {
     if (canCreateNewMap) {
-      onCreateNewMap();
+      // Redirect to the form page with create=new parameter instead of calling onCreateNewMap
+      navigate('/?create=new');
     } else {
       toast({
         title: "Limite atingido",
@@ -157,7 +157,6 @@ const MatrixHeader: React.FC<MatrixHeaderProps> = ({
         </div>
       </div>
       
-      {/* Banner de destaque para criação de novos mapas */}
       {remainingCount > 0 && (
         <div className="bg-gradient-to-r from-karmic-300 to-karmic-200 p-6 rounded-lg border border-karmic-400 
                       shadow-sm hover:shadow-md transition-all duration-300 
