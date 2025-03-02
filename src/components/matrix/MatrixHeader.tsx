@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { Button } from "@/components/ui/button";
 import { LogOut, RefreshCw, ChevronDown, Plus, ShoppingCart, FileDown, Download, ArrowLeft } from 'lucide-react';
@@ -52,7 +51,7 @@ const MatrixHeader: React.FC<MatrixHeaderProps> = ({
     } else {
       toast({
         title: "Limite atingido",
-        description: "Você já utilizou todas as suas autorizações para criar mapas kármicos.",
+        description: "Cada email só pode criar um mapa kármico.",
         variant: "destructive"
       });
     }
@@ -77,11 +76,6 @@ const MatrixHeader: React.FC<MatrixHeaderProps> = ({
           </h1>
           <p className="text-karmic-600">
             Olá, <span className="font-medium">{userName}</span>
-            {uniqueMaps.length > 1 && (
-              <span className="text-xs ml-2 text-karmic-500">
-                (Você possui {uniqueMaps.length} mapas kármicos)
-              </span>
-            )}
           </p>
         </div>
         
@@ -92,7 +86,7 @@ const MatrixHeader: React.FC<MatrixHeaderProps> = ({
             className="karmic-button-outline flex items-center"
           >
             <ArrowLeft className="mr-2 h-4 w-4" />
-            Meus Mapas
+            Voltar
           </Button>
         
           {uniqueMaps.length > 1 && (
@@ -119,15 +113,6 @@ const MatrixHeader: React.FC<MatrixHeaderProps> = ({
                     </DropdownMenuItem>
                   ) : null
                 ))}
-                
-                {canCreateNewMap && (
-                  <>
-                    <DropdownMenuSeparator />
-                    <DropdownMenuItem onClick={handleCreateNewMap}>
-                      <Plus className="mr-2 h-4 w-4" /> Criar novo mapa
-                    </DropdownMenuItem>
-                  </>
-                )}
               </DropdownMenuContent>
             </DropdownMenu>
           )}
@@ -180,10 +165,10 @@ const MatrixHeader: React.FC<MatrixHeaderProps> = ({
             </div>
             <div>
               <h3 className="font-medium text-karmic-800 text-xl">
-                Você ainda pode criar {remainingCount} {remainingCount === 1 ? 'mapa kármico' : 'mapas kármicos'} adicional!
+                Você pode criar seu mapa kármico!
               </h3>
               <p className="text-karmic-700 text-lg">
-                Clique aqui para criar um novo mapa para você ou para alguém especial
+                Clique aqui para criar seu mapa kármico personalizado
               </p>
             </div>
           </div>
@@ -192,7 +177,7 @@ const MatrixHeader: React.FC<MatrixHeaderProps> = ({
             onClick={handleCreateNewMap}
           >
             <Plus className="mr-2 h-5 w-5" />
-            Criar Novo Mapa
+            Criar Meu Mapa
           </Button>
         </div>
       )}

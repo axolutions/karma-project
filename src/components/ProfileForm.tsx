@@ -193,7 +193,7 @@ const ProfileForm: React.FC<ProfileFormProps> = ({ viewMode = 'create' }) => {
     if (remainingMatrixCount <= 0) {
       toast({
         title: "Limite atingido",
-        description: "Você já utilizou todas as suas autorizações para criar mapas kármicos.",
+        description: "Cada email só pode criar um mapa kármico.",
         variant: "destructive"
       });
       setIsSubmitting(false);
@@ -256,7 +256,7 @@ const ProfileForm: React.FC<ProfileFormProps> = ({ viewMode = 'create' }) => {
       {isMapView && hasValidMaps && (
         <div className="p-4 bg-karmic-100 rounded-md animate-fade-in border border-karmic-300">
           <p className="text-lg text-karmic-800 mb-3 font-medium">
-            Seus Mapas Kármicos ({existingMaps.length}):
+            Seu Mapa Kármico:
           </p>
           <ul className="space-y-3 text-karmic-700">
             {existingMaps.map((map, index) => {
@@ -333,8 +333,7 @@ const ProfileForm: React.FC<ProfileFormProps> = ({ viewMode = 'create' }) => {
       {remainingMatrixCount > 0 && (
         <div className="p-3 bg-green-100 rounded-md">
           <p className="text-sm text-green-700">
-            <span className="font-medium">Você pode criar {remainingMatrixCount} {remainingMatrixCount === 1 ? 'novo mapa' : 'novos mapas'} kármico{remainingMatrixCount === 1 ? '' : 's'}!</span> 
-            {hasValidMaps && ' Além dos mapas que você já possui.'}
+            <span className="font-medium">Você pode criar seu mapa kármico personalizado!</span>
           </p>
         </div>
       )}
@@ -342,7 +341,7 @@ const ProfileForm: React.FC<ProfileFormProps> = ({ viewMode = 'create' }) => {
       {!isMapView && hasValidMaps && (
         <div className="p-3 bg-karmic-100 rounded-md">
           <p className="text-sm text-karmic-700 mb-2 font-medium">
-            Você já possui {existingMaps.length} {existingMaps.length === 1 ? 'mapa' : 'mapas'} kármico{existingMaps.length === 1 ? '' : 's'}:
+            Você já possui um mapa kármico:
           </p>
           <ul className="text-xs space-y-2 text-karmic-600">
             {existingMaps.map((map, index) => {
@@ -384,7 +383,7 @@ const ProfileForm: React.FC<ProfileFormProps> = ({ viewMode = 'create' }) => {
             className="karmic-button w-full group"
             disabled={isSubmitting || remainingMatrixCount <= 0}
           >
-            {isSubmitting ? 'Processando...' : hasValidMaps ? 'Gerar Novo Mapa Kármico 2025' : 'Gerar Minha Matriz Kármica 2025'}
+            {isSubmitting ? 'Processando...' : hasValidMaps ? 'Atualizar Meu Mapa Kármico 2025' : 'Gerar Minha Matriz Kármica 2025'}
             <MoveRight className="ml-2 h-4 w-4 transition-transform group-hover:translate-x-1" />
           </Button>
         )}
@@ -397,14 +396,14 @@ const ProfileForm: React.FC<ProfileFormProps> = ({ viewMode = 'create' }) => {
               window.location.href = '/?create=new';
             }}
           >
-            Criar Novo Mapa Kármico 2025
+            Criar Meu Mapa Kármico 2025
             <MoveRight className="ml-2 h-4 w-4 transition-transform group-hover:translate-x-1" />
           </Button>
         )}
         
         {remainingMatrixCount <= 0 && (
           <p className="text-amber-600 text-sm text-center">
-            Você já utilizou todas as suas autorizações para criar mapas kármicos.
+            Cada email só pode criar um mapa kármico.
           </p>
         )}
         

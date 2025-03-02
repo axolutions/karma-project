@@ -201,31 +201,23 @@ export const removeAuthorizedEmail = (email: string): void => {
   localStorage.setItem(AUTHORIZED_EMAILS_KEY, JSON.stringify(newEmails));
 };
 
-// Check how many matrices a user can create
+// Check how many matrices a user can create - limit to ONE per email
 export const getRemainingMatrixCount = (email: string): number => {
-  const counts = getEmailAuthCounts();
-  
   // Get all maps for this email from local array
   const userMaps = getAllUserDataByEmail(email);
-  
-  // Total authorized count for this email - ensure it's at least 3 for projetovmtd@gmail.com
-  let totalAuthorized = counts[email] || 0;
-  
-  // Special case for projetovmtd@gmail.com - ensure they have at least 3 authorizations
-  if (email === 'projetovmtd@gmail.com' && totalAuthorized < 3) {
-    totalAuthorized = 3;
-    
-    // Update the counts in localStorage
-    counts[email] = totalAuthorized;
-    saveEmailAuthCounts(counts);
-    console.log(`Updated authorization count for ${email} to ${totalAuthorized}`);
-  }
   
   // Calculate how many maps are already created
   const mapsCreated = Array.isArray(userMaps) ? userMaps.length : 0;
   
-  console.log(`Remaining matrix count calculation: email=${email}, totalAuthorized=${totalAuthorized}, mapsCreated=${mapsCreated}`);
+  // Special case for projetovmtd@gmail.com - ensure they have exactly ONE credit
+  if (email === 'projetovmtd@gmail.com') {
+    // If they haven't created any maps yet, they have 1 remaining
+    return mapsCreated === 0 ? 1 : 0;
+  }
   
-  // Return remaining count (minimum 0)
-  return Math.max(0, totalAuthorized - mapsCreated);
+  // For all other users, allow exactly ONE map per email
+  // If they already have a map, return 0, otherwise return 1
+  console.log(`Remaining matrix count calculation: email=${email}, mapsCreated=${mapsCreated}`);
+  
+  return mapsCreated === 0 ? 1 : 0;
 };
