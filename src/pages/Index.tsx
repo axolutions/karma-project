@@ -88,7 +88,7 @@ const Index = () => {
           </h2>
           
           {userLoggedIn && (forceCreateNew || !hasProfile) ? (
-            <ProfileForm isNewMap={forceCreateNew} />
+            <ProfileForm />
           ) : (
             <LoginForm />
           )}
