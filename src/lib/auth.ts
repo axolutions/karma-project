@@ -110,7 +110,7 @@ export const saveUserData = (data: { email: string; [key: string]: any }): strin
   return userData.id || '';
 };
 
-export const getAllUserDataByEmail = (): any[] => {
+export const getAllUserDataByEmail = (): UserProfile[] => {
   const currentUser = getCurrentUser();
   
   if (!currentUser) {
@@ -121,12 +121,21 @@ export const getAllUserDataByEmail = (): any[] => {
   // Get all data for the current user
   const userDataArray = getAllUsers(currentUser);
   
+  if (!Array.isArray(userDataArray)) {
+    console.log("Dados retornados não são um array:", userDataArray);
+    return [];
+  }
+  
   // Validate each map to ensure it has the necessary data
-  const validMaps = userDataArray.filter(map => {
+  const validMaps = userDataArray.filter((map): map is UserProfile => {
+    if (!map) return false;
+    
     // Verify the map has required fields
-    const hasRequiredFields = map && 
-                             map.id && 
-                             map.email === currentUser;
+    const hasRequiredFields = 
+      typeof map === 'object' && 
+      'id' in map && 
+      'email' in map && 
+      map.email === currentUser;
     
     // Only for logging
     if (!hasRequiredFields) {
