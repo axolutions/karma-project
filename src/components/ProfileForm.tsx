@@ -1,11 +1,10 @@
-
 import React, { useState, useEffect } from 'react';
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import { MoveRight, ShoppingCart, Eye } from "lucide-react";
+import { MoveRight, ShoppingCart, Eye, LogOut } from "lucide-react";
 import { calculateAllKarmicNumbers } from '@/lib/calculations';
 import { toast } from "@/components/ui/use-toast";
-import { saveUserData, getCurrentUser, getAllUserDataByEmail, setCurrentMatrixId, isAuthorizedEmail } from '@/lib/auth';
+import { saveUserData, getCurrentUser, getAllUserDataByEmail, setCurrentMatrixId, isAuthorizedEmail, logout } from '@/lib/auth';
 import { useNavigate } from 'react-router-dom';
 
 const ProfileForm: React.FC = () => {
@@ -109,6 +108,15 @@ const ProfileForm: React.FC = () => {
     
     setCurrentMatrixId(mapId);
     navigate('/matrix');
+  };
+  
+  const handleLogout = () => {
+    logout();
+    toast({
+      title: "Logout realizado",
+      description: "Você saiu do sistema com sucesso."
+    });
+    navigate('/');
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -243,7 +251,7 @@ const ProfileForm: React.FC = () => {
       {hasValidMaps && (
         <div className="p-3 bg-karmic-100 rounded-md">
           <p className="text-sm text-karmic-700 mb-2 font-medium">
-            Você já possui {existingMaps.length} {existingMaps.length === 1 ? 'mapa' : 'mapas'} criado{existingMaps.length === 1 ? '' : 's'}:
+            Você já possui {existingMaps.length} {existingMaps.length === 1 ? 'mapa' : 'mapas'} a ser {existingMaps.length === 1 ? 'gerado' : 'gerados'}:
           </p>
           <ul className="text-xs space-y-2 text-karmic-600">
             {existingMaps.map((map, index) => {
@@ -278,27 +286,39 @@ const ProfileForm: React.FC = () => {
         </div>
       )}
       
-      <Button 
-        type="submit" 
-        className="karmic-button w-full group"
-        disabled={isSubmitting}
-      >
-        {isSubmitting ? 'Processando...' : hasValidMaps ? 'Gerar Novo Mapa Kármico 2025' : 'Gerar Minha Matriz Kármica 2025'}
-        <MoveRight className="ml-2 h-4 w-4 transition-transform group-hover:translate-x-1" />
-      </Button>
-      
-      {hasValidMaps && (
-        <div className="text-center">
-          <Button 
-            type="button" 
-            variant="link" 
-            onClick={() => navigate('/matrix')}
-            className="text-karmic-600 hover:text-karmic-800"
-          >
-            Voltar para meu mapa atual
-          </Button>
-        </div>
-      )}
+      <div className="space-y-2">
+        <Button 
+          type="submit" 
+          className="karmic-button w-full group"
+          disabled={isSubmitting}
+        >
+          {isSubmitting ? 'Processando...' : hasValidMaps ? 'Gerar Novo Mapa Kármico 2025' : 'Gerar Minha Matriz Kármica 2025'}
+          <MoveRight className="ml-2 h-4 w-4 transition-transform group-hover:translate-x-1" />
+        </Button>
+        
+        {hasValidMaps && (
+          <div className="text-center flex justify-center space-x-3">
+            <Button 
+              type="button" 
+              variant="link" 
+              onClick={() => navigate('/matrix')}
+              className="text-karmic-600 hover:text-karmic-800"
+            >
+              Voltar para meu mapa atual
+            </Button>
+            
+            <Button 
+              type="button" 
+              variant="link" 
+              onClick={handleLogout}
+              className="text-karmic-600 hover:text-karmic-800 flex items-center"
+            >
+              <LogOut className="mr-1 h-4 w-4" />
+              Sair
+            </Button>
+          </div>
+        )}
+      </div>
     </form>
   );
 };

@@ -1,6 +1,10 @@
 
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useRef } from 'react';
 import { motion } from 'framer-motion';
+import { Download } from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import html2canvas from 'html2canvas';
+import { toast } from "@/components/ui/use-toast";
 
 interface KarmicMatrixProps {
   karmicData: any;
@@ -12,6 +16,7 @@ const KarmicMatrix: React.FC<KarmicMatrixProps> = ({
   backgroundImage = "https://darkorange-goldfinch-896244.hostingersite.com/wp-content/uploads/2025/02/Design-sem-nome-1.png"
 }) => {
   const [imgSrc, setImgSrc] = useState(backgroundImage);
+  const matrixRef = useRef<HTMLDivElement>(null);
   
   console.log("KarmicMatrix: Dados recebidos:", karmicData);
   
@@ -42,6 +47,50 @@ const KarmicMatrix: React.FC<KarmicMatrixProps> = ({
     img.src = backgroundImage;
   }, [backgroundImage]);
   
+  // Função para baixar a matriz como PNG
+  const handleDownloadPNG = async () => {
+    if (!matrixRef.current) {
+      toast({
+        title: "Erro ao gerar imagem",
+        description: "Não foi possível encontrar o elemento da matriz.",
+        variant: "destructive"
+      });
+      return;
+    }
+    
+    try {
+      toast({
+        title: "Gerando imagem",
+        description: "Preparando sua Matriz Kármica para download..."
+      });
+      
+      const canvas = await html2canvas(matrixRef.current, {
+        backgroundColor: null,
+        scale: 2, // Melhor qualidade
+        logging: false
+      });
+      
+      // Criar um link de download
+      const dataUrl = canvas.toDataURL('image/png');
+      const link = document.createElement('a');
+      link.download = 'Matriz-Karmica-2025.png';
+      link.href = dataUrl;
+      link.click();
+      
+      toast({
+        title: "Download concluído",
+        description: "Sua Matriz Kármica foi salva com sucesso."
+      });
+    } catch (error) {
+      console.error("Erro ao gerar imagem:", error);
+      toast({
+        title: "Erro ao gerar imagem",
+        description: "Ocorreu um erro inesperado. Por favor, tente novamente.",
+        variant: "destructive"
+      });
+    }
+  };
+  
   // Vamos listar explicitamente as posições para cada número específico
   const numberPositions = {
     karmicSeal: { top: "23%", left: "25%" },
@@ -68,39 +117,53 @@ const KarmicMatrix: React.FC<KarmicMatrixProps> = ({
 
   return (
     <div className="relative max-w-4xl mx-auto">
-      {/* Background matrix image */}
-      <img 
-        src={imgSrc} 
-        alt="Matriz Kármica 2025" 
-        className="w-full h-auto"
-        style={{ 
-          border: '1px solid #EAE6E1',
-          borderRadius: '8px',
-          minHeight: '300px' // Altura mínima para evitar colapso enquanto carrega
-        }}
-      />
+      <div className="mb-4 flex justify-end print:hidden">
+        <Button 
+          onClick={handleDownloadPNG}
+          variant="outline"
+          className="karmic-button-outline flex items-center gap-2"
+        >
+          <Download className="h-4 w-4" />
+          Baixar Matriz como PNG
+        </Button>
+      </div>
       
-      {/* Sempre renderizar os números */}
-      {numbersToDisplay.map((item, index) => {
-        const position = numberPositions[item.key];
-        return (
-          <div
-            key={item.key}
-            className="absolute print:!opacity-100"
-            style={{ 
-              top: position.top, 
-              left: position.left,
-              transform: "translate(-50%, -50%)"
-            }}
-          >
-            <div className="flex items-center justify-center">
-              <span className="bg-white bg-opacity-80 rounded-full w-10 h-10 flex items-center justify-center text-lg font-serif font-bold text-karmic-800 shadow-lg print:shadow-none print:border print:border-karmic-300">
-                {item.value}
-              </span>
+      {/* Matrix container with ref for screenshot */}
+      <div ref={matrixRef} className="relative">
+        {/* Background matrix image */}
+        <img 
+          src={imgSrc} 
+          alt="Matriz Kármica 2025" 
+          className="w-full h-auto"
+          style={{ 
+            border: '1px solid #EAE6E1',
+            borderRadius: '8px',
+            minHeight: '300px' // Altura mínima para evitar colapso enquanto carrega
+          }}
+        />
+        
+        {/* Sempre renderizar os números */}
+        {numbersToDisplay.map((item, index) => {
+          const position = numberPositions[item.key];
+          return (
+            <div
+              key={item.key}
+              className="absolute print:!opacity-100"
+              style={{ 
+                top: position.top, 
+                left: position.left,
+                transform: "translate(-50%, -50%)"
+              }}
+            >
+              <div className="flex items-center justify-center">
+                <span className="bg-white bg-opacity-80 rounded-full w-10 h-10 flex items-center justify-center text-lg font-serif font-bold text-karmic-800 shadow-lg print:shadow-none print:border print:border-karmic-300">
+                  {item.value}
+                </span>
+              </div>
             </div>
-          </div>
-        );
-      })}
+          );
+        })}
+      </div>
     </div>
   );
 };

@@ -4,47 +4,29 @@ import { motion } from 'framer-motion';
 
 const IntroSection: React.FC = () => {
   return (
-    <motion.div 
-      className="max-w-3xl mx-auto text-center mb-16 px-4"
-      initial={{ opacity: 0, y: 20 }}
+    <motion.div
+      initial={{ opacity: 0, y: -20 }}
       animate={{ opacity: 1, y: 0 }}
-      transition={{ duration: 0.6 }}
+      transition={{ duration: 0.5 }}
+      className="text-center mb-12"
     >
-      <motion.span 
-        className="inline-block px-4 py-1 mb-4 text-xs font-medium text-karmic-700 bg-karmic-100 rounded-full"
-        initial={{ opacity: 0 }}
-        animate={{ opacity: 1 }}
-        transition={{ delay: 0.2, duration: 0.4 }}
-      >
+      <h1 className="text-3xl md:text-4xl lg:text-5xl font-serif font-medium text-karmic-800 mb-4">
         EXPLORADOR DA MATRIZ KÁRMICA
-      </motion.span>
+      </h1>
       
-      <motion.h1 
-        className="text-4xl md:text-5xl lg:text-6xl font-serif font-medium text-karmic-800 mb-6"
-        initial={{ opacity: 0 }}
-        animate={{ opacity: 1 }}
-        transition={{ delay: 0.3, duration: 0.5 }}
-      >
-        Descubra sua jornada espiritual através dos números
-      </motion.h1>
+      <div className="max-w-3xl mx-auto">
+        <h2 className="text-3xl md:text-4xl font-serif font-medium text-karmic-800 mb-6">
+          Descubra sua jornada espiritual através dos números
+        </h2>
+        
+        <p className="text-lg text-karmic-700 mb-4">
+          A matriz kármica revela os padrões energéticos que influenciam sua vida atual,
+          baseados em experiências de vidas passadas e potenciais futuros. Descubra os
+          oito elementos principais que moldam sua jornada espiritual.
+        </p>
+      </div>
       
-      <motion.p 
-        className="text-lg text-karmic-600 mb-8"
-        initial={{ opacity: 0 }}
-        animate={{ opacity: 1 }}
-        transition={{ delay: 0.4, duration: 0.5 }}
-      >
-        A matriz kármica revela os padrões energéticos que influenciam sua vida atual, baseados em 
-        experiências de vidas passadas e potenciais futuros. Descubra os quatro elementos principais 
-        que moldam sua jornada espiritual.
-      </motion.p>
-      
-      <motion.div 
-        className="border-b border-karmic-200 w-24 mx-auto mb-8"
-        initial={{ width: 0 }}
-        animate={{ width: 100 }}
-        transition={{ delay: 0.5, duration: 0.8 }}
-      />
+      <div className="my-8 border-t border-karmic-200 w-24 mx-auto"></div>
     </motion.div>
   );
 };
