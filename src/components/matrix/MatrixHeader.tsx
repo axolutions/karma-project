@@ -1,3 +1,4 @@
+
 import React from 'react';
 import { Button } from "@/components/ui/button";
 import { LogOut, RefreshCw, ChevronDown, Plus, ShoppingCart, FileDown, Download } from 'lucide-react';
@@ -46,8 +47,8 @@ const MatrixHeader: React.FC<MatrixHeaderProps> = ({
   
   const handleCreateNewMap = () => {
     if (canCreateNewMap) {
-      // Redirect to the form page with create=new parameter instead of calling onCreateNewMap
-      navigate('/?create=new');
+      // Use the correct path for navigation - use absolute path starting with /
+      navigate('/');
     } else {
       toast({
         title: "Limite atingido",
