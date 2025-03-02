@@ -167,15 +167,23 @@ export const removeAuthorizedEmail = (email: string): void => {
 // Check how many matrices a user can create
 export const getRemainingMatrixCount = (email: string): number => {
   const counts = getEmailAuthCounts();
+  const db = getDb();
+  
+  // Get all maps for this email from the DB
+  const mapsForEmail = Object.values(db)
+    .filter(userData => userData && userData.email === email)
+    .length;
+  
+  // Get all maps for this user from local array
   const userMaps = getAllUserDataByEmail().filter(map => map && map.email === email);
+  
+  // Use the max count to be safe
+  const mapsCreated = Math.max(mapsForEmail, userMaps.length);
   
   // Total authorized count for this email
   const totalAuthorized = counts[email] || 0;
   
-  // Number of maps already created
-  const mapsCreated = userMaps.length;
-  
-  console.log(`Remaining matrix count calculation: totalAuthorized=${totalAuthorized}, mapsCreated=${mapsCreated}`);
+  console.log(`Remaining matrix count calculation: email=${email}, totalAuthorized=${totalAuthorized}, mapsCreated=${mapsCreated}`);
   
   // Return remaining count (minimum 0)
   return Math.max(0, totalAuthorized - mapsCreated);

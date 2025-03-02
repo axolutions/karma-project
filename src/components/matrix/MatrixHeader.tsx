@@ -58,8 +58,8 @@ const MatrixHeader: React.FC<MatrixHeaderProps> = ({
   };
   
   const handleViewAllMaps = () => {
-    // Navigate to root with proper view parameter
-    navigate('/');
+    // Manually go back to the home page to force a full reload and state reset
+    window.location.href = '/';
   };
   
   // Filtra mapas duplicados com base no ID

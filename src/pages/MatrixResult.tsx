@@ -1,8 +1,6 @@
-
 import React, { useEffect, useState, useRef } from 'react';
 import { 
   getCurrentUser, 
-  getUserData, 
   getAllUserDataByEmail, 
   getCurrentMatrixId, 
   setCurrentMatrixId, 
@@ -109,12 +107,13 @@ const MatrixResult = () => {
       
       setUserMaps(validMaps);
       
-      // Check remaining map credits - this needs to be recalculated 
-      // AFTER we've loaded all the maps to get the correct count
-      const remainingCount = getRemainingMatrixCount(email);
-      console.log("Remaining matrix count:", remainingCount);
-      setCanCreateNewMap(remainingCount > 0);
-      console.log("Usuário pode criar novos mapas?", remainingCount > 0, "Restantes:", remainingCount);
+      // Check remaining map credits - this needs to be recalculated every time 
+      // to ensure we have the latest count
+      if (email) {
+        const remainingCount = getRemainingMatrixCount(email);
+        console.log(`Email: ${email}, Remaining matrix count: ${remainingCount}`);
+        setCanCreateNewMap(remainingCount > 0);
+      }
       
       // Try to get the specific map defined in the session
       const currentMatrixId = getCurrentMatrixId();
@@ -209,6 +208,13 @@ const MatrixResult = () => {
         title: "Mapa alterado",
         description: `Visualizando mapa de ${selectedMap.name} (${selectedMap.birthDate}).`
       });
+      
+      // Re-check remaining map credits after switching maps
+      const email = getCurrentUser();
+      if (email) {
+        const remainingCount = getRemainingMatrixCount(email);
+        setCanCreateNewMap(remainingCount > 0);
+      }
     } else {
       toast({
         title: "Erro ao carregar mapa",
