@@ -42,19 +42,19 @@ const KarmicMatrix: React.FC<KarmicMatrixProps> = ({
     img.src = backgroundImage;
   }, [backgroundImage]);
   
-  // Vamos listar explicitamente as posições para cada número específico
+  // Novas posições dos números baseadas no HTML fornecido
   const numberPositions = {
-    karmicSeal: { top: "23%", left: "25%" },
-    destinyCall: { top: "72%", left: "73%" },
-    karmaPortal: { top: "47%", left: "21%" },
-    karmicInheritance: { top: "47%", left: "72%" },
-    karmicReprogramming: { top: "70%", left: "25%" },
-    cycleProphecy: { top: "74%", left: "48%" },
-    spiritualMark: { top: "25%", left: "70%" },
-    manifestationEnigma: { top: "20%", left: "47%" }
+    karmicSeal: { top: "7%", left: "47%" },         // selo_karmico
+    destinyCall: { top: "27%", left: "22%" },       // chamado_destino
+    karmaPortal: { top: "27%", left: "72%" },       // portal_karma
+    karmicInheritance: { top: "48%", left: "15%" }, // heranca_karmica
+    karmicReprogramming: { top: "48%", left: "47%" }, // codex_reprogramacao
+    cycleProphecy: { top: "48%", left: "78%" },     // profecia_ciclos
+    spiritualMark: { top: "70%", left: "25%" },     // marca_espiritual
+    manifestationEnigma: { top: "70%", left: "70%" } // enigma_manifestacao
   };
 
-  // Simplificamos o mapeamento para usar os valores diretamente
+  // Mapeamento entre nossos nomes de chaves e os do HTML
   const numbersToDisplay = [
     { key: 'karmicSeal', value: safeKarmicData.karmicSeal, title: "Selo Kármico 2025" },
     { key: 'destinyCall', value: safeKarmicData.destinyCall, title: "Chamado do Destino 2025" },
@@ -69,38 +69,40 @@ const KarmicMatrix: React.FC<KarmicMatrixProps> = ({
   return (
     <div className="relative max-w-4xl mx-auto">
       {/* Background matrix image */}
-      <img 
-        src={imgSrc} 
-        alt="Matriz Kármica 2025" 
-        className="w-full h-auto"
+      <div 
+        className="w-full h-auto aspect-square"
         style={{ 
+          backgroundImage: `url(${imgSrc})`,
+          backgroundSize: 'contain',
+          backgroundRepeat: 'no-repeat',
+          backgroundPosition: 'center',
           border: '1px solid #EAE6E1',
           borderRadius: '8px',
           minHeight: '300px' // Altura mínima para evitar colapso enquanto carrega
         }}
-      />
-      
-      {/* Sempre renderizar os números */}
-      {numbersToDisplay.map((item, index) => {
-        const position = numberPositions[item.key];
-        return (
-          <div
-            key={item.key}
-            className="absolute print:!opacity-100"
-            style={{ 
-              top: position.top, 
-              left: position.left,
-              transform: "translate(-50%, -50%)"
-            }}
-          >
-            <div className="flex items-center justify-center">
-              <span className="bg-white bg-opacity-80 rounded-full w-10 h-10 flex items-center justify-center text-lg font-serif font-bold text-karmic-800 shadow-lg print:shadow-none print:border print:border-karmic-300">
-                {item.value}
-              </span>
+      >
+        {/* Renderizar os números */}
+        {numbersToDisplay.map((item, index) => {
+          const position = numberPositions[item.key];
+          return (
+            <div
+              key={item.key}
+              className="absolute print:!opacity-100"
+              style={{ 
+                top: position.top, 
+                left: position.left,
+                transform: "translate(-50%, -50%)"
+              }}
+            >
+              <div className="flex items-center justify-center">
+                <span className="bg-white bg-opacity-80 rounded-full w-12 h-12 flex items-center justify-center text-lg font-serif font-bold text-karmic-800 shadow-lg print:shadow-none print:border print:border-karmic-300">
+                  {item.value}
+                </span>
+              </div>
             </div>
-          </div>
-        );
-      })}
+          );
+        })}
+      </div>
     </div>
   );
 };
