@@ -13,7 +13,7 @@ interface KarmicMatrixProps {
 
 const KarmicMatrix: React.FC<KarmicMatrixProps> = ({ 
   karmicData,
-  backgroundImage = "https://darkorange-goldfinch-896244.hostingersite.com/wp-content/uploads/2025/02/Design-sem-nome-1.png"
+  backgroundImage = "https://acess.matrizkarmica.com/wp-content/uploads/2025/02/Design-sem-nome-1.png"
 }) => {
   const [imgSrc, setImgSrc] = useState(backgroundImage);
   const matrixRef = useRef<HTMLDivElement>(null);
@@ -115,6 +115,31 @@ const KarmicMatrix: React.FC<KarmicMatrixProps> = ({
     { key: 'manifestationEnigma', value: safeKarmicData.manifestationEnigma, title: "Enigma da Manifestação 2025" }
   ];
 
+  // HTML template para a matriz com a imagem incorporada
+  const matrixHTML = `
+    <div class="image-container relative w-full">
+      <style>
+        .image-container {
+          max-width: 100%;
+          text-align: center;
+          position: relative;
+        }
+        .matrix-image {
+          max-width: 100%;
+          height: auto;
+          border-radius: 8px;
+          box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+          border: 1px solid #EAE6E1;
+        }
+      </style>
+      <img 
+        src="${imgSrc}" 
+        alt="Matriz Kármica 2025" 
+        class="matrix-image"
+      />
+    </div>
+  `;
+
   return (
     <div className="relative max-w-4xl mx-auto">
       <div className="mb-4 flex justify-end print:hidden">
@@ -129,20 +154,14 @@ const KarmicMatrix: React.FC<KarmicMatrixProps> = ({
       </div>
       
       {/* Matrix container with ref for screenshot */}
-      <div ref={matrixRef} className="relative">
-        {/* Background matrix image */}
-        <img 
-          src={imgSrc} 
-          alt="Matriz Kármica 2025" 
-          className="w-full h-auto"
-          style={{ 
-            border: '1px solid #EAE6E1',
-            borderRadius: '8px',
-            minHeight: '300px' // Altura mínima para evitar colapso enquanto carrega
-          }}
-        />
+      <div 
+        ref={matrixRef} 
+        className="relative"
+      >
+        {/* Render the HTML template using dangerouslySetInnerHTML */}
+        <div dangerouslySetInnerHTML={{ __html: matrixHTML }} />
         
-        {/* Sempre renderizar os números */}
+        {/* Numbers overlay */}
         {numbersToDisplay.map((item, index) => {
           const position = numberPositions[item.key];
           return (
