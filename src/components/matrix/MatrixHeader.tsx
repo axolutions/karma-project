@@ -1,3 +1,4 @@
+
 import React from 'react';
 import { Button } from "@/components/ui/button";
 import { LogOut, RefreshCw, ChevronDown, Plus, ShoppingCart, FileDown, Download, ArrowLeft } from 'lucide-react';
@@ -106,7 +107,10 @@ const MatrixHeader: React.FC<MatrixHeaderProps> = ({
                       onClick={() => onSwitchMap(map.id)}
                       className={map.id === currentMapId ? "bg-karmic-100 font-medium" : ""}
                     >
-                      {map.name && map.name.trim() ? map.name : 'Mapa sem nome'} - {map.birthDate || 'Data indisponível'}
+                      {map.name && map.name.trim() ? map.name : 'Matriz Kármica Pessoal 2025'}
+                      {map.birthDate ? <span className="text-xs ml-2 text-karmic-500">
+                        ({map.birthDate})
+                      </span> : ''}
                       <span className="text-xs ml-2 text-karmic-500">
                         ({map.createdAt ? new Date(map.createdAt).toLocaleDateString() : 'Data desconhecida'})
                       </span>
@@ -165,7 +169,7 @@ const MatrixHeader: React.FC<MatrixHeaderProps> = ({
             </div>
             <div>
               <h3 className="font-medium text-karmic-800 text-xl">
-                Você pode criar seu mapa kármico!
+                Você tem um mapa kármico 2025 para ser gerado!
               </h3>
               <p className="text-karmic-700 text-lg">
                 Clique aqui para criar seu mapa kármico personalizado

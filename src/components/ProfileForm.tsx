@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
@@ -264,14 +265,14 @@ const ProfileForm: React.FC<ProfileFormProps> = ({ viewMode = 'create' }) => {
               if (!map || !map.id) return null;
               
               // Mostrar informações disponíveis ou placeholders
-              const mapName = map.name && map.name.trim() ? map.name : 'Mapa sem nome';
-              const mapDate = map.birthDate || 'Data indisponível';
+              const mapName = map.name && map.name.trim() ? map.name : 'Matriz Kármica Pessoal 2025';
+              const mapDate = map.birthDate || '';
               const createdAt = map.createdAt ? new Date(map.createdAt).toLocaleDateString() : '';
               
               return (
                 <li key={map.id} className="flex justify-between items-center p-2 hover:bg-karmic-200 rounded transition-colors">
                   <span className="font-medium">
-                    {mapName} <span className="text-sm font-normal">({mapDate})</span>
+                    {mapName} {mapDate ? <span className="text-sm font-normal">({mapDate})</span> : ''}
                     {createdAt ? <span className="text-xs text-karmic-500 block"> Criado em: {createdAt}</span> : ''}
                   </span>
                   <Button 
@@ -333,7 +334,7 @@ const ProfileForm: React.FC<ProfileFormProps> = ({ viewMode = 'create' }) => {
       {remainingMatrixCount > 0 && (
         <div className="p-3 bg-green-100 rounded-md">
           <p className="text-sm text-green-700">
-            <span className="font-medium">Você pode criar seu mapa kármico personalizado!</span>
+            <span className="font-medium">Você tem um mapa kármico 2025 para ser gerado!</span>
           </p>
         </div>
       )}
@@ -341,7 +342,7 @@ const ProfileForm: React.FC<ProfileFormProps> = ({ viewMode = 'create' }) => {
       {!isMapView && hasValidMaps && (
         <div className="p-3 bg-karmic-100 rounded-md">
           <p className="text-sm text-karmic-700 mb-2 font-medium">
-            Você já possui um mapa kármico:
+            Você tem um mapa kármico 2025 para ser gerado:
           </p>
           <ul className="text-xs space-y-2 text-karmic-600">
             {existingMaps.map((map, index) => {
@@ -349,14 +350,14 @@ const ProfileForm: React.FC<ProfileFormProps> = ({ viewMode = 'create' }) => {
               if (!map || !map.id) return null;
               
               // Mostrar informações disponíveis ou placeholders
-              const mapName = map.name && map.name.trim() ? map.name : 'Mapa sem nome';
-              const mapDate = map.birthDate || 'Data indisponível';
+              const mapName = map.name && map.name.trim() ? map.name : 'Matriz Kármica Pessoal 2025';
+              const mapDate = map.birthDate || '';
               const createdAt = map.createdAt ? new Date(map.createdAt).toLocaleDateString() : '';
               
               return (
                 <li key={map.id} className="flex justify-between items-center">
                   <span>
-                    • {mapName} - {mapDate}
+                    • {mapName} {mapDate ? `- ${mapDate}` : ''}
                     {createdAt ? ` (criado em: ${createdAt})` : ''}
                   </span>
                   <Button 
