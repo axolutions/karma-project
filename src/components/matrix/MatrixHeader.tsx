@@ -47,8 +47,8 @@ const MatrixHeader: React.FC<MatrixHeaderProps> = ({
   
   const handleCreateNewMap = () => {
     if (canCreateNewMap) {
-      // Use the correct path for navigation - use absolute path starting with /
-      navigate('/');
+      // Fix: Navigate to the home page with a clear query parameter to create a new map
+      navigate('/?create=new', { replace: true });
     } else {
       toast({
         title: "Limite atingido",
