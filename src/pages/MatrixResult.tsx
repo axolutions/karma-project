@@ -1,3 +1,4 @@
+
 import React, { useEffect, useState, useRef } from 'react';
 import { 
   getCurrentUser, 
@@ -44,12 +45,19 @@ const MatrixResult = () => {
       
       console.log("Carregando dados para o email:", email);
       
-      // Obter todos os mapas do usuário
+      // Obter todos os mapas do usuário - Forçamos uma nova consulta ao localStorage
       let allMaps = getAllUserDataByEmail();
       console.log("Dados brutos recebidos:", JSON.stringify(allMaps));
       
-      // Filtrar apenas os mapas do usuário atual
-      let userMaps = allMaps.filter(map => map && map.email === email);
+      // Filtrar apenas os mapas válidos do usuário atual
+      let userMaps = allMaps.filter(map => 
+        map && 
+        map.email === email && 
+        map.id && 
+        map.name && 
+        map.birthDate
+      );
+      
       console.log("Mapas filtrados para o usuário atual:", userMaps);
       
       // Se não for um array, tenta converter para array
@@ -75,9 +83,17 @@ const MatrixResult = () => {
         return;
       }
       
-      // Garantir que userMaps seja um array válido
+      // Garantir que userMaps seja um array válido e ordenar por data de criação (mais recente primeiro)
       const validMaps = Array.isArray(userMaps) ? 
-        userMaps.filter(map => map && typeof map === 'object') : [];
+        userMaps
+          .filter(map => map && typeof map === 'object')
+          .sort((a, b) => {
+            // Se tiver data de criação, ordena pela data (mais recente primeiro)
+            if (a.createdAt && b.createdAt) {
+              return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
+            }
+            return 0;
+          }) : [];
       
       console.log("Mapas válidos para este usuário:", validMaps);
       
@@ -95,7 +111,9 @@ const MatrixResult = () => {
       setUserMaps(validMaps);
       
       // Verificar se o usuário pode criar novos mapas
-      setCanCreateNewMap(checkIfCanCreateNewMap(email));
+      const remainingCount = getRemainingMatrixCount(email);
+      setCanCreateNewMap(remainingCount > 0);
+      console.log("Usuário pode criar novos mapas?", remainingCount > 0, "Restantes:", remainingCount);
       
       // Tentar obter o mapa específico definido na sessão
       const currentMatrixId = getCurrentMatrixId();
@@ -111,7 +129,7 @@ const MatrixResult = () => {
       // Se não encontrar o mapa específico, usar o mais recente
       if (!currentData || !currentData.id) {
         console.log("Usando o mapa mais recente");
-        currentData = validMaps[validMaps.length - 1];
+        currentData = validMaps[0]; // Já ordenamos por data, então o primeiro é o mais recente
         if (currentData && currentData.id) {
           setCurrentMatrixId(currentData.id);
         }
@@ -212,7 +230,8 @@ const MatrixResult = () => {
     }
     
     // Check again if the user can create more maps
-    if (!checkIfCanCreateNewMap(email)) {
+    const remainingCount = getRemainingMatrixCount(email);
+    if (remainingCount <= 0) {
       toast({
         title: "Limite atingido",
         description: "Você já utilizou todas as suas autorizações para criar mapas kármicos. Adquira um novo acesso para criar mais mapas.",
@@ -222,15 +241,7 @@ const MatrixResult = () => {
     }
     
     // Redireciona para a página inicial com modo de criação
-    navigate('/?create=new');
-    
-    // Pequeno delay para exibir a toast
-    setTimeout(() => {
-      toast({
-        title: "Criar novo mapa",
-        description: "Preencha os dados para gerar um novo mapa kármico."
-      });
-    }, 300);
+    window.location.href = '/?create=new';
   };
   
   // Mostrar estado de carregamento se ainda não temos dados

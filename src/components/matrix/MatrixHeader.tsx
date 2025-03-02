@@ -58,6 +58,11 @@ const MatrixHeader: React.FC<MatrixHeaderProps> = ({
     }
   };
   
+  // Filtra mapas duplicados com base no ID
+  const uniqueMaps = userMaps.filter((map, index, self) => 
+    map && map.id && index === self.findIndex(m => m.id === map.id)
+  );
+  
   return (
     <div className="flex flex-col space-y-4 mb-8 print:hidden">
       <div className="flex justify-between items-center">
@@ -67,16 +72,16 @@ const MatrixHeader: React.FC<MatrixHeaderProps> = ({
           </h1>
           <p className="text-karmic-600">
             Olá, <span className="font-medium">{userName}</span>
-            {userMaps.length > 1 && (
+            {uniqueMaps.length > 1 && (
               <span className="text-xs ml-2 text-karmic-500">
-                (Você possui {userMaps.length} mapas kármicos)
+                (Você possui {uniqueMaps.length} mapas kármicos)
               </span>
             )}
           </p>
         </div>
         
         <div className="flex space-x-3">
-          {userMaps.length > 1 && (
+          {uniqueMaps.length > 1 && (
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
                 <Button variant="outline" className="karmic-button-outline">
@@ -86,7 +91,7 @@ const MatrixHeader: React.FC<MatrixHeaderProps> = ({
               <DropdownMenuContent align="end" className="w-64">
                 <DropdownMenuLabel>Selecione um mapa</DropdownMenuLabel>
                 <DropdownMenuSeparator />
-                {userMaps.map((map, index) => (
+                {uniqueMaps.map((map, index) => (
                   map && map.id ? (
                     <DropdownMenuItem 
                       key={map.id || index} 
@@ -102,7 +107,7 @@ const MatrixHeader: React.FC<MatrixHeaderProps> = ({
                 ))}
                 <DropdownMenuSeparator />
                 <DropdownMenuItem 
-                  onClick={handleCreateNewMap} 
+                  onClick={onCreateNewMap} 
                   className={canCreateNewMap ? "text-karmic-700" : "text-gray-400 cursor-not-allowed"}
                   disabled={!canCreateNewMap}
                 >
@@ -177,7 +182,7 @@ const MatrixHeader: React.FC<MatrixHeaderProps> = ({
           </div>
           <Button 
             className="karmic-button px-6 py-6 h-auto text-base"
-            onClick={handleCreateNewMap}
+            onClick={onCreateNewMap}
           >
             <Plus className="mr-2 h-5 w-5" />
             Criar Novo Mapa
