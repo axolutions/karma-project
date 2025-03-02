@@ -82,33 +82,34 @@ const KarmicMatrix: React.FC<KarmicMatrixProps> = ({
         }
         .container {
             width: 100%;
-            max-width: 600px;
-            height: 800px;
+            max-width: 700px;
+            height: 900px;
             margin: 20px auto;
             position: relative;
             background-image: url('${backgroundImage}');
-            background-size: cover;
+            background-size: 100% 100%;
             background-position: center;
         }
         .numero {
             position: absolute;
-            background: rgba(255, 255, 255, 0.8);
-            padding: 10px 15px;
+            background: rgba(255, 255, 255, 0.9);
+            padding: 12px 18px;
             border-radius: 8px;
             font-size: 1.5em;
             font-weight: bold;
             text-align: center;
             color: #333;
+            box-shadow: 2px 2px 10px rgba(0,0,0,0.2);
         }
-        /* Posições exatas dos números */
-        #selo_karmico { top: 10%; left: 45%; }
-        #chamado_destino { top: 30%; left: 20%; }
-        #portal_karma { top: 30%; left: 70%; }
-        #heranca_karmica { top: 50%; left: 15%; }
-        #codex_reprogramacao { top: 50%; left: 50%; }
-        #profecia_ciclos { top: 50%; left: 85%; }
-        #marca_espiritual { top: 70%; left: 30%; }
-        #enigma_manifestacao { top: 70%; left: 70%; }
+        /* Ajuste fino das posições exatas */
+        #selo_karmico { top: 7%; left: 46%; }
+        #chamado_destino { top: 27%; left: 17%; }
+        #portal_karma { top: 27%; left: 75%; }
+        #heranca_karmica { top: 48%; left: 14%; }
+        #codex_reprogramacao { top: 48%; left: 47%; }
+        #profecia_ciclos { top: 48%; left: 80%; }
+        #marca_espiritual { top: 72%; left: 21%; }
+        #enigma_manifestacao { top: 72%; left: 74%; }
     </style>
 </head>
 <body>
@@ -150,12 +151,12 @@ const KarmicMatrix: React.FC<KarmicMatrixProps> = ({
   return (
     <div className="relative max-w-4xl mx-auto">
       {/* Container da matriz com posicionamento absoluto para os números */}
-      <div className="w-full max-w-[600px] mx-auto relative print:shadow-none" 
+      <div className="w-full max-w-[700px] mx-auto relative print:shadow-none" 
         style={{
           backgroundImage: `url(${backgroundImage})`,
-          backgroundSize: 'cover',
+          backgroundSize: '100% 100%',
           backgroundPosition: 'center',
-          height: '800px'
+          height: '900px'
         }}>
         
         {/* Números kármicos com posicionamento absoluto */}
@@ -166,28 +167,28 @@ const KarmicMatrix: React.FC<KarmicMatrixProps> = ({
           // Definir posição de acordo com o ID
           switch(htmlId) {
             case 'selo_karmico':
-              Object.assign(positionStyle, { top: '10%', left: '45%' });
+              Object.assign(positionStyle, { top: '7%', left: '46%' });
               break;
             case 'chamado_destino':
-              Object.assign(positionStyle, { top: '30%', left: '20%' });
+              Object.assign(positionStyle, { top: '27%', left: '17%' });
               break;
             case 'portal_karma':
-              Object.assign(positionStyle, { top: '30%', left: '70%' });
+              Object.assign(positionStyle, { top: '27%', left: '75%' });
               break;
             case 'heranca_karmica':
-              Object.assign(positionStyle, { top: '50%', left: '15%' });
+              Object.assign(positionStyle, { top: '48%', left: '14%' });
               break;
             case 'codex_reprogramacao':
-              Object.assign(positionStyle, { top: '50%', left: '50%' });
+              Object.assign(positionStyle, { top: '48%', left: '47%' });
               break;
             case 'profecia_ciclos':
-              Object.assign(positionStyle, { top: '50%', left: '85%' });
+              Object.assign(positionStyle, { top: '48%', left: '80%' });
               break;
             case 'marca_espiritual':
-              Object.assign(positionStyle, { top: '70%', left: '30%' });
+              Object.assign(positionStyle, { top: '72%', left: '21%' });
               break;
             case 'enigma_manifestacao':
-              Object.assign(positionStyle, { top: '70%', left: '70%' });
+              Object.assign(positionStyle, { top: '72%', left: '74%' });
               break;
           }
           
@@ -195,7 +196,7 @@ const KarmicMatrix: React.FC<KarmicMatrixProps> = ({
             <div 
               key={htmlId}
               id={htmlId}
-              className="absolute bg-white bg-opacity-80 px-4 py-2 rounded-lg text-xl font-bold text-gray-800"
+              className="absolute bg-white bg-opacity-90 px-[18px] py-[12px] rounded-lg text-xl font-bold text-gray-800 shadow-md"
               style={positionStyle}
               title={keyToTitleMap[dataKey]}
             >
