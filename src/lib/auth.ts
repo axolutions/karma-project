@@ -76,6 +76,10 @@ export const isAuthorizedEmail = (email: string): boolean => {
 // Function to logout the user
 export const logout = (): void => {
   localStorage.removeItem('currentUser');
+  console.log("Usuário deslogado com sucesso");
+  
+  // Force page reload to clear any cached state after logout
+  window.location.href = '/';
 };
 
 // Re-export needed functions from db.ts

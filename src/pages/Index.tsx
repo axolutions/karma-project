@@ -38,6 +38,9 @@ const Index = () => {
             setHasProfile(false);
           }
         }
+      } else {
+        // Make sure hasProfile is false when not logged in
+        setHasProfile(false);
       }
     } catch (error) {
       console.error("Erro ao verificar login:", error);
@@ -45,6 +48,23 @@ const Index = () => {
       setIsLoading(false);
     }
   }, [navigate]);
+
+  // Reload the page if logout is detected
+  useEffect(() => {
+    const handleStorageChange = () => {
+      const isUserLoggedIn = isLoggedIn();
+      if (userLoggedIn && !isUserLoggedIn) {
+        // User has logged out
+        setUserLoggedIn(false);
+        setHasProfile(false);
+      }
+    };
+
+    window.addEventListener('storage', handleStorageChange);
+    return () => {
+      window.removeEventListener('storage', handleStorageChange);
+    };
+  }, [userLoggedIn]);
 
   if (isLoading) {
     return (
