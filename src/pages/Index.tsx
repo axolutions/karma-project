@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { useNavigate, useLocation } from 'react-router-dom';
@@ -19,7 +18,10 @@ const Index = () => {
     // Check for creation mode in URL parameters
     const queryParams = new URLSearchParams(location.search);
     const createMode = queryParams.get('create');
-    setForceCreateNew(createMode === 'new');
+    const shouldCreateNew = createMode === 'new';
+    setForceCreateNew(shouldCreateNew);
+    
+    console.log("Index: create=new parameter detected:", shouldCreateNew);
     
     // Check if user is logged in
     try {
@@ -39,7 +41,7 @@ const Index = () => {
           const hasValidMaps = userMaps && userMaps.length > 0 && 
                               userMaps.some(map => map && map.id && map.birthDate);
           
-          if (hasValidMaps && !forceCreateNew) {
+          if (hasValidMaps && !shouldCreateNew) {
             console.log("Usuário já tem mapas válidos, redirecionando para matriz");
             setHasProfile(true);
             // Redirect to matrix page with a small delay to ensure state is updated
@@ -57,7 +59,7 @@ const Index = () => {
     } finally {
       setIsLoading(false);
     }
-  }, [navigate, location.search, forceCreateNew]);
+  }, [navigate, location.search]);
 
   if (isLoading) {
     return (

@@ -47,8 +47,8 @@ const MatrixHeader: React.FC<MatrixHeaderProps> = ({
   
   const handleCreateNewMap = () => {
     if (canCreateNewMap) {
-      // Fix: Navigate to the home page with a clear query parameter to create a new map
-      navigate('/?create=new', { replace: true });
+      // Force a full page navigation to ensure the Index component fully remounts
+      window.location.href = '/?create=new';
     } else {
       toast({
         title: "Limite atingido",
