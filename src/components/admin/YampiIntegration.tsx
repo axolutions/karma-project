@@ -10,6 +10,7 @@ const YampiIntegration: React.FC = () => {
   const [yampiApiKey, setYampiApiKey] = useState('');
   const [yampiProductIds, setYampiProductIds] = useState<string[]>(['']);
   const [yampiCheckoutUrl, setYampiCheckoutUrl] = useState('');
+  const [yampiStoreId, setYampiStoreId] = useState('');
   const [isSaving, setIsSaving] = useState(false);
   const [isSyncing, setIsSyncing] = useState(false);
   const webhookUrl = getYampiWebhookUrl();
@@ -22,6 +23,9 @@ const YampiIntegration: React.FC = () => {
       setYampiProductIds(config.productIds);
       if (config.checkoutUrl) {
         setYampiCheckoutUrl(config.checkoutUrl);
+      }
+      if (config.storeId) {
+        setYampiStoreId(config.storeId);
       }
     }
   }, []);
@@ -73,7 +77,8 @@ const YampiIntegration: React.FC = () => {
     configureYampi({
       apiKey: yampiApiKey,
       productIds: filteredProductIds,
-      checkoutUrl: yampiCheckoutUrl || undefined
+      checkoutUrl: yampiCheckoutUrl || undefined,
+      storeId: yampiStoreId || undefined
     });
     
     toast({
@@ -130,6 +135,21 @@ const YampiIntegration: React.FC = () => {
               value={yampiApiKey}
               onChange={(e) => setYampiApiKey(e.target.value)}
             />
+          </div>
+          
+          <div>
+            <label htmlFor="yampi_store_id" className="text-sm font-medium text-karmic-700 block mb-2">
+              ID da Loja Yampi (opcional)
+            </label>
+            <Input
+              id="yampi_store_id"
+              placeholder="Ex: minhaloja"
+              value={yampiStoreId}
+              onChange={(e) => setYampiStoreId(e.target.value)}
+            />
+            <p className="text-xs text-karmic-500 mt-1">
+              Nome da sua loja na Yampi, geralmente o subdomínio (exemplo.yampi.io).
+            </p>
           </div>
           
           <div>
@@ -204,7 +224,7 @@ const YampiIntegration: React.FC = () => {
               </Button>
             </div>
             <p className="text-xs text-karmic-500 mt-1">
-              Configure este URL no painel da Yampi para notificações de pedidos.
+              Configure este URL no painel da Yampi para receber notificações de pedidos.
             </p>
           </div>
           
@@ -254,12 +274,30 @@ const YampiIntegration: React.FC = () => {
         <h4 className="text-sm font-medium text-karmic-700 mb-2">Como funciona</h4>
         <ul className="text-sm text-karmic-600 space-y-1 list-disc pl-4">
           <li>Configure a chave de API da Yampi</li>
-          <li>Adicione os IDs dos produtos que devem ser verificados</li>
+          <li>Opcionalmente, adicione o ID da sua loja na Yampi</li>
+          <li>Adicione os IDs dos produtos que devem ser verificados (pode ser mais de um)</li>
           <li>Opcionalmente, adicione a URL do seu checkout Yampi</li>
           <li>Configure o webhook em sua conta Yampi para receber notificações de pedidos</li>
           <li>Quando um cliente compra qualquer um dos produtos configurados, seu email é automaticamente autorizado</li>
           <li>Use "Sincronizar Clientes" para atualizar todos os compradores de uma vez</li>
         </ul>
+      </div>
+      
+      <div className="bg-yellow-50 p-4 rounded-md border border-yellow-200">
+        <h4 className="text-sm font-medium text-yellow-800 mb-2">Configuração do Webhook na Yampi</h4>
+        <p className="text-sm text-yellow-700 mb-3">
+          Para que a liberação automática funcione, você precisa configurar um webhook na sua conta Yampi:
+        </p>
+        <ol className="text-sm text-yellow-700 space-y-1 list-decimal pl-4">
+          <li>Acesse sua conta Yampi e vá para "Configurações"</li>
+          <li>Procure por "Webhooks" ou "Integrações" ou "Notificações"</li>
+          <li>Adicione um novo webhook com a URL mostrada acima</li>
+          <li>Selecione os eventos de "Pedido" relacionados a "Pagamento aprovado" ou similar</li>
+          <li>Salve as configurações</li>
+        </ol>
+        <p className="text-sm text-yellow-700 mt-3">
+          Em caso de dúvidas, entre em contato com o suporte da Yampi para orientações específicas sobre como configurar webhooks.
+        </p>
       </div>
     </div>
   );
