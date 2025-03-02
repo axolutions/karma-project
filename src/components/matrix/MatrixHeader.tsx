@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { Button } from "@/components/ui/button";
 import { LogOut, RefreshCw, ChevronDown, Plus, ShoppingCart, FileDown, Download, ArrowLeft } from 'lucide-react';
@@ -59,8 +58,8 @@ const MatrixHeader: React.FC<MatrixHeaderProps> = ({
   };
   
   const handleViewAllMaps = () => {
-    // Use navigate instead of directly changing window.location
-    navigate('/?view=maps');
+    // Navigate to root with proper view parameter
+    navigate('/');
   };
   
   // Filtra mapas duplicados com base no ID
