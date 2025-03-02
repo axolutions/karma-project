@@ -50,11 +50,20 @@ const ProfileForm: React.FC<ProfileFormProps> = ({ viewMode = 'create' }) => {
       );
       
       console.log("ProfileForm: Mapas válidos após filtragem:", validMaps);
-      setExistingMaps(validMaps || []);
+      
+      // Ordenar mapas do mais recente para o mais antigo
+      const sortedMaps = [...validMaps].sort((a, b) => {
+        if (a.createdAt && b.createdAt) {
+          return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
+        }
+        return 0;
+      });
+      
+      setExistingMaps(sortedMaps || []);
       
       // Se houver mapas existentes, preencher o nome com o do último mapa
-      if (validMaps && validMaps.length > 0) {
-        setName(validMaps[validMaps.length - 1].name || '');
+      if (sortedMaps && sortedMaps.length > 0) {
+        setName(sortedMaps[0].name || '');
       }
       
       // Check how many matrices the user can still create
@@ -199,9 +208,10 @@ const ProfileForm: React.FC<ProfileFormProps> = ({ viewMode = 'create' }) => {
       const karmicNumbers = calculateAllKarmicNumbers(birthDate);
       console.log("ProfileForm: Números kármicos calculados:", karmicNumbers);
       
-      // Save user data
+      // Save user data with a unique ID
       console.log("ProfileForm: Salvando dados do usuário");
       const newMapId = saveUserData({
+        id: crypto.randomUUID(), // Ensure each map has a unique ID
         email,
         name,
         birthDate,

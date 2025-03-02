@@ -37,9 +37,9 @@ export const getUserData = (email: string): UserProfile | null => {
   const db = getDb();
   
   // Verifica se o email existe no banco de dados
-  if (db && db[email]) {
-    console.log("Obtendo dados do usuário. Email:", email, "Dados:", db[email]);
-    return db[email];
+  if (db && db[email] && db[email].length > 0) {
+    console.log("Obtendo dados do usuário. Email:", email, "Dados:", db[email][0]);
+    return db[email][0];
   }
   
   console.log("Usuário não encontrado. Email:", email);
@@ -111,7 +111,6 @@ export const saveUserData = (data: { email: string; [key: string]: any }): strin
 };
 
 export const getAllUserDataByEmail = (): any[] => {
-  const allUsers = getAllUsers();
   const currentUser = getCurrentUser();
   
   if (!currentUser) {
@@ -119,13 +118,8 @@ export const getAllUserDataByEmail = (): any[] => {
     return [];
   }
   
-  // Filter only data from the current user
-  const userDataArray = Object.values(allUsers).filter(user => 
-    user && 
-    user.email === currentUser && 
-    user.id && 
-    user.name !== undefined 
-  );
+  // Get all data for the current user
+  const userDataArray = getAllUsers(currentUser);
   
   // Validate each map to ensure it has the necessary data
   const validMaps = userDataArray.filter(map => {

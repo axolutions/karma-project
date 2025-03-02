@@ -8,7 +8,7 @@ interface UserData {
 }
 
 interface Database {
-  [email: string]: UserData;
+  [email: string]: UserData[];
 }
 
 // Initialize or retrieve the database from localStorage
@@ -45,28 +45,40 @@ export const getAllUserData = (): Database => {
 // Get user data by email
 export const getUserDataByEmail = (email: string): UserData | null => {
   const db = getDb();
-  return db[email] || null;
+  return db[email]?.[0] || null;
 };
 
 // Save user data
 export const saveUserData = (email: string, data: UserData): void => {
   const db = getDb();
   
-  // If this is a new entry for this email, initialize it as an array
+  // Initialize array for this email if it doesn't exist
   if (!db[email]) {
-    db[email] = { ...data };
-  } else {
-    // Update existing data
-    db[email] = { ...db[email], ...data };
+    db[email] = [];
   }
+  
+  // Add the new data as a new entry in the array
+  db[email].push({ ...data });
   
   saveDb(db);
 };
 
 // Get all user data by email (returns an array of all user data)
-export const getAllUserDataByEmail = (): UserData[] => {
+export const getAllUserDataByEmail = (email?: string): UserData[] => {
   const db = getDb();
-  return Object.values(db);
+  if (email) {
+    return db[email] || [];
+  }
+  
+  // If no email provided, collect all user data
+  const allUserData: UserData[] = [];
+  Object.values(db).forEach(userDataArray => {
+    if (Array.isArray(userDataArray)) {
+      allUserData.push(...userDataArray);
+    }
+  });
+  
+  return allUserData;
 };
 
 // Current matrix tracking
@@ -167,18 +179,10 @@ export const removeAuthorizedEmail = (email: string): void => {
 // Check how many matrices a user can create
 export const getRemainingMatrixCount = (email: string): number => {
   const counts = getEmailAuthCounts();
-  const db = getDb();
   
-  // Get all maps for this email from the DB
-  const mapsForEmail = Object.values(db)
-    .filter(userData => userData && userData.email === email)
-    .length;
-  
-  // Get all maps for this user from local array
-  const userMaps = getAllUserDataByEmail().filter(map => map && map.email === email);
-  
-  // Use the max count to be safe
-  const mapsCreated = Math.max(mapsForEmail, userMaps.length);
+  // Get all maps for this email from local array
+  const userMaps = getAllUserDataByEmail(email);
+  const mapsCreated = userMaps.length;
   
   // Total authorized count for this email
   const totalAuthorized = counts[email] || 0;

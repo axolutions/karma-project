@@ -58,17 +58,6 @@ const MatrixResult = () => {
       
       console.log("Mapas filtrados para o usuário atual:", userMaps);
       
-      // Convert to array if needed
-      if (userMaps && !Array.isArray(userMaps)) {
-        console.log("Convertendo objeto para array");
-        if (typeof userMaps === 'object') {
-          userMaps = [userMaps];
-        } else {
-          userMaps = [];
-          console.log("Dados não são um objeto nem um array:", typeof userMaps);
-        }
-      }
-      
       // Check if we have valid maps
       if (!userMaps || !Array.isArray(userMaps) || userMaps.length === 0) {
         console.log("Nenhum mapa encontrado para este usuário");
