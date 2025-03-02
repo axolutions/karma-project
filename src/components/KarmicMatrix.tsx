@@ -107,15 +107,15 @@ const KarmicMatrix: React.FC<KarmicMatrixProps> = ({
             justify-content: center;
             box-shadow: 2px 2px 10px rgba(0,0,0,0.2);
         }
-        /* Ajuste fino das posições exatas para os números */
-        #selo_karmico { top: 5%; left: 47%; }
-        #chamado_destino { top: 25%; left: 15%; }
-        #portal_karma { top: 25%; left: 57%; }
-        #heranca_karmica { top: 45%; left: 20%; }
-        #codex_reprogramacao { top: 50%; left: 47%; }
-        #profecia_ciclos { top: 25%; left: 85%; }
-        #marca_espiritual { top: 85%; left: 10%; }
-        #enigma_manifestacao { top: 85%; left: 75%; }
+        /* Posições ajustadas com base na imagem */
+        #selo_karmico { top: 6%; left: 50%; }
+        #chamado_destino { top: 27%; left: 17%; }
+        #portal_karma { top: 27%; left: 68%; }
+        #heranca_karmica { top: 50%; left: 26%; }
+        #codex_reprogramacao { top: 60%; left: 50%; }
+        #profecia_ciclos { top: 6%; left: 84%; }
+        #marca_espiritual { top: 90%; left: 16%; }
+        #enigma_manifestacao { top: 90%; left: 84%; }
     </style>
 </head>
 <body>
@@ -171,31 +171,31 @@ const KarmicMatrix: React.FC<KarmicMatrixProps> = ({
           // Estilo de posicionamento para cada número
           const positionStyle = {};
           
-          // Definir posição de acordo com o ID
+          // Definir posição de acordo com o ID - ajustado com base na imagem
           switch(htmlId) {
             case 'selo_karmico':
-              Object.assign(positionStyle, { top: '5%', left: '47%' });
+              Object.assign(positionStyle, { top: '6%', left: '50%' });
               break;
             case 'chamado_destino':
-              Object.assign(positionStyle, { top: '25%', left: '15%' });
+              Object.assign(positionStyle, { top: '27%', left: '17%' });
               break;
             case 'portal_karma':
-              Object.assign(positionStyle, { top: '25%', left: '57%' });
+              Object.assign(positionStyle, { top: '27%', left: '68%' });
               break;
             case 'heranca_karmica':
-              Object.assign(positionStyle, { top: '45%', left: '20%' });
+              Object.assign(positionStyle, { top: '50%', left: '26%' });
               break;
             case 'codex_reprogramacao':
-              Object.assign(positionStyle, { top: '50%', left: '47%' });
+              Object.assign(positionStyle, { top: '60%', left: '50%' });
               break;
             case 'profecia_ciclos':
-              Object.assign(positionStyle, { top: '25%', left: '85%' });
+              Object.assign(positionStyle, { top: '6%', left: '84%' });
               break;
             case 'marca_espiritual':
-              Object.assign(positionStyle, { top: '85%', left: '10%' });
+              Object.assign(positionStyle, { top: '90%', left: '16%' });
               break;
             case 'enigma_manifestacao':
-              Object.assign(positionStyle, { top: '85%', left: '75%' });
+              Object.assign(positionStyle, { top: '90%', left: '84%' });
               break;
           }
           
