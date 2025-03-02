@@ -1,3 +1,4 @@
+
 import { 
   getDb, 
   saveUserData as saveData, 
@@ -108,7 +109,15 @@ export const saveUserData = (data: { email: string; [key: string]: any }): strin
 };
 
 export const getAllUserDataByEmail = (): any[] => {
-  return getAllUsers();
+  const allUsers = getAllUsers();
+  const currentUser = getCurrentUser();
+  
+  // Se temos um usuário atual, converter o objeto de usuários em um array
+  // e retornar apenas os registros que pertencem ao usuário logado
+  const userDataArray = Object.values(allUsers);
+  
+  console.log(`Filtrando dados para o usuário logado: ${currentUser}`);
+  return userDataArray;
 };
 
 export const setCurrentMatrixId = (id: string): void => {

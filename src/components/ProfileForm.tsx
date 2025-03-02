@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
@@ -22,8 +21,11 @@ const ProfileForm: React.FC = () => {
     const currentUser = getCurrentUser();
     if (currentUser) {
       console.log("ProfileForm: Usuário atual:", currentUser);
-      const userMaps = getAllUserDataByEmail();
-      console.log("ProfileForm: Mapas encontrados:", userMaps);
+      const allUserMaps = getAllUserDataByEmail();
+      
+      // Filtrar apenas mapas do usuário atual
+      const userMaps = allUserMaps.filter(map => map && map.email === currentUser);
+      console.log("ProfileForm: Mapas encontrados para este usuário:", userMaps);
       
       setExistingMaps(userMaps || []);
       

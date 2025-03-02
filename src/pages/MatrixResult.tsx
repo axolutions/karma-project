@@ -1,4 +1,3 @@
-
 import React, { useEffect, useState } from 'react';
 import { Button } from "@/components/ui/button";
 import { 
@@ -56,20 +55,24 @@ const MatrixResult = () => {
       let allMaps = getAllUserDataByEmail();
       console.log("Dados brutos recebidos:", JSON.stringify(allMaps));
       
+      // Filtrar apenas os mapas do usuário atual
+      let userMaps = allMaps.filter(map => map && map.email === email);
+      console.log("Mapas filtrados para o usuário atual:", userMaps);
+      
       // Se não for um array, tenta converter para array
-      if (allMaps && !Array.isArray(allMaps)) {
+      if (userMaps && !Array.isArray(userMaps)) {
         console.log("Convertendo objeto para array");
-        if (typeof allMaps === 'object') {
-          allMaps = [allMaps];
+        if (typeof userMaps === 'object') {
+          userMaps = [userMaps];
         } else {
-          allMaps = [];
-          console.log("Dados não são um objeto nem um array:", typeof allMaps);
+          userMaps = [];
+          console.log("Dados não são um objeto nem um array:", typeof userMaps);
         }
       }
       
       // Verificar se temos mapas válidos
-      if (!allMaps || !Array.isArray(allMaps) || allMaps.length === 0) {
-        console.log("Nenhum mapa encontrado");
+      if (!userMaps || !Array.isArray(userMaps) || userMaps.length === 0) {
+        console.log("Nenhum mapa encontrado para este usuário");
         toast({
           title: "Perfil não encontrado",
           description: "Por favor, complete seu perfil primeiro.",
@@ -79,14 +82,14 @@ const MatrixResult = () => {
         return;
       }
       
-      // Garantir que allMaps seja um array válido
-      const validMaps = Array.isArray(allMaps) ? 
-        allMaps.filter(map => map && typeof map === 'object') : [];
+      // Garantir que userMaps seja um array válido
+      const validMaps = Array.isArray(userMaps) ? 
+        userMaps.filter(map => map && typeof map === 'object') : [];
       
-      console.log("Mapas válidos:", validMaps);
+      console.log("Mapas válidos para este usuário:", validMaps);
       
       if (validMaps.length === 0) {
-        console.log("Nenhum mapa válido encontrado");
+        console.log("Nenhum mapa válido encontrado para este usuário");
         toast({
           title: "Dados corrompidos",
           description: "Os dados do seu perfil parecem estar corrompidos. Por favor, crie um novo perfil.",
