@@ -58,8 +58,8 @@ const MatrixHeader: React.FC<MatrixHeaderProps> = ({
   };
   
   const handleViewAllMaps = () => {
-    // Manually go back to the home page to force a full reload and state reset
-    window.location.href = '/';
+    // Redirect to the home page which will show the profile form with existing maps
+    window.location.href = '/?view=maps';
   };
   
   // Filtra mapas duplicados com base no ID

@@ -12,17 +12,23 @@ const Index = () => {
   const [hasProfile, setHasProfile] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
   const [forceCreateNew, setForceCreateNew] = useState(false);
+  const [showProfileSection, setShowProfileSection] = useState(false);
   const navigate = useNavigate();
   const location = useLocation();
   
   useEffect(() => {
-    // Check for creation mode in URL parameters
+    // Check for URL parameters
     const queryParams = new URLSearchParams(location.search);
     const createMode = queryParams.get('create');
-    const shouldCreateNew = createMode === 'new';
-    setForceCreateNew(shouldCreateNew);
+    const viewMode = queryParams.get('view');
     
-    console.log("Index: create=new parameter detected:", shouldCreateNew);
+    const shouldCreateNew = createMode === 'new';
+    const shouldShowMaps = viewMode === 'maps';
+    
+    setForceCreateNew(shouldCreateNew);
+    setShowProfileSection(shouldShowMaps);
+    
+    console.log("Index: create=new parameter:", shouldCreateNew, "view=maps parameter:", shouldShowMaps);
     
     // Check if user is logged in
     try {
@@ -42,7 +48,7 @@ const Index = () => {
           const hasValidMaps = userMaps && userMaps.length > 0 && 
                               userMaps.some(map => map && map.id && map.birthDate);
           
-          if (hasValidMaps && !shouldCreateNew) {
+          if (hasValidMaps && !shouldCreateNew && !shouldShowMaps) {
             console.log("Usuário já tem mapas válidos, redirecionando para matriz");
             setHasProfile(true);
             // Redirect to matrix page with a small delay to ensure state is updated
@@ -50,7 +56,7 @@ const Index = () => {
               navigate('/matrix');
             }, 100);
           } else {
-            console.log("Usuário logado, mostrar formulário para criar novo perfil");
+            console.log("Usuário logado, mostrar formulário para criar novo perfil ou ver mapas existentes");
             setHasProfile(false);
           }
         }
@@ -85,13 +91,13 @@ const Index = () => {
           className="max-w-md mx-auto bg-white rounded-xl p-8 shadow-sm border border-karmic-200"
         >
           <h2 className="text-2xl font-serif text-center text-karmic-800 mb-6">
-            {userLoggedIn && (forceCreateNew || !hasProfile) 
-              ? 'Complete seu Perfil'
+            {userLoggedIn && (forceCreateNew || showProfileSection || !hasProfile) 
+              ? (showProfileSection ? 'Meus Mapas Kármicos' : 'Complete seu Perfil')
               : 'Acesse sua Matriz Kármica'}
           </h2>
           
-          {userLoggedIn && (forceCreateNew || !hasProfile) ? (
-            <ProfileForm />
+          {userLoggedIn && (forceCreateNew || showProfileSection || !hasProfile) ? (
+            <ProfileForm viewMode={showProfileSection ? 'maps' : 'create'} />
           ) : (
             <LoginForm />
           )}

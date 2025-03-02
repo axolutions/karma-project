@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
@@ -15,7 +16,11 @@ import {
 } from '@/lib/auth';
 import { useNavigate } from 'react-router-dom';
 
-const ProfileForm: React.FC = () => {
+interface ProfileFormProps {
+  viewMode?: 'create' | 'maps';
+}
+
+const ProfileForm: React.FC<ProfileFormProps> = ({ viewMode = 'create' }) => {
   const [name, setName] = useState('');
   const [birthDate, setBirthDate] = useState('');
   const [isValid, setIsValid] = useState(true);
@@ -23,6 +28,9 @@ const ProfileForm: React.FC = () => {
   const [existingMaps, setExistingMaps] = useState<any[]>([]);
   const [remainingMatrixCount, setRemainingMatrixCount] = useState(0);
   const navigate = useNavigate();
+  
+  // On maps view, we want to highlight the maps section
+  const isMapView = viewMode === 'maps';
   
   useEffect(() => {
     // Verificar se o usuário já tem um perfil gerado
@@ -236,40 +244,83 @@ const ProfileForm: React.FC = () => {
 
   return (
     <form onSubmit={handleSubmit} className="space-y-4 max-w-md mx-auto">
-      <div className="space-y-2">
-        <label htmlFor="name" className="text-sm font-medium text-karmic-700">
-          Nome Completo
-        </label>
-        <Input
-          id="name"
-          placeholder="Seu nome completo"
-          value={name}
-          onChange={(e) => setName(e.target.value)}
-          className="transition-all duration-200 focus:ring-karmic-500"
-          disabled={isSubmitting}
-          required
-        />
-      </div>
-      
-      <div className="space-y-2">
-        <label htmlFor="birthDate" className="text-sm font-medium text-karmic-700">
-          Data de Nascimento
-        </label>
-        <Input
-          id="birthDate"
-          placeholder="DD/MM/AAAA"
-          value={birthDate}
-          onChange={handleDateChange}
-          className={`transition-all duration-200 ${!isValid ? 'border-red-500 focus:ring-red-500' : 'focus:ring-karmic-500'}`}
-          disabled={isSubmitting}
-          required
-        />
-        {!isValid && (
-          <p className="text-red-500 text-xs animate-fade-in">
-            Por favor, insira uma data válida no formato DD/MM/AAAA
+      {/* If in maps view mode, show the maps section at the top with more visibility */}
+      {isMapView && hasValidMaps && (
+        <div className="p-4 bg-karmic-100 rounded-md animate-fade-in border border-karmic-300">
+          <p className="text-lg text-karmic-800 mb-3 font-medium">
+            Seus Mapas Kármicos ({existingMaps.length}):
           </p>
-        )}
-      </div>
+          <ul className="space-y-3 text-karmic-700">
+            {existingMaps.map((map, index) => {
+              // Verificar se o mapa é válido para exibição
+              if (!map || !map.id) return null;
+              
+              // Mostrar informações disponíveis ou placeholders
+              const mapName = map.name || 'Nome indisponível';
+              const mapDate = map.birthDate || 'Data indisponível';
+              const createdAt = map.createdAt ? new Date(map.createdAt).toLocaleDateString() : '';
+              
+              return (
+                <li key={map.id} className="flex justify-between items-center p-2 hover:bg-karmic-200 rounded transition-colors">
+                  <span className="font-medium">
+                    {mapName} <span className="text-sm font-normal">({mapDate})</span>
+                    {createdAt ? <span className="text-xs text-karmic-500 block"> Criado em: {createdAt}</span> : ''}
+                  </span>
+                  <Button 
+                    type="button" 
+                    variant="outline" 
+                    size="sm" 
+                    onClick={() => handleMapClick(map.id)}
+                    className="karmic-button-outline"
+                  >
+                    <Eye className="h-4 w-4 mr-2" />
+                    Ver Matriz
+                  </Button>
+                </li>
+              );
+            })}
+          </ul>
+        </div>
+      )}
+      
+      {!isMapView && (
+        <>
+          <div className="space-y-2">
+            <label htmlFor="name" className="text-sm font-medium text-karmic-700">
+              Nome Completo
+            </label>
+            <Input
+              id="name"
+              placeholder="Seu nome completo"
+              value={name}
+              onChange={(e) => setName(e.target.value)}
+              className="transition-all duration-200 focus:ring-karmic-500"
+              disabled={isSubmitting}
+              required
+            />
+          </div>
+          
+          <div className="space-y-2">
+            <label htmlFor="birthDate" className="text-sm font-medium text-karmic-700">
+              Data de Nascimento
+            </label>
+            <Input
+              id="birthDate"
+              placeholder="DD/MM/AAAA"
+              value={birthDate}
+              onChange={handleDateChange}
+              className={`transition-all duration-200 ${!isValid ? 'border-red-500 focus:ring-red-500' : 'focus:ring-karmic-500'}`}
+              disabled={isSubmitting}
+              required
+            />
+            {!isValid && (
+              <p className="text-red-500 text-xs animate-fade-in">
+                Por favor, insira uma data válida no formato DD/MM/AAAA
+              </p>
+            )}
+          </div>
+        </>
+      )}
       
       {remainingMatrixCount > 0 && (
         <div className="p-3 bg-green-100 rounded-md">
@@ -280,7 +331,7 @@ const ProfileForm: React.FC = () => {
         </div>
       )}
       
-      {hasValidMaps && (
+      {!isMapView && hasValidMaps && (
         <div className="p-3 bg-karmic-100 rounded-md">
           <p className="text-sm text-karmic-700 mb-2 font-medium">
             Você já possui {existingMaps.length} {existingMaps.length === 1 ? 'mapa' : 'mapas'} kármico{existingMaps.length === 1 ? '' : 's'}:
@@ -319,14 +370,29 @@ const ProfileForm: React.FC = () => {
       )}
       
       <div className="space-y-2">
-        <Button 
-          type="submit" 
-          className="karmic-button w-full group"
-          disabled={isSubmitting || remainingMatrixCount <= 0}
-        >
-          {isSubmitting ? 'Processando...' : hasValidMaps ? 'Gerar Novo Mapa Kármico 2025' : 'Gerar Minha Matriz Kármica 2025'}
-          <MoveRight className="ml-2 h-4 w-4 transition-transform group-hover:translate-x-1" />
-        </Button>
+        {!isMapView && (
+          <Button 
+            type="submit" 
+            className="karmic-button w-full group"
+            disabled={isSubmitting || remainingMatrixCount <= 0}
+          >
+            {isSubmitting ? 'Processando...' : hasValidMaps ? 'Gerar Novo Mapa Kármico 2025' : 'Gerar Minha Matriz Kármica 2025'}
+            <MoveRight className="ml-2 h-4 w-4 transition-transform group-hover:translate-x-1" />
+          </Button>
+        )}
+        
+        {isMapView && remainingMatrixCount > 0 && (
+          <Button 
+            type="button" 
+            className="karmic-button w-full group"
+            onClick={() => {
+              window.location.href = '/?create=new';
+            }}
+          >
+            Criar Novo Mapa Kármico 2025
+            <MoveRight className="ml-2 h-4 w-4 transition-transform group-hover:translate-x-1" />
+          </Button>
+        )}
         
         {remainingMatrixCount <= 0 && (
           <p className="text-amber-600 text-sm text-center">
@@ -334,8 +400,8 @@ const ProfileForm: React.FC = () => {
           </p>
         )}
         
-        {hasValidMaps && (
-          <div className="text-center flex justify-center space-x-3">
+        <div className="text-center flex justify-center space-x-3">
+          {isMapView ? (
             <Button 
               type="button" 
               variant="link" 
@@ -344,18 +410,27 @@ const ProfileForm: React.FC = () => {
             >
               Voltar para meu mapa atual
             </Button>
-            
+          ) : hasValidMaps && (
             <Button 
               type="button" 
               variant="link" 
-              onClick={handleLogout}
-              className="text-karmic-600 hover:text-karmic-800 flex items-center"
+              onClick={() => navigate('/matrix')}
+              className="text-karmic-600 hover:text-karmic-800"
             >
-              <LogOut className="mr-1 h-4 w-4" />
-              Sair
+              Voltar para meu mapa atual
             </Button>
-          </div>
-        )}
+          )}
+          
+          <Button 
+            type="button" 
+            variant="link" 
+            onClick={handleLogout}
+            className="text-karmic-600 hover:text-karmic-800 flex items-center"
+          >
+            <LogOut className="mr-1 h-4 w-4" />
+            Sair
+          </Button>
+        </div>
       </div>
     </form>
   );
