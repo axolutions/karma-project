@@ -29,16 +29,17 @@ const KarmicMatrix: React.FC<KarmicMatrixProps> = ({ karmicData }) => {
   
   console.log("KarmicMatrix: Dados seguros:", safeKarmicData);
   
-  // Vamos listar explicitamente as posições para cada número específico
+  // Posições corretas com base na imagem de referência
   const numberPositions = {
-    karmicSeal: { top: "23%", left: "25%" },
-    destinyCall: { top: "72%", left: "73%" },
-    karmaPortal: { top: "47%", left: "21%" },
-    karmicInheritance: { top: "47%", left: "72%" },
-    karmicReprogramming: { top: "70%", left: "25%" },
-    cycleProphecy: { top: "74%", left: "48%" },
-    spiritualMark: { top: "25%", left: "70%" },
-    manifestationEnigma: { top: "20%", left: "47%" }
+    // Posições atualizadas conforme a imagem de referência
+    manifestationEnigma: { top: "20%", left: "50%" },    // 11 (topo)
+    spiritualMark: { top: "32%", left: "77%" },          // 1 (direita superior)
+    karmicInheritance: { top: "67%", left: "77%" },      // 4 (direita inferior)
+    cycleProphecy: { top: "80%", left: "50%" },          // 9 (embaixo)
+    karmicReprogramming: { top: "67%", left: "22%" },    // 3 (esquerda inferior)
+    karmaPortal: { top: "32%", left: "22%" },            // 9 (esquerda superior)
+    karmicSeal: { top: "30%", left: "41%" },             // 6 (diagonal superior esquerda)
+    destinyCall: { top: "67%", left: "57%" }             // 3 (diagonal inferior direita)
   };
 
   // Simplificamos o mapeamento para usar os valores diretamente
@@ -98,39 +99,39 @@ const KarmicMatrix: React.FC<KarmicMatrixProps> = ({ karmicData }) => {
     <div className="relative max-w-4xl mx-auto">
       <div 
         ref={matrixRef} 
-        className="matrix-container relative w-full aspect-square max-w-2xl mx-auto rounded-lg bg-gradient-to-br from-karmic-100 to-white border border-karmic-200 shadow-md p-4"
+        className="matrix-container relative w-full aspect-square max-w-2xl mx-auto rounded-lg bg-white border border-gray-200 shadow-md p-4"
       >
-        {/* Matrix design (HTML/CSS instead of image) */}
-        <div className="absolute inset-0 p-8">
-          {/* Outer circle */}
-          <div className="absolute inset-[8%] rounded-full border-2 border-karmic-300"></div>
-          
-          {/* Inner circle */}
-          <div className="absolute inset-[20%] rounded-full border-2 border-karmic-300"></div>
-          
-          {/* Horizontal line */}
-          <div className="absolute top-1/2 left-[8%] right-[8%] h-[2px] bg-karmic-300 transform -translate-y-1/2"></div>
-          
-          {/* Vertical line */}
-          <div className="absolute left-1/2 top-[8%] bottom-[8%] w-[2px] bg-karmic-300 transform -translate-x-1/2"></div>
-          
-          {/* Diagonal line (top-left to bottom-right) */}
-          <div className="absolute top-[8%] left-[8%] w-[120%] h-[2px] bg-karmic-300 origin-top-left rotate-45"></div>
-          
-          {/* Diagonal line (top-right to bottom-left) */}
-          <div className="absolute top-[8%] right-[8%] w-[120%] h-[2px] bg-karmic-300 origin-top-right -rotate-45"></div>
-          
-          {/* Central circle */}
-          <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-[10%] h-[10%] rounded-full border-2 border-karmic-500 bg-karmic-100"></div>
-          
-          {/* Title at the top */}
-          <div className="absolute top-[2%] left-0 right-0 text-center">
-            <h3 className="text-lg md:text-xl font-serif font-medium text-karmic-800">Matriz Kármica 2025</h3>
-          </div>
+        {/* Título da matriz */}
+        <div className="absolute top-[5%] left-0 right-0 text-center">
+          <h3 className="text-xl md:text-2xl font-serif font-medium text-gray-800">Matriz Kármica 2025</h3>
         </div>
         
-        {/* Numbers */}
-        {numbersToDisplay.map((item, index) => {
+        {/* Matrix design (HTML/CSS) */}
+        <div className="absolute inset-0 p-8">
+          {/* Círculo externo */}
+          <div className="absolute inset-[5%] rounded-full border border-gray-300"></div>
+          
+          {/* Círculo interno */}
+          <div className="absolute inset-[20%] rounded-full border border-gray-300"></div>
+          
+          {/* Linha horizontal */}
+          <div className="absolute top-1/2 left-[5%] right-[5%] h-[1px] bg-gray-300 transform -translate-y-1/2"></div>
+          
+          {/* Linha vertical */}
+          <div className="absolute left-1/2 top-[5%] bottom-[5%] w-[1px] bg-gray-300 transform -translate-x-1/2"></div>
+          
+          {/* Linha diagonal (superior esquerda para inferior direita) */}
+          <div className="absolute top-[5%] left-[5%] w-[127%] h-[1px] bg-gray-300 origin-top-left rotate-45"></div>
+          
+          {/* Linha diagonal (superior direita para inferior esquerda) */}
+          <div className="absolute top-[5%] right-[5%] w-[127%] h-[1px] bg-gray-300 origin-top-right -rotate-45"></div>
+          
+          {/* Círculo central */}
+          <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-[8%] h-[8%] rounded-full border border-gray-400 bg-gray-100"></div>
+        </div>
+        
+        {/* Números */}
+        {numbersToDisplay.map((item) => {
           const position = numberPositions[item.key];
           return (
             <div
@@ -144,7 +145,7 @@ const KarmicMatrix: React.FC<KarmicMatrixProps> = ({ karmicData }) => {
               title={item.title}
             >
               <div className="flex items-center justify-center">
-                <span className="bg-white bg-opacity-80 rounded-full w-10 h-10 flex items-center justify-center text-lg font-serif font-bold text-karmic-800 shadow-lg print:shadow-none print:border print:border-karmic-300">
+                <span className="bg-white shadow-lg rounded-full w-10 h-10 flex items-center justify-center text-lg font-bold text-gray-800">
                   {item.value}
                 </span>
               </div>
