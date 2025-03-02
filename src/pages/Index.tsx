@@ -5,7 +5,7 @@ import { useNavigate } from 'react-router-dom';
 import LoginForm from '@/components/LoginForm';
 import ProfileForm from '@/components/ProfileForm';
 import IntroSection from '@/components/IntroSection';
-import { getCurrentUser, isLoggedIn, getUserData } from '@/lib/auth';
+import { getCurrentUser, isLoggedIn, getUserData, getAllUserDataByEmail } from '@/lib/auth';
 
 const Index = () => {
   const [userLoggedIn, setUserLoggedIn] = useState(false);
@@ -24,17 +24,23 @@ const Index = () => {
         // Check if user has created profile
         const email = getCurrentUser();
         if (email) {
-          const userData = getUserData(email);
-          console.log("Index: Dados do usuário:", userData);
-          if (userData && userData.name) {
-            console.log("Usuário já tem perfil, redirecionando para matriz");
+          // Obter todos os mapas válidos do usuário
+          const userMaps = getAllUserDataByEmail();
+          console.log("Index: Mapas do usuário:", userMaps);
+          
+          // Verificar se existem mapas válidos
+          const hasValidMaps = userMaps && userMaps.length > 0 && 
+                              userMaps.some(map => map && map.id && map.birthDate);
+          
+          if (hasValidMaps) {
+            console.log("Usuário já tem mapas válidos, redirecionando para matriz");
             setHasProfile(true);
             // Redirect to matrix page with a small delay to ensure state is updated
             setTimeout(() => {
               navigate('/matrix');
             }, 100);
           } else {
-            console.log("Usuário logado, mas sem perfil");
+            console.log("Usuário logado, mas sem mapas válidos");
             setHasProfile(false);
           }
         }

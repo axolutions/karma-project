@@ -112,14 +112,36 @@ export const getAllUserDataByEmail = (): any[] => {
   const allUsers = getAllUsers();
   const currentUser = getCurrentUser();
   
-  // Se temos um usuário atual, converter o objeto de usuários em um array
-  // e retornar apenas os registros que pertencem ao usuário logado
+  if (!currentUser) {
+    console.log("Nenhum usuário logado para buscar dados");
+    return [];
+  }
+  
+  // Filtrar apenas dados do usuário atual
   const userDataArray = Object.values(allUsers).filter(user => 
-    user && user.email === currentUser
+    user && 
+    user.email === currentUser && 
+    user.id && // Certifique-se de que ID existe
+    user.name !== undefined // Verifique se o nome existe (mesmo que seja vazio)
   );
   
-  console.log(`Filtrando dados para o usuário logado: ${currentUser}`);
-  return userDataArray;
+  // Validar cada mapa para garantir que ele tem os dados necessários
+  const validMaps = userDataArray.filter(map => {
+    // Verificar se o mapa tem campos obrigatórios
+    const hasRequiredFields = map && 
+                             map.id && 
+                             map.email === currentUser;
+    
+    // Apenas para logging
+    if (!hasRequiredFields) {
+      console.log("Mapa inválido encontrado e removido:", map);
+    }
+    
+    return hasRequiredFields;
+  });
+  
+  console.log(`Filtrando dados para o usuário logado: ${currentUser}. Total de mapas válidos: ${validMaps.length}`);
+  return validMaps;
 };
 
 export const setCurrentMatrixId = (id: string): void => {

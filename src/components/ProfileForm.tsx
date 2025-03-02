@@ -21,17 +21,24 @@ const ProfileForm: React.FC = () => {
     const currentUser = getCurrentUser();
     if (currentUser) {
       console.log("ProfileForm: Usuário atual:", currentUser);
-      const allUserMaps = getAllUserDataByEmail();
+      const userMaps = getAllUserDataByEmail();
       
-      // Filtrar apenas mapas do usuário atual
-      const userMaps = allUserMaps.filter(map => map && map.email === currentUser);
       console.log("ProfileForm: Mapas encontrados para este usuário:", userMaps);
       
-      setExistingMaps(userMaps || []);
+      // Filtrar apenas mapas válidos (com campos necessários)
+      const validMaps = userMaps.filter(map => 
+        map && 
+        map.id && 
+        map.email === currentUser &&
+        map.name !== undefined
+      );
+      
+      console.log("ProfileForm: Mapas válidos após filtragem:", validMaps);
+      setExistingMaps(validMaps || []);
       
       // Se houver mapas existentes, preencher o nome com o do último mapa
-      if (userMaps && userMaps.length > 0) {
-        setName(userMaps[userMaps.length - 1].name || '');
+      if (validMaps && validMaps.length > 0) {
+        setName(validMaps[validMaps.length - 1].name || '');
       }
     } else {
       console.log("ProfileForm: Nenhum usuário logado");
@@ -90,6 +97,16 @@ const ProfileForm: React.FC = () => {
   };
 
   const handleMapClick = (mapId: string) => {
+    if (!mapId) {
+      console.error("ID do mapa inválido:", mapId);
+      toast({
+        title: "Erro ao acessar mapa",
+        description: "Este mapa não pode ser acessado. Por favor, crie um novo.",
+        variant: "destructive"
+      });
+      return;
+    }
+    
     setCurrentMatrixId(mapId);
     navigate('/matrix');
   };
@@ -181,7 +198,10 @@ const ProfileForm: React.FC = () => {
     }
   };
   
-  console.log("ProfileForm: Renderizando com isSubmitting =", isSubmitting);
+  // Apenas mostre a seção de mapas existentes se houver mapas válidos
+  const hasValidMaps = existingMaps.length > 0 && existingMaps.some(map => map && map.id);
+  
+  console.log("ProfileForm: Renderizando com isSubmitting =", isSubmitting, "mapas válidos =", hasValidMaps);
 
   return (
     <form onSubmit={handleSubmit} className="space-y-4 max-w-md mx-auto">
@@ -220,30 +240,40 @@ const ProfileForm: React.FC = () => {
         )}
       </div>
       
-      {existingMaps.length > 0 && (
+      {hasValidMaps && (
         <div className="p-3 bg-karmic-100 rounded-md">
           <p className="text-sm text-karmic-700 mb-2 font-medium">
             Você já possui {existingMaps.length} {existingMaps.length === 1 ? 'mapa' : 'mapas'} criado{existingMaps.length === 1 ? '' : 's'}:
           </p>
           <ul className="text-xs space-y-2 text-karmic-600">
-            {existingMaps.map((map, index) => (
-              <li key={map?.id || index} className="flex justify-between items-center">
-                <span>
-                  • {map?.name || 'Nome indisponível'} - {map?.birthDate || 'Data indisponível'} 
-                  {map?.createdAt ? ` (criado em: ${new Date(map.createdAt).toLocaleDateString()})` : ''}
-                </span>
-                <Button 
-                  type="button" 
-                  variant="ghost" 
-                  size="sm" 
-                  onClick={() => handleMapClick(map.id)}
-                  className="text-karmic-600 hover:text-karmic-800 hover:bg-karmic-200 p-1 h-auto"
-                >
-                  <Eye className="h-4 w-4 mr-1" />
-                  Ver
-                </Button>
-              </li>
-            ))}
+            {existingMaps.map((map, index) => {
+              // Verificar se o mapa é válido para exibição
+              if (!map || !map.id) return null;
+              
+              // Mostrar informações disponíveis ou placeholders
+              const mapName = map.name || 'Nome indisponível';
+              const mapDate = map.birthDate || 'Data indisponível';
+              const createdAt = map.createdAt ? new Date(map.createdAt).toLocaleDateString() : '';
+              
+              return (
+                <li key={map.id} className="flex justify-between items-center">
+                  <span>
+                    • {mapName} - {mapDate}
+                    {createdAt ? ` (criado em: ${createdAt})` : ''}
+                  </span>
+                  <Button 
+                    type="button" 
+                    variant="ghost" 
+                    size="sm" 
+                    onClick={() => handleMapClick(map.id)}
+                    className="text-karmic-600 hover:text-karmic-800 hover:bg-karmic-200 p-1 h-auto"
+                  >
+                    <Eye className="h-4 w-4 mr-1" />
+                    Ver
+                  </Button>
+                </li>
+              );
+            })}
           </ul>
         </div>
       )}
@@ -253,11 +283,11 @@ const ProfileForm: React.FC = () => {
         className="karmic-button w-full group"
         disabled={isSubmitting}
       >
-        {isSubmitting ? 'Processando...' : existingMaps.length > 0 ? 'Gerar Novo Mapa Kármico 2025' : 'Gerar Minha Matriz Kármica 2025'}
+        {isSubmitting ? 'Processando...' : hasValidMaps ? 'Gerar Novo Mapa Kármico 2025' : 'Gerar Minha Matriz Kármica 2025'}
         <MoveRight className="ml-2 h-4 w-4 transition-transform group-hover:translate-x-1" />
       </Button>
       
-      {existingMaps.length > 0 && (
+      {hasValidMaps && (
         <div className="text-center">
           <Button 
             type="button" 
