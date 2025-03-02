@@ -49,14 +49,16 @@ const Index = () => {
     }
   }, [navigate]);
 
-  // Reload the page if logout is detected
+  // Watch for storage changes (logout events)
   useEffect(() => {
     const handleStorageChange = () => {
       const isUserLoggedIn = isLoggedIn();
       if (userLoggedIn && !isUserLoggedIn) {
-        // User has logged out
+        // User has logged out, reset state
         setUserLoggedIn(false);
         setHasProfile(false);
+        // Force reload to clear any cached state
+        window.location.reload();
       }
     };
 

@@ -78,6 +78,9 @@ export const logout = (): void => {
   localStorage.removeItem('currentUser');
   console.log("Usuário deslogado com sucesso");
   
+  // Trigger storage event for other tabs
+  window.dispatchEvent(new Event('storage'));
+  
   // Force page reload to clear any cached state after logout
   window.location.href = '/';
 };
