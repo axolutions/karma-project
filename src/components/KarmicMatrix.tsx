@@ -109,13 +109,13 @@ const KarmicMatrix: React.FC<KarmicMatrixProps> = ({
         }
         /* Ajuste fino das posições exatas para os números */
         #selo_karmico { top: 5%; left: 47%; }
-        #chamado_destino { top: 20%; left: 22%; }
-        #portal_karma { top: 29%; left: 72%; }
-        #heranca_karmica { top: 45%; left: 25%; }
-        #codex_reprogramacao { top: 60%; left: 47%; }
-        #profecia_ciclos { top: 48%; left: 65%; }
+        #chamado_destino { top: 23%; left: 26%; }
+        #portal_karma { top: 25%; left: 67%; }
+        #heranca_karmica { top: 45%; left: 20%; }
+        #codex_reprogramacao { top: 70%; left: 47%; }
+        #profecia_ciclos { top: 35%; left: 65%; }
         #marca_espiritual { top: 65%; left: 29%; }
-        #enigma_manifestacao { top: 70%; left: 70%; }
+        #enigma_manifestacao { top: 70%; left: 75%; }
     </style>
 </head>
 <body>
@@ -177,25 +177,25 @@ const KarmicMatrix: React.FC<KarmicMatrixProps> = ({
               Object.assign(positionStyle, { top: '5%', left: '47%' });
               break;
             case 'chamado_destino':
-              Object.assign(positionStyle, { top: '20%', left: '22%' });
+              Object.assign(positionStyle, { top: '23%', left: '26%' });
               break;
             case 'portal_karma':
-              Object.assign(positionStyle, { top: '29%', left: '72%' });
+              Object.assign(positionStyle, { top: '25%', left: '67%' });
               break;
             case 'heranca_karmica':
-              Object.assign(positionStyle, { top: '45%', left: '25%' });
+              Object.assign(positionStyle, { top: '45%', left: '20%' });
               break;
             case 'codex_reprogramacao':
-              Object.assign(positionStyle, { top: '60%', left: '47%' });
+              Object.assign(positionStyle, { top: '70%', left: '47%' });
               break;
             case 'profecia_ciclos':
-              Object.assign(positionStyle, { top: '48%', left: '65%' });
+              Object.assign(positionStyle, { top: '35%', left: '65%' });
               break;
             case 'marca_espiritual':
               Object.assign(positionStyle, { top: '65%', left: '29%' });
               break;
             case 'enigma_manifestacao':
-              Object.assign(positionStyle, { top: '70%', left: '70%' });
+              Object.assign(positionStyle, { top: '70%', left: '75%' });
               break;
           }
           
