@@ -7,7 +7,7 @@
 export function calculateSingleDigit(number: number): number {
   console.log("Calculando dígito único para:", number);
   
-  if (number === 11 || number === 22 || number === 33) {
+  if (number === 11 || number === 22 || number === 33 || number === 44) {
     console.log("Número mestre encontrado:", number);
     return number; // Números mestres são preservados
   }
@@ -27,7 +27,7 @@ export function calculateSingleDigit(number: number): number {
   
   // Recursar se ainda não for um único dígito
   if (sum >= 10) {
-    if (sum === 11 || sum === 22 || sum === 33) {
+    if (sum === 11 || sum === 22 || sum === 33 || sum === 44) {
       console.log("Número mestre encontrado após soma:", sum);
       return sum; // Preservar números mestres
     }
@@ -39,11 +39,22 @@ export function calculateSingleDigit(number: number): number {
   return sum;
 }
 
-// Função para calcular o Selo Kármico com base na data de nascimento
+// Calcular a soma reduzida de um ano (ex: 1983 -> 1+9+8+3 = 21 -> 2+1 = 3)
+function calculateReducedYearSum(year: number): number {
+  let sum = 0;
+  while (year > 0) {
+    sum += year % 10;
+    year = Math.floor(year / 10);
+  }
+  return calculateSingleDigit(sum);
+}
+
+// 1. Selo Kármico 2025
+// Cálculo: (Dia + Mês de Nascimento) - (soma e reducao a um digito ano de nascimento)
 export function calculateKarmicSeal(birthDate: string): number {
   console.log("Calculando Selo Kármico para data:", birthDate);
   try {
-    // Verifica se o formato é DD/MM/AAAA
+    // Verifica formato
     if (!/^\d{2}\/\d{2}\/\d{4}$/.test(birthDate)) {
       console.error("Formato de data inválido:", birthDate);
       return 0;
@@ -51,20 +62,31 @@ export function calculateKarmicSeal(birthDate: string): number {
     
     const [day, month, year] = birthDate.split('/').map(Number);
     
-    // Calcular com base nos algoritmos específicos
-    // Exemplo: somar todos os dígitos e reduzir a um único dígito
-    const sum = day + month + year;
-    const result = calculateSingleDigit(sum);
+    // Soma dia + mês
+    const dayMonthSum = day + month;
+    
+    // Reduz o ano a um dígito único
+    const reducedYear = calculateReducedYearSum(year);
+    
+    // Calcula: (dia + mês) - (ano reduzido)
+    let result = dayMonthSum - reducedYear;
+    
+    // Se for negativo, converter para positivo
+    if (result < 0) result = Math.abs(result);
+    
+    // Reduzir a um dígito único (preservando números mestres)
+    result = calculateSingleDigit(result);
     
     console.log("Selo Kármico calculado:", result);
     return result;
   } catch (error) {
     console.error("Erro ao calcular Selo Kármico:", error);
-    return 0; // Valor padrão em caso de erro
+    return 0;
   }
 }
 
-// Função para calcular o Chamado do Destino
+// 2. Chamado do Destino 2025
+// Cálculo: (Dia + Mês + Ano de Nascimento), reduzido a um dígito
 export function calculateDestinyCall(birthDate: string): number {
   console.log("Calculando Chamado do Destino para data:", birthDate);
   try {
@@ -76,8 +98,10 @@ export function calculateDestinyCall(birthDate: string): number {
     
     const [day, month, year] = birthDate.split('/').map(Number);
     
-    // Algoritmo diferente para este cálculo
-    const sum = day * 2 + month + Math.floor(year / 100) + (year % 100);
+    // Soma dia + mês + ano
+    const sum = day + month + year;
+    
+    // Reduzir a um dígito único (preservando números mestres)
     const result = calculateSingleDigit(sum);
     
     console.log("Chamado do Destino calculado:", result);
@@ -88,7 +112,8 @@ export function calculateDestinyCall(birthDate: string): number {
   }
 }
 
-// Função para calcular o Portal do Karma
+// 3. Portal do Karma 2025
+// Cálculo: (Ano Atual 2025) + (Dia + Mês de Nascimento), reduzido a um dígito
 export function calculateKarmaPortal(birthDate: string): number {
   console.log("Calculando Portal do Karma para data:", birthDate);
   try {
@@ -98,10 +123,13 @@ export function calculateKarmaPortal(birthDate: string): number {
       return 0;
     }
     
-    const [day, month, year] = birthDate.split('/').map(Number);
+    const [day, month] = birthDate.split('/').map(Number);
+    const currentYear = 2025;
     
-    // Algoritmo específico
-    const sum = day + month * 2 + Math.floor(year / 10);
+    // Soma dia + mês + ano atual
+    const sum = currentYear + day + month;
+    
+    // Reduzir a um dígito único
     const result = calculateSingleDigit(sum);
     
     console.log("Portal do Karma calculado:", result);
@@ -112,7 +140,24 @@ export function calculateKarmaPortal(birthDate: string): number {
   }
 }
 
-// Função para calcular a Herança Kármica
+// Funções auxiliares para calcular os desafios kármicos
+function calculateKarmicChallenges(day: number, month: number, year: number): number[] {
+  // Reduzir dia, mês e ano a dígito único
+  const reducedDay = calculateSingleDigit(day);
+  const reducedMonth = calculateSingleDigit(month);
+  const reducedYear = calculateSingleDigit(year);
+  
+  // Calcular os 4 desafios
+  const challenge1 = Math.abs(reducedDay - reducedMonth);
+  const challenge2 = Math.abs(reducedDay - reducedYear);
+  const challenge3 = Math.abs(challenge1 - challenge2);
+  const challenge4 = Math.abs(reducedMonth - reducedYear);
+  
+  return [challenge1, challenge2, challenge3, challenge4];
+}
+
+// 4. Herança Kármica 2025
+// Cálculo: Soma dos 4 Desafios Kármicos Individuais
 export function calculateKarmicInheritance(birthDate: string): number {
   console.log("Calculando Herança Kármica para data:", birthDate);
   try {
@@ -124,8 +169,13 @@ export function calculateKarmicInheritance(birthDate: string): number {
     
     const [day, month, year] = birthDate.split('/').map(Number);
     
-    // Algoritmo
-    const sum = Math.floor(day / 10) + (day % 10) + Math.floor(month / 10) + (month % 10) + Math.floor(year / 1000) + Math.floor((year % 1000) / 100) + Math.floor((year % 100) / 10) + (year % 10);
+    // Calcular os 4 desafios kármicos
+    const challenges = calculateKarmicChallenges(day, month, year);
+    
+    // Somar os desafios
+    const sum = challenges.reduce((acc, val) => acc + val, 0);
+    
+    // Reduzir a um dígito único
     const result = calculateSingleDigit(sum);
     
     console.log("Herança Kármica calculada:", result);
@@ -136,7 +186,8 @@ export function calculateKarmicInheritance(birthDate: string): number {
   }
 }
 
-// Função para calcular Códex da Reprogramação
+// 5. Códex da Reprogramação Kármica 2025
+// Cálculo: (Número do Destino) + (Ano Pessoal 2025), reduzido a um dígito
 export function calculateKarmicReprogramming(birthDate: string): number {
   console.log("Calculando Códex da Reprogramação para data:", birthDate);
   try {
@@ -148,12 +199,16 @@ export function calculateKarmicReprogramming(birthDate: string): number {
     
     const [day, month, year] = birthDate.split('/').map(Number);
     
-    // Algoritmo
-    const sumDay = Math.floor(day / 10) + (day % 10);
-    const sumMonth = Math.floor(month / 10) + (month % 10);
-    const sumYear = Math.floor(year / 1000) + Math.floor((year % 1000) / 100) + Math.floor((year % 100) / 10) + (year % 10);
+    // Calcular Número do Destino (data de nascimento reduzida)
+    const destinyNumber = calculateSingleDigit(day + month + year);
     
-    const sum = sumDay * sumMonth + sumYear;
+    // Calcular Ano Pessoal 2025 (dia + mês + 2025)
+    const personalYear2025 = calculateSingleDigit(day + month + 2025);
+    
+    // Soma Destino + Ano Pessoal
+    const sum = destinyNumber + personalYear2025;
+    
+    // Reduzir a um dígito único
     const result = calculateSingleDigit(sum);
     
     console.log("Códex da Reprogramação calculado:", result);
@@ -164,7 +219,8 @@ export function calculateKarmicReprogramming(birthDate: string): number {
   }
 }
 
-// Função para calcular Profecia dos Ciclos
+// 6. Profecia dos Ciclos 2025
+// Cálculo: (Dia + Mês + 2025), reduzido a um dígito
 export function calculateCycleProphecy(birthDate: string): number {
   console.log("Calculando Profecia dos Ciclos para data:", birthDate);
   try {
@@ -174,14 +230,19 @@ export function calculateCycleProphecy(birthDate: string): number {
       return 0;
     }
     
-    const [day, month, year] = birthDate.split('/').map(Number);
+    const [day, month] = birthDate.split('/').map(Number);
+    const currentYear = 2025;
     
-    // Algoritmo 
-    const sumDayMonth = day + month;
-    const sumYear = Math.floor(year / 1000) + Math.floor((year % 1000) / 100) + Math.floor((year % 100) / 10) + (year % 10);
+    // Soma dia + mês + 2025
+    const sum = day + month + currentYear;
     
-    const sum = sumDayMonth + sumYear * 2;
-    const result = calculateSingleDigit(sum);
+    // Reduzir a um dígito único (preservando 11 e 22)
+    let result = calculateSingleDigit(sum);
+    
+    // Se o resultado não for 11 ou 22, mas for um número mestre (33, 44), reduzi-lo
+    if (result !== 11 && result !== 22 && (result === 33 || result === 44)) {
+      result = calculateSingleDigit(result);
+    }
     
     console.log("Profecia dos Ciclos calculada:", result);
     return result;
@@ -191,7 +252,8 @@ export function calculateCycleProphecy(birthDate: string): number {
   }
 }
 
-// Função para calcular Marca Espiritual
+// 7. Marca Espiritual 2025
+// Cálculo: (Número do Destino) - (Dia de Nascimento)
 export function calculateSpiritualMark(birthDate: string): number {
   console.log("Calculando Marca Espiritual para data:", birthDate);
   try {
@@ -203,12 +265,21 @@ export function calculateSpiritualMark(birthDate: string): number {
     
     const [day, month, year] = birthDate.split('/').map(Number);
     
-    // Algoritmo
-    const reverseDay = (day % 10) * 10 + Math.floor(day / 10);
-    const reverseMonth = (month % 10) * 10 + Math.floor(month / 10);
+    // Calcular o Número do Destino completo (soma de todos os dígitos da data)
+    // Exemplo: 04/05/1983 -> 0+4+0+5+1+9+8+3 = 30
+    const destinySum = Array.from(day.toString().padStart(2, '0')).concat(
+      Array.from(month.toString().padStart(2, '0')),
+      Array.from(year.toString())
+    ).reduce((sum, digit) => sum + parseInt(digit), 0);
     
-    const sum = reverseDay + reverseMonth + (year % 100);
-    const result = calculateSingleDigit(sum);
+    // Destino - Dia de Nascimento
+    let result = destinySum - day;
+    
+    // Se for negativo, converter para positivo
+    if (result < 0) result = Math.abs(result);
+    
+    // Reduzir a um dígito único
+    result = calculateSingleDigit(result);
     
     console.log("Marca Espiritual calculada:", result);
     return result;
@@ -218,7 +289,8 @@ export function calculateSpiritualMark(birthDate: string): number {
   }
 }
 
-// Função para calcular Enigma da Manifestação
+// 8. Enigma da Manifestação 2025
+// Cálculo: (Ano Pessoal 2025) + (Últimos dois dígitos do Ano de Nascimento), reduzido a um dígito
 export function calculateManifestationEnigma(birthDate: string): number {
   console.log("Calculando Enigma da Manifestação para data:", birthDate);
   try {
@@ -230,8 +302,16 @@ export function calculateManifestationEnigma(birthDate: string): number {
     
     const [day, month, year] = birthDate.split('/').map(Number);
     
-    // Algoritmo
-    const sum = (day + month + year) * 3 - (day * month);
+    // Calcular Ano Pessoal 2025 (dia + mês + 2025)
+    const personalYear2025 = calculateSingleDigit(day + month + 2025);
+    
+    // Obter os últimos 2 dígitos do ano de nascimento
+    const lastTwoDigitsYear = year % 100;
+    
+    // Soma Ano Pessoal + últimos 2 dígitos do ano
+    const sum = personalYear2025 + lastTwoDigitsYear;
+    
+    // Reduzir a um dígito único
     const result = calculateSingleDigit(sum);
     
     console.log("Enigma da Manifestação calculado:", result);
