@@ -1,4 +1,3 @@
-
 import React, { useEffect, useState, useRef } from 'react';
 import { 
   getCurrentUser, 
@@ -222,6 +221,7 @@ const MatrixResult = () => {
       return;
     }
     
+    // Redireciona para a página inicial para criar um novo mapa
     navigate('/');
     
     // Pequeno delay para exibir a toast
