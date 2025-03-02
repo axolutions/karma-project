@@ -7,7 +7,9 @@ import {
   getCurrentMatrixId as getMatrixId,
   getAllAuthorizedEmails,
   addAuthorizedEmail,
-  removeAuthorizedEmail
+  removeAuthorizedEmail,
+  getRemainingMatrixCount as getRemaining,
+  getEmailAuthCounts as getAuthCounts
 } from './db';
 
 export interface UserProfile {
@@ -157,6 +159,15 @@ export const getCurrentMatrixId = (): string | null => {
     return getMatrixId(email);
   }
   return null;
+};
+
+// Export the missing functions being referenced
+export const getRemainingMatrixCount = (email: string): number => {
+  return getRemaining(email);
+};
+
+export const getEmailAuthCounts = (): Record<string, number> => {
+  return getAuthCounts();
 };
 
 export { 
