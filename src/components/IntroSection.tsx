@@ -1,8 +1,12 @@
 
 import React from 'react';
 import { motion } from 'framer-motion';
+import { getCurrentUser } from '@/lib/auth';
 
 const IntroSection: React.FC = () => {
+  // Get current user email if logged in
+  const currentUserEmail = getCurrentUser();
+  
   return (
     <motion.div 
       className="max-w-3xl mx-auto text-center mb-16 px-4"
@@ -18,6 +22,19 @@ const IntroSection: React.FC = () => {
       >
         EXPLORADOR DA MATRIZ KÁRMICA
       </motion.span>
+      
+      {currentUserEmail && (
+        <motion.div
+          className="mb-4"
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ delay: 0.25, duration: 0.4 }}
+        >
+          <span className="text-sm text-karmic-600 bg-karmic-50 px-3 py-1.5 rounded-md border border-karmic-200">
+            E-mail de compra: <strong>{currentUserEmail}</strong>
+          </span>
+        </motion.div>
+      )}
       
       <motion.h1 
         className="text-4xl md:text-5xl lg:text-6xl font-serif font-medium text-karmic-800 mb-6"
