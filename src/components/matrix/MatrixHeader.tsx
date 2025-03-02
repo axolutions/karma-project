@@ -59,8 +59,8 @@ const MatrixHeader: React.FC<MatrixHeaderProps> = ({
   };
   
   const handleViewAllMaps = () => {
-    // Redirect to profile form to view all maps
-    window.location.href = '/?view=maps';
+    // Use navigate instead of directly changing window.location
+    navigate('/?view=maps');
   };
   
   // Filtra mapas duplicados com base no ID

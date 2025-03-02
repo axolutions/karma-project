@@ -175,6 +175,8 @@ export const getRemainingMatrixCount = (email: string): number => {
   // Number of maps already created
   const mapsCreated = userMaps.length;
   
+  console.log(`Remaining matrix count calculation: totalAuthorized=${totalAuthorized}, mapsCreated=${mapsCreated}`);
+  
   // Return remaining count (minimum 0)
   return Math.max(0, totalAuthorized - mapsCreated);
 };

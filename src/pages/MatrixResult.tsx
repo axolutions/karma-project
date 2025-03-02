@@ -112,6 +112,7 @@ const MatrixResult = () => {
       // Check remaining map credits - this needs to be recalculated 
       // AFTER we've loaded all the maps to get the correct count
       const remainingCount = getRemainingMatrixCount(email);
+      console.log("Remaining matrix count:", remainingCount);
       setCanCreateNewMap(remainingCount > 0);
       console.log("Usuário pode criar novos mapas?", remainingCount > 0, "Restantes:", remainingCount);
       
