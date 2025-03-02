@@ -47,7 +47,7 @@ const KarmicMatrix: React.FC<KarmicMatrixProps> = ({
     karmicSeal: { top: "5.5%", left: "47%" },       // selo_karmico
     destinyCall: { top: "24%", left: "25%" },       // chamado_destino - ajustado para o centro
     karmaPortal: { top: "24%", left: "77%" },       // portal_karma
-    karmicInheritance: { top: "45%", left: "10%" }, // heranca_karmica
+    karmicInheritance: { top: "45%", left: "17%" }, // heranca_karmica - ajustado mais para a direita
     karmicReprogramming: { top: "45%", left: "47%" }, // codex_reprogramacao
     cycleProphecy: { top: "45%", left: "83%" },     // profecia_ciclos
     spiritualMark: { top: "68%", left: "17%" },     // marca_espiritual
