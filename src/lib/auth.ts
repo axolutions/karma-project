@@ -16,6 +16,16 @@ export interface UserProfile {
   email: string;
   birthDate?: string;
   currentMatrixId?: string;
+  karmicNumbers?: {
+    karmicSeal: number;
+    destinyCall: number;
+    karmaPortal: number;
+    karmicInheritance: number;
+    karmicReprogramming: number;
+    cycleProphecy: number;
+    spiritualMark: number;
+    manifestationEnigma: number;
+  };
   // Add other user profile fields as necessary
 }
 
