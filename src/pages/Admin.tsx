@@ -9,15 +9,28 @@ import { Card } from '../components/ui/card';
 import { toast } from 'sonner';
 import { useNavigate } from 'react-router-dom';
 import { Separator } from '../components/ui/separator';
+import { Button } from '../components/ui/button';
+import { LogOut } from 'lucide-react';
 
 export default function Admin() {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const navigate = useNavigate();
 
+  const handleLogout = () => {
+    localStorage.removeItem('adminAuthenticated');
+    toast.success("Sessão administrativa encerrada");
+    navigate('/');
+  };
+
   return (
     <div className="container mx-auto p-4 max-w-6xl">
-      <h1 className="text-3xl font-bold text-center mb-6 text-primary">Painel Administrativo</h1>
+      <div className="flex justify-between items-center mb-6">
+        <h1 className="text-3xl font-bold text-primary">Painel Administrativo</h1>
+        <Button variant="outline" onClick={handleLogout} className="text-red-500 hover:text-red-700">
+          <LogOut className="h-4 w-4 mr-2" /> Sair
+        </Button>
+      </div>
       
       <Tabs defaultValue="emails" className="space-y-6">
         <TabsList className="grid w-full grid-cols-4">
