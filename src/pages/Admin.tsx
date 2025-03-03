@@ -5,9 +5,10 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import EmailManager from '@/components/admin/EmailManager';
 import InterpretationEditor from '@/components/admin/InterpretationEditor';
 import YampiIntegration from '@/components/admin/YampiIntegration';
-import { Users, Book, LockKeyhole, ShoppingCart } from 'lucide-react';
+import { Users, Book, LockKeyhole, ShoppingCart, Download, Code } from 'lucide-react';
 import { toast } from "@/components/ui/use-toast";
 import { useNavigate } from 'react-router-dom';
+import { getUserData } from '@/lib/auth';
 
 // Constante para armazenar a senha de administrador
 const ADMIN_PASSWORD = "matrizkarmicaADMIN2025"; // Esta senha deve ser alterada para produção
@@ -57,6 +58,26 @@ const Admin = () => {
       title: "Logout realizado",
       description: "Você saiu do painel administrativo."
     });
+  };
+
+  const handleDownloadFullHTML = () => {
+    try {
+      // Capturar o HTML atual da página principal (matriz kármica)
+      // Vamos abrir a página em uma nova aba e capturar seu HTML
+      window.open('/matrix', '_blank');
+      
+      toast({
+        title: "Página aberta",
+        description: "A página da matriz foi aberta em uma nova aba. Você pode salvar o HTML usando o menu do navegador (Ctrl+S)."
+      });
+    } catch (err) {
+      console.error("Erro ao tentar abrir página:", err);
+      toast({
+        title: "Erro",
+        description: "Não foi possível abrir a página da matriz em uma nova aba.",
+        variant: "destructive"
+      });
+    }
   };
 
   if (!isAuthorized) {
@@ -129,13 +150,23 @@ const Admin = () => {
               Gerencie emails autorizados e interpretações da Matriz Kármica.
             </p>
           </div>
-          <Button 
-            onClick={handleLogout} 
-            variant="outline" 
-            className="karmic-button-outline"
-          >
-            Sair
-          </Button>
+          <div className="flex space-x-3">
+            <Button 
+              onClick={handleDownloadFullHTML} 
+              variant="outline" 
+              className="flex items-center gap-2 bg-emerald-50 hover:bg-emerald-100 text-emerald-700 border-emerald-200"
+            >
+              <Code className="h-4 w-4" />
+              Ver Matriz em Nova Aba
+            </Button>
+            <Button 
+              onClick={handleLogout} 
+              variant="outline" 
+              className="karmic-button-outline"
+            >
+              Sair
+            </Button>
+          </div>
         </div>
         
         <div className="bg-white rounded-xl p-6 shadow-sm border border-karmic-200">

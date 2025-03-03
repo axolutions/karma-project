@@ -6,10 +6,10 @@ import KarmicMatrix from '../components/KarmicMatrix';
 import MatrixInterpretations from '../components/MatrixInterpretations';
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/components/ui/use-toast";
-import { Download } from "lucide-react";
 import LoadingState from '../components/matrix/LoadingState';
 import ErrorState from '../components/matrix/ErrorState';
 import { generateInterpretationsHTML } from '@/lib/interpretations';
+import { Download } from "lucide-react";
 
 const MatrixResult: React.FC = () => {
   const [userData, setUserData] = useState<any>(null);
@@ -155,55 +155,6 @@ const MatrixResult: React.FC = () => {
     }
   };
   
-  const handleDownloadFullHTML = () => {
-    if (!userData?.karmicNumbers) {
-      toast({
-        title: "Erro ao gerar HTML",
-        description: "Dados kármicos não disponíveis para download.",
-        variant: "destructive"
-      });
-      return;
-    }
-
-    try {
-      // Capturar o HTML atual da página
-      const htmlContent = document.documentElement.outerHTML;
-      
-      // Criar um Blob com o conteúdo HTML
-      const blob = new Blob([htmlContent], { type: 'text/html' });
-      
-      // Criar URL para download
-      const url = URL.createObjectURL(blob);
-      
-      // Criar elemento de link temporário para download
-      const a = document.createElement('a');
-      a.href = url;
-      a.download = `Matriz-Karmica-Completa-${userData.name || 'Usuario'}.html`;
-      document.body.appendChild(a);
-      
-      // Iniciar download
-      a.click();
-      
-      // Limpar
-      setTimeout(() => {
-        document.body.removeChild(a);
-        URL.revokeObjectURL(url);
-      }, 100);
-      
-      toast({
-        title: "Download iniciado",
-        description: "O download da página completa foi iniciado. Você pode hospedar este arquivo HTML em qualquer serviço."
-      });
-    } catch (err) {
-      console.error("Erro ao gerar arquivo para download:", err);
-      toast({
-        title: "Erro ao gerar arquivo",
-        description: "Não foi possível gerar o arquivo HTML completo para download.",
-        variant: "destructive"
-      });
-    }
-  };
-  
   if (loading) return <LoadingState />;
   if (error) return <ErrorState />;
   
@@ -231,17 +182,6 @@ const MatrixResult: React.FC = () => {
         handleCreateNewMap={handleCreateNewMap}
         handleDownloadPDF={handleDownloadPDF}
       />
-      
-      <div className="flex justify-end mb-6">
-        <Button 
-          onClick={handleDownloadFullHTML} 
-          variant="outline" 
-          className="flex items-center gap-2 bg-emerald-50 hover:bg-emerald-100 text-emerald-700 border-emerald-200"
-        >
-          <Download className="h-4 w-4" />
-          Baixar HTML para hospedar
-        </Button>
-      </div>
       
       <KarmicMatrix karmicData={karmicData} />
       <MatrixInterpretations karmicData={karmicData} />
