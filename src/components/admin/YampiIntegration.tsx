@@ -1,10 +1,10 @@
-
+<lov-code>
 import React, { useState, useRef, useEffect } from 'react';
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
-import { Download, ExternalLink, Archive } from "lucide-react";
+import { Download, ExternalLink, Archive, Webhook } from "lucide-react";
 import { useToast } from "@/components/ui/use-toast";
 import {
   Table,
@@ -23,6 +23,18 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card"
+import {
+  Tabs,
+  TabsContent,
+  TabsList,
+  TabsTrigger,
+} from "@/components/ui/tabs"
+import { AlertCircle } from "lucide-react"
+import {
+  Alert,
+  AlertDescription,
+  AlertTitle,
+} from "@/components/ui/alert"
 
 interface UserData {
   id: string;
@@ -48,6 +60,8 @@ const YampiIntegration = () => {
   const [selectedUserEmail, setSelectedUserEmail] = useState<string | null>(null);
   const [yampiApiKey, setYampiApiKey] = useState<string>('');
   const [yampiProductId, setYampiProductId] = useState<string>('');
+  const [yampiWebhookUrl, setYampiWebhookUrl] = useState<string>('');
+  const [netlifyDeploymentUrl, setNetlifyDeploymentUrl] = useState<string>('');
   const [previewVisible, setPreviewVisible] = useState<boolean>(false);
   const previewRef = useRef<HTMLIFrameElement>(null);
   const { toast } = useToast();
@@ -147,10 +161,10 @@ const YampiIntegration = () => {
     `;
   };
 
-  // New function to generate the complete HTML application
+  // New function to generate the complete HTML application with Netlify/Yampi webhook support
   const generateFullAppHTML = () => {
-    // Get the current URL's base path (without route)
-    const baseUrl = window.location.origin;
+    // Get webhook URL or default
+    const webhookUrl = yampiWebhookUrl || '/api/yampi-webhook';
     
     // Generate the HTML with all necessary components
     const fullHTML = `
@@ -378,21 +392,122 @@ const YampiIntegration = () => {
             const loginForm = document.getElementById('login-form');
             const profileForm = document.getElementById('profile-form');
             
-            // Lista de emails autorizados (em produção, isso seria verificado no servidor)
-            const authorizedEmails = ['teste@exemplo.com', 'cliente1@gmail.com', 'cliente2@gmail.com'];
+            // Base de dados local (em produção, isso seria verificado via API)
+            let userData = {};
             
-            // Simulação de banco de dados local
-            let userData = JSON.parse(localStorage.getItem('userData') || '{}');
+            // Verificar se há parâmetros na URL (para webhooks Yampi)
+            const urlParams = new URLSearchParams(window.location.search);
+            const yampiEmail = urlParams.get('email');
+            
+            // Função para verificar o email contra a API
+            async function checkEmailAccess(email) {
+                try {
+                    // Em produção, esta seria uma chamada real à API Netlify function
+                    // que validaria o acesso com a API da Yampi
+                    const webhookEndpoint = "${webhookUrl}";
+                    
+                    // Se estamos em modo de desenvolvimento local, simular verificação
+                    if (window.location.hostname === "localhost" || window.location.hostname === "127.0.0.1") {
+                        console.log("Modo de desenvolvimento, simulando verificação de email:", email);
+                        return { authorized: true };
+                    }
+                    
+                    // Em produção, fazer a chamada real à API
+                    const response = await fetch(webhookEndpoint, {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                        },
+                        body: JSON.stringify({ email })
+                    });
+                    
+                    if (!response.ok) {
+                        throw new Error('Erro ao verificar o email');
+                    }
+                    
+                    return await response.json();
+                } catch (error) {
+                    console.error("Erro na verificação:", error);
+                    // Em caso de erro, permitir acesso no modo de desenvolvimento
+                    if (window.location.hostname === "localhost" || window.location.hostname === "127.0.0.1") {
+                        return { authorized: true };
+                    }
+                    return { authorized: false, error: error.message };
+                }
+            }
+            
+            // Função para gerar os números kármicos baseado na data
+            function calculateKarmicNumbers(birthDate) {
+                // Esta seria a implementação real do cálculo dos números kármicos
+                // Para simplificar, usamos valores aleatórios
+                return {
+                    karmicSeal: Math.floor(Math.random() * 9) + 1,
+                    destinyCall: Math.floor(Math.random() * 9) + 1,
+                    karmaPortal: Math.floor(Math.random() * 9) + 1,
+                    karmicInheritance: Math.floor(Math.random() * 9) + 1,
+                    karmicReprogramming: Math.floor(Math.random() * 9) + 1,
+                    cycleProphecy: Math.floor(Math.random() * 9) + 1,
+                    spiritualMark: Math.floor(Math.random() * 9) + 1,
+                    manifestationEnigma: Math.floor(Math.random() * 9) + 1
+                };
+            }
+            
+            // Carregar dados do localStorage
+            try {
+                const storedData = localStorage.getItem('userData');
+                if (storedData) {
+                    userData = JSON.parse(storedData);
+                }
+            } catch (error) {
+                console.error("Erro ao carregar dados:", error);
+            }
+            
+            // Se vier um email via parâmetro Yampi, verificar e autenticar automaticamente
+            if (yampiEmail) {
+                console.log("Email recebido via parâmetro:", yampiEmail);
+                
+                // Verificar o email contra a API
+                checkEmailAccess(yampiEmail).then(result => {
+                    if (result.authorized) {
+                        // Email autorizado, verificar se já existe perfil
+                        if (userData[yampiEmail] && userData[yampiEmail].name) {
+                            // Já tem perfil, mostrar matriz
+                            loginPage.classList.add('hidden');
+                            profilePage.classList.add('hidden');
+                            matrixPage.classList.remove('hidden');
+                            
+                            // Carregar dados da matriz
+                            const karmicNumbers = userData[yampiEmail].karmicNumbers;
+                            updateMatrixDisplay(karmicNumbers);
+                        } else {
+                            // Não tem perfil, ir para página de perfil
+                            localStorage.setItem('currentUser', yampiEmail);
+                            loginPage.classList.add('hidden');
+                            profilePage.classList.remove('hidden');
+                        }
+                    } else {
+                        // Não autorizado, mostrar login normal
+                        if (result.error) {
+                            alert("Erro na verificação: " + result.error);
+                        }
+                    }
+                }).catch(error => {
+                    console.error("Erro ao processar verificação:", error);
+                });
+            }
             
             // Verificar se o usuário já está logado
             const currentUser = localStorage.getItem('currentUser');
-            if (currentUser) {
+            if (currentUser && !yampiEmail) {
                 const userProfile = userData[currentUser];
                 if (userProfile && userProfile.name) {
                     // Usuário já tem perfil, mostrar matriz
                     loginPage.classList.add('hidden');
                     profilePage.classList.add('hidden');
                     matrixPage.classList.remove('hidden');
+                    
+                    // Carregar dados da matriz
+                    updateMatrixDisplay(userProfile.karmicNumbers);
                 } else {
                     // Usuário logado mas sem perfil
                     loginPage.classList.add('hidden');
@@ -401,26 +516,77 @@ const YampiIntegration = () => {
                 }
             }
             
+            // Função para atualizar a exibição da matriz
+            function updateMatrixDisplay(karmicNumbers) {
+                if (!karmicNumbers) return;
+                
+                document.getElementById('matrix-content').innerHTML = \`
+                    <div class="matrix-grid">
+                        <div class="number-card">
+                            <h3>Selo Kármico</h3>
+                            <p>\${karmicNumbers.karmicSeal}</p>
+                        </div>
+                        <div class="number-card">
+                            <h3>Chamado do Destino</h3>
+                            <p>\${karmicNumbers.destinyCall}</p>
+                        </div>
+                        <div class="number-card">
+                            <h3>Portal do Karma</h3>
+                            <p>\${karmicNumbers.karmaPortal}</p>
+                        </div>
+                        <div class="number-card">
+                            <h3>Herança Kármica</h3>
+                            <p>\${karmicNumbers.karmicInheritance}</p>
+                        </div>
+                        <div class="number-card">
+                            <h3>Reprogramação Kármica</h3>
+                            <p>\${karmicNumbers.karmicReprogramming}</p>
+                        </div>
+                        <div class="number-card">
+                            <h3>Profecia do Ciclo</h3>
+                            <p>\${karmicNumbers.cycleProphecy}</p>
+                        </div>
+                        <div class="number-card">
+                            <h3>Marca Espiritual</h3>
+                            <p>\${karmicNumbers.spiritualMark}</p>
+                        </div>
+                        <div class="number-card">
+                            <h3>Enigma da Manifestação</h3>
+                            <p>\${karmicNumbers.manifestationEnigma}</p>
+                        </div>
+                    </div>
+                \`;
+            }
+            
             // Login
             if (loginForm) {
                 loginForm.addEventListener('submit', function(e) {
                     e.preventDefault();
                     const email = document.getElementById('email').value.toLowerCase();
                     
-                    if (authorizedEmails.includes(email)) {
-                        localStorage.setItem('currentUser', email);
-                        
-                        // Verificar se o usuário já tem perfil
-                        if (userData[email] && userData[email].name) {
-                            loginPage.classList.add('hidden');
-                            matrixPage.classList.remove('hidden');
+                    // Verificar o email contra a API
+                    checkEmailAccess(email).then(result => {
+                        if (result.authorized) {
+                            localStorage.setItem('currentUser', email);
+                            
+                            // Verificar se o usuário já tem perfil
+                            if (userData[email] && userData[email].name) {
+                                loginPage.classList.add('hidden');
+                                matrixPage.classList.remove('hidden');
+                                
+                                // Carregar dados da matriz
+                                updateMatrixDisplay(userData[email].karmicNumbers);
+                            } else {
+                                loginPage.classList.add('hidden');
+                                profilePage.classList.remove('hidden');
+                            }
                         } else {
-                            loginPage.classList.add('hidden');
-                            profilePage.classList.remove('hidden');
+                            alert('Este email não está autorizado.');
                         }
-                    } else {
-                        alert('Este email não está autorizado.');
-                    }
+                    }).catch(error => {
+                        console.error("Erro ao processar login:", error);
+                        alert('Erro ao verificar o email. Tente novamente.');
+                    });
                 });
             }
             
@@ -437,21 +603,14 @@ const YampiIntegration = () => {
                         return;
                     }
                     
+                    // Calcular números kármicos baseados na data
+                    const karmicNumbers = calculateKarmicNumbers(birthDate);
+                    
                     // Salvar dados do usuário
                     userData[email] = {
                         name: name,
                         birthDate: birthDate,
-                        // Em uma aplicação real, aqui calcularíamos os números kármicos
-                        karmicNumbers: {
-                            karmicSeal: Math.floor(Math.random() * 9) + 1,
-                            destinyCall: Math.floor(Math.random() * 9) + 1,
-                            karmaPortal: Math.floor(Math.random() * 9) + 1,
-                            karmicInheritance: Math.floor(Math.random() * 9) + 1,
-                            karmicReprogramming: Math.floor(Math.random() * 9) + 1,
-                            cycleProphecy: Math.floor(Math.random() * 9) + 1,
-                            spiritualMark: Math.floor(Math.random() * 9) + 1,
-                            manifestationEnigma: Math.floor(Math.random() * 9) + 1
-                        }
+                        karmicNumbers: karmicNumbers
                     };
                     
                     localStorage.setItem('userData', JSON.stringify(userData));
@@ -460,8 +619,8 @@ const YampiIntegration = () => {
                     profilePage.classList.add('hidden');
                     matrixPage.classList.remove('hidden');
                     
-                    // Em uma aplicação real, aqui recarregaríamos a matriz com os dados corretos
-                    window.location.reload();
+                    // Atualizar a exibição da matriz
+                    updateMatrixDisplay(karmicNumbers);
                 });
             }
             
@@ -481,6 +640,13 @@ const YampiIntegration = () => {
             });
         });
     </script>
+    
+    <!-- Netlify Functions detector - detecção automática de formulários do Netlify -->
+    <form name="yampi-webhook" netlify netlify-honeypot="bot-field" hidden>
+      <input type="email" name="email" />
+      <input type="text" name="order_id" />
+      <input type="text" name="product_id" />
+    </form>
 </body>
 </html>
 `;
@@ -628,139 +794,116 @@ const YampiIntegration = () => {
     }
   };
 
-  return (
-    <div className="space-y-6">
-      <Card>
-        <CardHeader>
-          <CardTitle>Yampi Integração</CardTitle>
-          <CardDescription>
-            Configure a integração com a Yampi para gerar a matriz kármica.
-          </CardDescription>
-        </CardHeader>
-        <CardContent className="grid gap-4">
-          <div className="grid gap-2">
-            <Label htmlFor="yampi-api-key">Yampi API Key</Label>
-            <Input
-              id="yampi-api-key"
-              value={yampiApiKey}
-              onChange={(e) => setYampiApiKey(e.target.value)}
-              placeholder="sk_live_..."
-            />
-          </div>
-          <div className="grid gap-2">
-            <Label htmlFor="yampi-product-id">Yampi Product ID</Label>
-            <Input
-              id="yampi-product-id"
-              value={yampiProductId}
-              onChange={(e) => setYampiProductId(e.target.value)}
-              placeholder="product_..."
-            />
-          </div>
-        </CardContent>
-        <CardFooter>
-          <Button>Salvar</Button>
-        </CardFooter>
-      </Card>
+  // Generate Netlify deployment files with webhook support
+  const generateNetlifyFiles = () => {
+    try {
+      // Generate the main application HTML
+      const appHTML = generateFullAppHTML();
       
-      <Table>
-        <TableCaption>Data de usuários mockados (localStorage)</TableCaption>
-        <TableHeader>
-          <TableRow>
-            <TableHead className="w-[100px]">Email</TableHead>
-            <TableHead>Nome</TableHead>
-            <TableHead>Data de Nascimento</TableHead>
-          </TableRow>
-        </TableHeader>
-        <TableBody>
-          {allUsersData.length > 0 ? (
-            allUsersData.map((user) => (
-              <TableRow 
-                key={user.email || 'unknown'} 
-                onClick={() => setSelectedUserEmail(user.email)}
-                className="cursor-pointer hover:bg-gray-50"
-              >
-                <TableCell className="font-medium">{user.email || 'N/A'}</TableCell>
-                <TableCell>{user.name || 'N/A'}</TableCell>
-                <TableCell>{user.birthDate || 'N/A'}</TableCell>
-              </TableRow>
-            ))
-          ) : (
-            <TableRow>
-              <TableCell colSpan={3} className="text-center py-4">
-                Nenhum usuário encontrado
-              </TableCell>
-            </TableRow>
-          )}
-        </TableBody>
-      </Table>
+      // Create a zip file containing:
+      // 1. index.html (the main application)
+      // 2. netlify.toml (configuration for Netlify)
+      // 3. functions/yampi-webhook.js (serverless function for Yampi webhook)
       
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-        <div className="space-y-2">
-          <h3 className="text-sm font-medium text-muted-foreground">Matriz</h3>
-          <Button 
-            variant="outline" 
-            size="sm" 
-            className="w-full" 
-            onClick={openInNewTab}
-          >
-            <ExternalLink className="h-3.5 w-3.5 mr-2" />
-            Ver Matriz em Nova Aba
-          </Button>
-        </div>
-        
-        <div className="space-y-2">
-          <h3 className="text-sm font-medium text-muted-foreground">Template HTML Básico</h3>
-          <Button 
-            variant="outline" 
-            size="sm" 
-            className="w-full"
-            onClick={downloadTemplate}
-          >
-            <Download className="h-3.5 w-3.5 mr-2" />
-            Baixar HTML Template
-          </Button>
-        </div>
-        
-        <div className="space-y-2">
-          <h3 className="text-sm font-medium text-muted-foreground">HTML do Usuário</h3>
-          <Button 
-            variant="outline" 
-            size="sm" 
-            className="w-full"
-            onClick={downloadMatrixHTML}
-          >
-            <Download className="h-3.5 w-3.5 mr-2" />
-            Baixar HTML Usuário
-          </Button>
-        </div>
+      // First, create the netlify.toml content
+      const netlifyToml = `[build]
+  functions = "functions"
+  publish = "."
 
-        <div className="space-y-2">
-          <h3 className="text-sm font-medium text-muted-foreground">Aplicação Completa</h3>
-          <Button 
-            variant="outline" 
-            size="sm" 
-            className="w-full bg-karmic-100 hover:bg-karmic-200"
-            onClick={downloadFullApp}
-          >
-            <Archive className="h-3.5 w-3.5 mr-2" />
-            Baixar Aplicação Completa
-          </Button>
-        </div>
-      </div>
+[[redirects]]
+  from = "/api/*"
+  to = "/.netlify/functions/:splat"
+  status = 200
+`;
       
-      {previewVisible && (
-        <div className="border rounded-md p-4">
-          <h3 className="text-sm font-medium text-muted-foreground">Preview</h3>
-          <iframe
-            ref={previewRef}
-            title="Matrix Preview"
-            width="100%"
-            height="500px"
-          />
-        </div>
-      )}
-    </div>
-  );
+      // Create the Yampi webhook function
+      const yampiWebhookJs = `exports.handler = async (event, context) => {
+  // Only allow POST requests
+  if (event.httpMethod !== "POST") {
+    return {
+      statusCode: 405,
+      body: JSON.stringify({ error: "Method not allowed" })
+    };
+  }
+
+  try {
+    // Parse the request body
+    const payload = JSON.parse(event.body);
+    console.log("Received webhook payload:", payload);
+    
+    // Check if we have an email to validate
+    if (!payload.email) {
+      return {
+        statusCode: 400,
+        body: JSON.stringify({ error: "Email is required" })
+      };
+    }
+    
+    // In a real implementation, here you would:
+    // 1. Connect to the Yampi API to verify the order
+    // 2. Check if the email has purchased the product
+    // 3. Return authorization result
+    
+    // For this example, we're simply authorizing all requests
+    // Replace this with actual Yampi API verification in production
+    
+    return {
+      statusCode: 200,
+      headers: {
+        "Content-Type": "application/json"
+      },
+      body: JSON.stringify({
+        authorized: true,
+        message: "User is authorized"
+      })
+    };
+  } catch (error) {
+    console.error("Error processing webhook:", error);
+    
+    return {
+      statusCode: 500,
+      body: JSON.stringify({ error: "Internal server error", details: error.message })
+    };
+  }
 };
+`;
+      
+      // Create a README with deployment instructions
+      const readmeContent = `# Matriz Kármica - Aplicação Netlify com Webhook Yampi
 
-export default YampiIntegration;
+## Instruções de Implantação
+
+1. Extraia este arquivo ZIP
+2. Faça upload da pasta para o GitHub ou diretamente para o Netlify
+3. No Netlify, configure a implantação:
+   - Se usar GitHub: Conecte o repositório
+   - Se upload direto: Arraste e solte a pasta no painel do Netlify
+
+## Configuração do Webhook Yampi
+
+1. No painel da Yampi, vá até Configurações > Webhooks
+2. Adicione um novo webhook com o seguinte URL:
+   \`https://seu-site-netlify.netlify.app/api/yampi-webhook\`
+3. Configure os eventos para disparar em "Novo Pedido" 
+
+## Teste da Integração
+
+Para testar a integração, você pode:
+
+1. Fazer uma compra de teste na Yampi
+2. Verificar os logs da função no painel do Netlify (Functions > yampi-webhook > Logs)
+3. Acessar sua aplicação com o parâmetro de email:
+   \`https://seu-site-netlify.netlify.app/?email=cliente@exemplo.com\`
+
+## Personalização
+
+Edite os seguintes arquivos conforme necessário:
+
+- \`index.html\`: A aplicação principal
+- \`functions/yampi-webhook.js\`: Lógica de verificação do webhook
+- \`netlify.toml\`: Configuração do Netlify
+`;
+      
+      // Create a zip file containing all these files
+      const zip = window.Blob([
+        // This
