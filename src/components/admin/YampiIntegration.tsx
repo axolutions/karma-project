@@ -1,4 +1,4 @@
-<lov-code>
+
 import React, { useState, useRef, useEffect } from 'react';
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -904,6 +904,275 @@ Edite os seguintes arquivos conforme necessário:
 - \`netlify.toml\`: Configuração do Netlify
 `;
       
-      // Create a zip file containing all these files
-      const zip = window.Blob([
-        // This
+      // TODO: Implement actual ZIP file creation logic 
+      // For now we'll just notify the user about the files
+      toast({
+        title: "Arquivos Netlify",
+        description: "Arquivos para implantação no Netlify foram gerados. Implemente a funcionalidade de exportar ZIP em uma versão futura."
+      });
+    } catch (err) {
+      console.error("Erro ao gerar arquivos Netlify:", err);
+      toast({
+        title: "Erro",
+        description: "Não foi possível gerar os arquivos para implantação no Netlify.",
+        variant: "destructive"
+      });
+    }
+  };
+
+  return (
+    <div className="space-y-6">
+      <Alert className="bg-amber-50 border-amber-200 mb-6">
+        <AlertCircle className="h-4 w-4 text-amber-600" />
+        <AlertTitle className="text-amber-800">Configuração do Yampi</AlertTitle>
+        <AlertDescription className="text-amber-700">
+          Configure a integração com Yampi e o webhook no Netlify para processar pagamentos.
+        </AlertDescription>
+      </Alert>
+
+      <Tabs defaultValue="preview">
+        <TabsList className="w-full mb-6">
+          <TabsTrigger value="preview" className="flex-1">Visualizar Matriz</TabsTrigger>
+          <TabsTrigger value="download" className="flex-1">Download HTML</TabsTrigger>
+          <TabsTrigger value="config" className="flex-1">Configuração Yampi</TabsTrigger>
+          <TabsTrigger value="netlify" className="flex-1">Configuração Netlify</TabsTrigger>
+        </TabsList>
+        
+        <TabsContent value="preview" className="space-y-4">
+          <Card>
+            <CardHeader>
+              <CardTitle>Selecione um usuário</CardTitle>
+              <CardDescription>
+                Escolha um usuário para visualizar sua matriz kármica
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <div className="mb-4">
+                <Label htmlFor="userSelect">Usuário</Label>
+                <select 
+                  id="userSelect"
+                  className="w-full p-2 border border-gray-300 rounded mt-1"
+                  value={selectedUserEmail || ''}
+                  onChange={(e) => setSelectedUserEmail(e.target.value || null)}
+                >
+                  <option value="">Selecione um usuário</option>
+                  {allUsersData.map(user => (
+                    <option key={user.email} value={user.email}>
+                      {user.name} ({user.email})
+                    </option>
+                  ))}
+                </select>
+              </div>
+              
+              {userData && (
+                <div className="p-4 bg-gray-50 rounded-lg">
+                  <h3 className="font-medium mb-2">Dados do usuário:</h3>
+                  <p><strong>Nome:</strong> {userData.name}</p>
+                  <p><strong>Email:</strong> {userData.email}</p>
+                  {userData.birthDate && (
+                    <p><strong>Data de nascimento:</strong> {userData.birthDate}</p>
+                  )}
+                </div>
+              )}
+            </CardContent>
+            <CardFooter className="flex justify-between">
+              <Button 
+                variant="outline"
+                onClick={openInNewTab}
+                className="flex items-center gap-2"
+              >
+                <ExternalLink className="h-4 w-4" />
+                Abrir em Nova Aba
+              </Button>
+              
+              <Button
+                onClick={downloadMatrixHTML}
+                className="flex items-center gap-2"
+              >
+                <Download className="h-4 w-4" />
+                Baixar HTML da Matriz
+              </Button>
+            </CardFooter>
+          </Card>
+          
+          {previewVisible && (
+            <div className="border rounded-lg overflow-hidden bg-white p-4">
+              <div className="flex justify-between items-center mb-4">
+                <h3 className="font-medium">Preview da Matriz</h3>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => setPreviewVisible(false)}
+                >
+                  Fechar
+                </Button>
+              </div>
+              <div className="border rounded">
+                <iframe
+                  ref={previewRef}
+                  title="Matrix Preview"
+                  className="w-full h-[500px]"
+                />
+              </div>
+            </div>
+          )}
+        </TabsContent>
+        
+        <TabsContent value="download">
+          <Card>
+            <CardHeader>
+              <CardTitle>Download de Templates</CardTitle>
+              <CardDescription>
+                Baixe templates HTML para usar com sua aplicação
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div className="p-4 border rounded-lg bg-gray-50">
+                <h3 className="font-medium mb-2 flex items-center gap-2">
+                  <Archive className="h-4 w-4" />
+                  Template Básico
+                </h3>
+                <p className="text-sm text-gray-600 mb-4">
+                  Template HTML básico para exibição da matriz kármica.
+                </p>
+                <Button 
+                  variant="outline"
+                  onClick={downloadTemplate}
+                  className="flex items-center gap-2"
+                >
+                  <Download className="h-4 w-4" />
+                  Baixar Template Básico
+                </Button>
+              </div>
+              
+              <div className="p-4 border rounded-lg bg-gray-50">
+                <h3 className="font-medium mb-2 flex items-center gap-2">
+                  <Archive className="h-4 w-4" />
+                  Aplicação Completa
+                </h3>
+                <p className="text-sm text-gray-600 mb-4">
+                  Aplicação HTML completa com login, formulário de perfil e exibição da matriz.
+                </p>
+                <Button 
+                  onClick={downloadFullApp}
+                  className="flex items-center gap-2"
+                >
+                  <Download className="h-4 w-4" />
+                  Baixar Aplicação Completa
+                </Button>
+              </div>
+            </CardContent>
+          </Card>
+        </TabsContent>
+        
+        <TabsContent value="config">
+          <Card>
+            <CardHeader>
+              <CardTitle>Configuração Yampi</CardTitle>
+              <CardDescription>
+                Configure os parâmetros de integração com a Yampi
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div>
+                <Label htmlFor="apiKey">Chave de API Yampi</Label>
+                <Input
+                  id="apiKey"
+                  value={yampiApiKey}
+                  onChange={(e) => setYampiApiKey(e.target.value)}
+                  placeholder="Insira sua chave de API da Yampi"
+                />
+                <p className="text-xs text-gray-500 mt-1">
+                  A chave de API pode ser obtida no painel de desenvolvedor da Yampi.
+                </p>
+              </div>
+              
+              <div>
+                <Label htmlFor="productId">ID do Produto</Label>
+                <Input
+                  id="productId"
+                  value={yampiProductId}
+                  onChange={(e) => setYampiProductId(e.target.value)}
+                  placeholder="ID do produto na Yampi"
+                />
+                <p className="text-xs text-gray-500 mt-1">
+                  ID do produto que você está vendendo na Yampi.
+                </p>
+              </div>
+              
+              <div>
+                <Label htmlFor="webhookUrl">URL do Webhook</Label>
+                <Input
+                  id="webhookUrl"
+                  value={yampiWebhookUrl}
+                  onChange={(e) => setYampiWebhookUrl(e.target.value)}
+                  placeholder="https://seu-site.com/api/yampi-webhook"
+                />
+                <p className="text-xs text-gray-500 mt-1">
+                  URL onde a Yampi vai enviar notificações de pedidos. Por padrão será /api/yampi-webhook.
+                </p>
+              </div>
+            </CardContent>
+            <CardFooter>
+              <Button className="w-full">Salvar Configurações</Button>
+            </CardFooter>
+          </Card>
+        </TabsContent>
+        
+        <TabsContent value="netlify">
+          <Card>
+            <CardHeader>
+              <CardTitle>Configuração Netlify</CardTitle>
+              <CardDescription>
+                Configure a implantação no Netlify com webhook da Yampi
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div>
+                <Label htmlFor="deploymentUrl">URL de Implantação</Label>
+                <Input
+                  id="deploymentUrl"
+                  value={netlifyDeploymentUrl}
+                  onChange={(e) => setNetlifyDeploymentUrl(e.target.value)}
+                  placeholder="https://seu-site.netlify.app"
+                />
+                <p className="text-xs text-gray-500 mt-1">
+                  URL do seu site no Netlify onde a aplicação será implantada.
+                </p>
+              </div>
+              
+              <div className="p-4 border rounded-lg bg-gray-50">
+                <h3 className="font-medium mb-2 flex items-center gap-2">
+                  <Webhook className="h-4 w-4" />
+                  Arquivos para Implantação
+                </h3>
+                <p className="text-sm text-gray-600 mb-4">
+                  Gere os arquivos necessários para implantar no Netlify com suporte a webhook da Yampi.
+                </p>
+                <Button 
+                  onClick={generateNetlifyFiles}
+                  className="flex items-center gap-2"
+                >
+                  <Download className="h-4 w-4" />
+                  Gerar Arquivos Netlify
+                </Button>
+              </div>
+              
+              <div className="p-4 border-l-4 border-blue-400 bg-blue-50 rounded-r-lg">
+                <h3 className="font-medium text-blue-700 mb-2">Instruções de Implantação</h3>
+                <ol className="list-decimal list-inside space-y-2 text-sm text-blue-700">
+                  <li>Baixe os arquivos gerados para implantação</li>
+                  <li>Faça upload para o Netlify através do painel</li>
+                  <li>Configure os webhooks na Yampi apontando para sua URL Netlify</li>
+                  <li>Teste a integração fazendo uma compra de teste</li>
+                </ol>
+              </div>
+            </CardContent>
+          </Card>
+        </TabsContent>
+      </Tabs>
+    </div>
+  );
+};
+
+export default YampiIntegration;
