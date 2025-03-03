@@ -2,8 +2,14 @@
 import React from 'react';
 import { Button } from '../ui/button';
 import { toast } from 'sonner';
-import { Download } from 'lucide-react';
+import { Download, HelpCircle } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
+import { 
+  Accordion,
+  AccordionContent,
+  AccordionItem,
+  AccordionTrigger,
+} from "../ui/accordion";
 
 export const ElementorExport = () => {
   const navigate = useNavigate();
@@ -538,25 +544,108 @@ document.addEventListener('DOMContentLoaded', function() {
   return (
     <div className="p-6 bg-white rounded-lg shadow">
       <h2 className="text-2xl font-bold mb-4 text-purple-800">Exportação para Elementor</h2>
+      
+      <div className="mb-6 p-4 bg-amber-50 border border-amber-200 rounded-md">
+        <div className="flex items-start space-x-2">
+          <HelpCircle className="h-5 w-5 text-amber-600 mt-0.5 flex-shrink-0" />
+          <div>
+            <h3 className="font-medium text-amber-800">Importante: Como Publicar no Elementor</h3>
+            <p className="text-amber-700 text-sm mt-1">
+              Após importar o HTML no Elementor, você <strong>precisa clicar no botão "Publicar"</strong> ou "Atualizar" 
+              no canto inferior direito da tela do Elementor para que as alterações fiquem visíveis no seu site.
+            </p>
+          </div>
+        </div>
+      </div>
+      
       <p className="mb-4 text-gray-700">
         Exporte um arquivo HTML otimizado para ser usado com o widget HTML do Elementor.
       </p>
-      <p className="mb-6 text-gray-600 text-sm">
-        Depois de baixar o arquivo HTML, siga estas etapas:
-        <ol className="list-decimal pl-5 mt-2 space-y-1">
-          <li>Abra o arquivo em um editor de texto (como Bloco de Notas, VS Code)</li>
-          <li>Copie todo o código</li>
-          <li>No WordPress, adicione um widget "HTML" do Elementor à sua página</li>
-          <li>Cole o código no widget HTML</li>
-          <li>Configure as seções de CSS e JavaScript do Elementor conforme indicado nos comentários</li>
-        </ol>
-      </p>
+      
+      <Accordion type="single" collapsible className="mb-6">
+        <AccordionItem value="instructions">
+          <AccordionTrigger className="text-purple-700">
+            Instruções passo a passo para publicar
+          </AccordionTrigger>
+          <AccordionContent className="text-gray-600 space-y-4">
+            <ol className="list-decimal pl-5 space-y-3">
+              <li>
+                <strong>Baixe o arquivo HTML</strong> clicando no botão abaixo
+              </li>
+              <li>
+                <strong>Abra o arquivo</strong> em um editor de texto (como Bloco de Notas, VS Code)
+              </li>
+              <li>
+                <strong>Copie todo o código</strong> do arquivo
+              </li>
+              <li>
+                <strong>No WordPress:</strong>
+                <ul className="list-disc pl-5 mt-1 space-y-1">
+                  <li>Vá para o editor Elementor da página onde deseja adicionar a Matriz Kármica</li>
+                  <li>Adicione um widget "HTML" do Elementor à sua página</li>
+                  <li>Cole o código copiado no widget HTML</li>
+                </ul>
+              </li>
+              <li>
+                <strong>Configure o CSS e JavaScript</strong> seguindo as instruções nos comentários do código
+              </li>
+              <li className="font-medium text-purple-800">
+                <strong>Importante: Clique no botão "PUBLICAR" ou "ATUALIZAR"</strong> no canto inferior direito do Elementor
+              </li>
+              <li>
+                Agora sua Matriz Kármica estará funcionando no seu site WordPress!
+              </li>
+            </ol>
+            
+            <div className="bg-gray-100 p-3 rounded-md mt-3">
+              <p className="text-sm text-gray-600 italic">
+                Se o botão Publicar/Atualizar estiver acinzentado (desativado), tente fazer uma pequena alteração em qualquer elemento da página para ativá-lo, como adicionar um espaço em um texto ou mover ligeiramente um elemento.
+              </p>
+            </div>
+          </AccordionContent>
+        </AccordionItem>
+        
+        <AccordionItem value="troubleshooting">
+          <AccordionTrigger className="text-purple-700">
+            Problemas comuns e soluções
+          </AccordionTrigger>
+          <AccordionContent className="text-gray-600">
+            <ul className="space-y-3">
+              <li>
+                <strong>Problema:</strong> O conteúdo aparece no editor, mas não no site publicado.
+                <br />
+                <strong>Solução:</strong> Certifique-se de clicar no botão "Publicar" ou "Atualizar" após fazer alterações.
+              </li>
+              <li>
+                <strong>Problema:</strong> O botão "Publicar" ou "Atualizar" está desativado.
+                <br />
+                <strong>Solução:</strong> Faça uma pequena alteração em qualquer elemento da página para ativar o botão de publicação.
+              </li>
+              <li>
+                <strong>Problema:</strong> Os estilos não estão sendo aplicados corretamente.
+                <br />
+                <strong>Solução:</strong> Verifique se você adicionou o código CSS no local correto, conforme indicado nos comentários do HTML.
+              </li>
+              <li>
+                <strong>Problema:</strong> A funcionalidade não está funcionando (botões não respondem).
+                <br />
+                <strong>Solução:</strong> Certifique-se de que o código JavaScript foi adicionado corretamente e que não há erros no console do navegador.
+              </li>
+            </ul>
+          </AccordionContent>
+        </AccordionItem>
+      </Accordion>
+      
       <Button 
         onClick={generateElementorHTML}
         className="w-full bg-purple-700 hover:bg-purple-800"
       >
         <Download className="mr-2 h-4 w-4" /> Baixar HTML para Elementor
       </Button>
+      
+      <p className="mt-4 text-sm text-center text-gray-500">
+        Após baixar e importar, não esqueça de clicar em "Publicar" ou "Atualizar" no Elementor!
+      </p>
     </div>
   );
 };
