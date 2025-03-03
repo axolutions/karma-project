@@ -10,7 +10,7 @@ import { toast } from 'sonner';
 import { useNavigate } from 'react-router-dom';
 import { Separator } from '../components/ui/separator';
 import { Button } from '../components/ui/button';
-import { LogOut } from 'lucide-react';
+import { LogOut, Home } from 'lucide-react';
 import { Input } from '../components/ui/input';
 
 export default function Admin() {
@@ -26,13 +26,15 @@ export default function Admin() {
     if (savedAuth === 'true') {
       setIsAuthenticated(true);
     }
+    
+    console.log("Admin page loaded. Auth status:", savedAuth === 'true');
   }, []);
 
   const handleLogin = () => {
     setIsLoading(true);
     setError(null);
     
-    // Senha fixa para acesso administrativo
+    // Simplified password for testing
     const correctPassword = "admin123";
     
     if (adminPassword === correctPassword) {
@@ -51,6 +53,10 @@ export default function Admin() {
     localStorage.removeItem('adminAuthenticated');
     setIsAuthenticated(false);
     toast.success("Sessão administrativa encerrada");
+    navigate('/');
+  };
+
+  const handleGoToHome = () => {
     navigate('/');
   };
 
@@ -92,6 +98,13 @@ export default function Admin() {
             <p className="text-xs text-center text-gray-500 mt-2">
               A senha de administrador é: <strong>admin123</strong>
             </p>
+            <Button 
+              variant="outline" 
+              onClick={handleGoToHome} 
+              className="w-full mt-4"
+            >
+              <Home className="h-4 w-4 mr-2" /> Voltar para a Página Inicial
+            </Button>
           </div>
         </div>
       </div>
@@ -103,9 +116,14 @@ export default function Admin() {
     <div className="container mx-auto p-4 max-w-6xl">
       <div className="flex justify-between items-center mb-6">
         <h1 className="text-3xl font-bold text-primary">Painel Administrativo</h1>
-        <Button variant="outline" onClick={handleLogout} className="text-red-500 hover:text-red-700">
-          <LogOut className="h-4 w-4 mr-2" /> Sair
-        </Button>
+        <div className="flex space-x-3">
+          <Button variant="outline" onClick={handleGoToHome}>
+            <Home className="h-4 w-4 mr-2" /> Página Inicial
+          </Button>
+          <Button variant="outline" onClick={handleLogout} className="text-red-500 hover:text-red-700">
+            <LogOut className="h-4 w-4 mr-2" /> Sair
+          </Button>
+        </div>
       </div>
       
       <Tabs defaultValue="emails" className="space-y-6">

@@ -66,6 +66,7 @@ const App = () => {
                 </ProtectedUserRoute>
               } 
             />
+            {/* Admin route without protection for easier access */}
             <Route path="/admin" element={<Admin />} />
             <Route path="*" element={<NotFound />} />
           </Routes>
