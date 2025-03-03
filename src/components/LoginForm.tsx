@@ -3,7 +3,7 @@ import React, { useState } from 'react';
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { login, getUserData, isAuthorizedEmail, saveUserData } from '@/lib/auth';
-import { toast } from "@/components/ui/use-toast";
+import { useToast } from "@/components/ui/use-toast";
 import { useNavigate } from 'react-router-dom';
 import { MoveRight } from "lucide-react";
 
@@ -11,6 +11,7 @@ const LoginForm: React.FC = () => {
   const [email, setEmail] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
   const navigate = useNavigate();
+  const { toast } = useToast();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -68,18 +69,11 @@ const LoginForm: React.FC = () => {
       userData = getUserData(normalizedEmail);
       console.log("Obtendo dados do usuário. Email:", normalizedEmail, "Dados:", userData);
       
-      // Garantindo que o redirecionamento aconteça após um pequeno delay
       setTimeout(() => {
         setIsSubmitting(false);
-        if (userData && userData.name) {
-          // User already has a profile, redirect to matrix
-          console.log("Redirecionando para /matrix porque o usuário já tem perfil");
-          navigate('/matrix');
-        } else {
-          // User needs to fill profile, refresh page to show profile form
-          console.log("Recarregando a página para mostrar o formulário de perfil");
-          window.location.reload(); // Força recarregamento para exibir o formulário de perfil
-        }
+        // Agora não redirecionamos automaticamente para a matriz
+        // Em vez disso, atualizamos a página para mostrar o estado correto
+        window.location.reload();
       }, 1000);
     } else {
       console.log("Falha no login para:", normalizedEmail);

@@ -27,12 +27,9 @@ const Index = () => {
           const userData = getUserData(email);
           console.log("Index: Dados do usuário:", userData);
           if (userData && userData.name) {
-            console.log("Usuário já tem perfil, redirecionando para matriz");
+            console.log("Usuário já tem perfil completo");
             setHasProfile(true);
-            // Redirect to matrix page with a small delay to ensure state is updated
-            setTimeout(() => {
-              navigate('/matrix');
-            }, 100);
+            // Não redirecionamos automaticamente - forçamos o usuário a fazer uma ação explícita
           } else {
             console.log("Usuário logado, mas sem perfil");
             setHasProfile(false);
@@ -79,6 +76,11 @@ const Index = () => {
     );
   }
 
+  // Função para navegar para a matriz quando o usuário tiver feito login e tiver perfil
+  const handleAccessMatrix = () => {
+    navigate('/matrix');
+  };
+
   return (
     <div className="min-h-screen bg-gradient-to-b from-karmic-100 to-white py-12">
       <div className="container max-w-5xl mx-auto px-4">
@@ -93,11 +95,23 @@ const Index = () => {
           <h2 className="text-2xl font-serif text-center text-karmic-800 mb-6">
             {userLoggedIn && !hasProfile 
               ? 'Complete seu Perfil'
-              : 'Acesse sua Matriz Kármica'}
+              : userLoggedIn && hasProfile
+                ? 'Acesse sua Matriz Kármica'
+                : 'Faça Login para Acessar'}
           </h2>
           
           {userLoggedIn && !hasProfile ? (
             <ProfileForm />
+          ) : userLoggedIn && hasProfile ? (
+            <div className="text-center">
+              <p className="mb-4 text-karmic-600">Você já está logado e seu perfil está completo.</p>
+              <button 
+                onClick={handleAccessMatrix}
+                className="karmic-button w-full group"
+              >
+                Acessar Minha Matriz Kármica
+              </button>
+            </div>
           ) : (
             <LoginForm />
           )}

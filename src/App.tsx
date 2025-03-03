@@ -15,7 +15,9 @@ const queryClient = new QueryClient();
 
 // Protected route component for users
 const ProtectedUserRoute = ({ children }: { children: React.ReactNode }) => {
+  // Modified to ensure proper redirection
   if (!isLoggedIn()) {
+    console.log("Usuário não autenticado. Redirecionando para a página inicial.");
     return <Navigate to="/" replace />;
   }
   
