@@ -1,5 +1,5 @@
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '../components/ui/tabs';
 import EmailManager from '../components/admin/EmailManager';
 import InterpretationEditor from '../components/admin/InterpretationEditor';
@@ -11,18 +11,92 @@ import { useNavigate } from 'react-router-dom';
 import { Separator } from '../components/ui/separator';
 import { Button } from '../components/ui/button';
 import { LogOut } from 'lucide-react';
+import { Input } from '../components/ui/input';
 
 export default function Admin() {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const [adminPassword, setAdminPassword] = useState("");
   const navigate = useNavigate();
+
+  useEffect(() => {
+    // Verificar se já está autenticado pelo localStorage
+    const savedAuth = localStorage.getItem('adminAuthenticated');
+    if (savedAuth === 'true') {
+      setIsAuthenticated(true);
+    }
+  }, []);
+
+  const handleLogin = () => {
+    setIsLoading(true);
+    setError(null);
+    
+    // Senha simples para demonstração - em produção, use um sistema mais robusto
+    if (adminPassword === "admin123") {
+      localStorage.setItem('adminAuthenticated', 'true');
+      setIsAuthenticated(true);
+      toast.success("Login administrativo realizado com sucesso");
+    } else {
+      setError("Senha incorreta! Tente novamente.");
+      toast.error("Senha incorreta! Tente novamente.");
+    }
+    
+    setIsLoading(false);
+  };
 
   const handleLogout = () => {
     localStorage.removeItem('adminAuthenticated');
+    setIsAuthenticated(false);
     toast.success("Sessão administrativa encerrada");
     navigate('/');
   };
 
+  // Se não estiver autenticado, mostrar tela de login
+  if (!isAuthenticated) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-gray-50">
+        <div className="bg-white p-8 rounded-lg shadow-md max-w-md w-full">
+          <h1 className="text-2xl font-bold text-center mb-6 text-primary">Acesso Administrativo</h1>
+          <div className="space-y-4">
+            <div>
+              <label htmlFor="password" className="block text-sm font-medium text-gray-700 mb-1">
+                Senha de Administrador
+              </label>
+              <Input
+                type="password"
+                id="password"
+                value={adminPassword}
+                onChange={(e) => setAdminPassword(e.target.value)}
+                className="w-full"
+                placeholder="Digite a senha de administrador"
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter') {
+                    handleLogin();
+                  }
+                }}
+              />
+            </div>
+            {error && (
+              <p className="text-sm text-red-500">{error}</p>
+            )}
+            <Button
+              onClick={handleLogin}
+              className="w-full"
+              disabled={isLoading}
+            >
+              {isLoading ? "Verificando..." : "Entrar"}
+            </Button>
+            <p className="text-xs text-center text-gray-500 mt-2">
+              Para fins de teste, use a senha: admin123
+            </p>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  // Se estiver autenticado, mostrar o painel administrativo
   return (
     <div className="container mx-auto p-4 max-w-6xl">
       <div className="flex justify-between items-center mb-6">
