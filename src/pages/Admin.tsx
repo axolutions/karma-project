@@ -1,8 +1,9 @@
+
 import React, { useState } from 'react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '../components/ui/tabs';
-import { EmailManager } from '../components/admin/EmailManager';
-import { InterpretationEditor } from '../components/admin/InterpretationEditor';
-import { YampiIntegration } from '../components/admin/YampiIntegration';
+import EmailManager from '../components/admin/EmailManager';
+import InterpretationEditor from '../components/admin/InterpretationEditor';
+import YampiIntegration from '../components/admin/YampiIntegration';
 import { ElementorExport } from '../components/admin/ElementorExport';
 import { Card } from '../components/ui/card';
 import { toast } from 'sonner';
