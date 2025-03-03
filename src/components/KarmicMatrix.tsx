@@ -46,12 +46,12 @@ const KarmicMatrix: React.FC<KarmicMatrixProps> = ({
   const numberPositions = {
     karmicSeal: { top: "5.5%", left: "47%" },       // selo_karmico
     destinyCall: { top: "24%", left: "25%" },       // chamado_destino
-    karmaPortal: { top: "24%", left: "77%" },       // portal_karma
+    karmaPortal: { top: "24%", left: "72%" },       // portal_karma - movido para esquerda
     karmicInheritance: { top: "48%", left: "25%" }, // heranca_karmica
-    karmicReprogramming: { top: "52%", left: "47%" }, // codex_reprogramacao - movido mais para baixo
-    cycleProphecy: { top: "55%", left: "83%" },     // profecia_ciclos - movido muito mais para baixo
-    spiritualMark: { top: "72%", left: "25%" },     // marca_espiritual - movido um pouco mais para baixo
-    manifestationEnigma: { top: "68%", left: "77%" } // enigma_manifestacao
+    karmicReprogramming: { top: "60%", left: "47%" }, // codex_reprogramacao - movido bastante para baixo
+    cycleProphecy: { top: "65%", left: "73%" },     // profecia_ciclos - movido bastante para baixo e para esquerda
+    spiritualMark: { top: "72%", left: "25%" },     // marca_espiritual
+    manifestationEnigma: { top: "64%", left: "72%" } // enigma_manifestacao - movido para cima e para esquerda
   };
 
   // Mapeamento entre nossos nomes de chaves e os do HTML
