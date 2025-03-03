@@ -616,6 +616,711 @@ const Admin = () => {
       });
     }
   };
+
+  // Nova função para gerar um sistema completo para Elementor
+  const handleDownloadElementorSystem = () => {
+    try {
+      setIsDownloading(true);
+      // Gerar um HTML ainda mais completo otimizado para ser importado no Elementor
+      const elementorHTML = `
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sistema Matriz Kármica Completo</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <style>
+        /* Estilos básicos do sistema */
+        :root {
+            --primary-color: #6D28D9;
+            --primary-color-light: #8B5CF6;
+            --primary-color-dark: #5B21B6;
+            --background-color: #F5F3FF;
+            --text-color: #1F2937;
+            --text-color-light: #6B7280;
+            --card-bg: #FFFFFF;
+            --border-color: #E5E7EB;
+            --shadow: 0 4px 12px rgba(0,0,0,0.05);
+            --radius: 10px;
+            --spacing: 20px;
+        }
+        
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, var(--background-color), #FFFFFF);
+            color: var(--text-color);
+            line-height: 1.6;
+            min-height: 100vh;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: var(--spacing);
+        }
+        
+        h1, h2, h3, h4, h5 {
+            font-family: 'Georgia', serif;
+            color: var(--primary-color-dark);
+            margin-bottom: 0.5em;
+        }
+        
+        p {
+            margin-bottom: 1em;
+        }
+        
+        .btn {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            padding: 10px 20px;
+            background-color: var(--primary-color);
+            color: white;
+            border: none;
+            border-radius: var(--radius);
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            text-decoration: none;
+        }
+        
+        .btn:hover {
+            background-color: var(--primary-color-dark);
+            transform: translateY(-2px);
+        }
+        
+        .btn i {
+            margin-right: 8px;
+        }
+        
+        .btn-outline {
+            background-color: transparent;
+            color: var(--primary-color);
+            border: 1px solid var(--primary-color);
+        }
+        
+        .btn-outline:hover {
+            background-color: var(--primary-color);
+            color: white;
+        }
+        
+        /* Layout específico */
+        .app-wrapper {
+            display: flex;
+            min-height: 100vh;
+        }
+        
+        .sidebar {
+            width: 250px;
+            background-color: var(--card-bg);
+            border-right: 1px solid var(--border-color);
+            padding: var(--spacing);
+            display: none;
+        }
+        
+        .sidebar.active {
+            display: block;
+        }
+        
+        .main-content {
+            flex: 1;
+            padding: var(--spacing);
+            position: relative;
+        }
+        
+        /* Formulários */
+        .form-container {
+            background-color: var(--card-bg);
+            border-radius: var(--radius);
+            box-shadow: var(--shadow);
+            padding: 30px;
+            max-width: 500px;
+            margin: 40px auto;
+            border: 1px solid var(--border-color);
+        }
+        
+        .form-field {
+            margin-bottom: 20px;
+        }
+        
+        .form-field label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 500;
+            color: var(--text-color);
+        }
+        
+        .form-field input {
+            width: 100%;
+            padding: 12px;
+            border: 1px solid var(--border-color);
+            border-radius: calc(var(--radius) / 2);
+            font-size: 16px;
+            transition: all 0.2s ease;
+        }
+        
+        .form-field input:focus {
+            outline: none;
+            border-color: var(--primary-color-light);
+            box-shadow: 0 0 0 3px rgba(139, 92, 246, 0.2);
+        }
+        
+        /* Matrix */
+        .matrix-container {
+            background-color: var(--card-bg);
+            border-radius: var(--radius);
+            box-shadow: var(--shadow);
+            padding: 30px;
+            margin-top: 40px;
+        }
+        
+        .matrix-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+            gap: 20px;
+            margin-top: 30px;
+        }
+        
+        .number-card {
+            background-color: var(--background-color);
+            border-radius: var(--radius);
+            padding: 20px;
+            border: 1px solid var(--border-color);
+            transition: all 0.3s ease;
+            text-align: center;
+        }
+        
+        .number-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 25px rgba(0,0,0,0.1);
+        }
+        
+        .number-card h3 {
+            font-size: 1.1rem;
+            margin-bottom: 10px;
+        }
+        
+        .number-card p {
+            font-size: 2rem;
+            font-weight: bold;
+            color: var(--primary-color);
+        }
+        
+        /* Navegação */
+        .tabs {
+            display: flex;
+            border-bottom: 1px solid var(--border-color);
+            margin-bottom: 30px;
+            overflow-x: auto;
+        }
+        
+        .tab-button {
+            padding: 12px 20px;
+            background: none;
+            border: none;
+            border-bottom: 3px solid transparent;
+            cursor: pointer;
+            font-weight: 500;
+            white-space: nowrap;
+            color: var(--text-color-light);
+        }
+        
+        .tab-button.active {
+            border-bottom-color: var(--primary-color);
+            color: var(--primary-color-dark);
+        }
+        
+        /* Interpretações */
+        .interpretation-section {
+            margin-bottom: 30px;
+            padding-bottom: 20px;
+            border-bottom: 1px solid var(--border-color);
+        }
+        
+        .interpretation-section:last-child {
+            border-bottom: none;
+        }
+        
+        /* Responsividade */
+        @media (max-width: 768px) {
+            .matrix-grid {
+                grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            }
+            
+            .sidebar {
+                position: fixed;
+                z-index: 100;
+                height: 100vh;
+                transform: translateX(-100%);
+                transition: transform 0.3s ease;
+            }
+            
+            .sidebar.active {
+                transform: translateX(0);
+            }
+            
+            .menu-toggle {
+                display: block;
+                position: fixed;
+                top: 20px;
+                left: 20px;
+                z-index: 101;
+            }
+        }
+        
+        /* Utilitários */
+        .text-center { text-align: center; }
+        .mt-4 { margin-top: 1rem; }
+        .mb-4 { margin-bottom: 1rem; }
+        .hidden { display: none !important; }
+        .flex { display: flex; }
+        .items-center { align-items: center; }
+        .justify-between { justify-content: space-between; }
+        .flex-col { flex-direction: column; }
+        .w-full { width: 100%; }
+        .p-4 { padding: 1rem; }
+    </style>
+</head>
+<body>
+    <div id="app">
+        <!-- Login Page -->
+        <section id="login-page" class="container">
+            <div class="text-center mb-4">
+                <h1>Matriz Kármica 2025</h1>
+                <p>Descubra os segredos numerológicos que o universo reserva para você</p>
+            </div>
+            
+            <div class="form-container">
+                <h2 class="text-center">Acesse sua Matriz Pessoal</h2>
+                <form id="login-form">
+                    <div class="form-field">
+                        <label for="email">Email</label>
+                        <input type="email" id="email" placeholder="seu@email.com" required>
+                        <p class="text-muted" style="font-size: 0.9rem; color: var(--text-color-light); margin-top: 5px;">
+                            Informe o email utilizado na compra
+                        </p>
+                    </div>
+                    <button type="submit" class="btn w-full mt-4">
+                        <i class="fas fa-unlock-alt"></i> Acessar Matriz
+                    </button>
+                </form>
+            </div>
+        </section>
+        
+        <!-- Profile Page -->
+        <section id="profile-page" class="container hidden">
+            <div class="text-center mb-4">
+                <h1>Complete seu Perfil</h1>
+                <p>Precisamos de algumas informações para calcular sua matriz kármica pessoal</p>
+            </div>
+            
+            <div class="form-container">
+                <form id="profile-form">
+                    <div class="form-field">
+                        <label for="name">Nome Completo</label>
+                        <input type="text" id="name" placeholder="Seu nome completo" required>
+                    </div>
+                    <div class="form-field">
+                        <label for="birthdate">Data de Nascimento</label>
+                        <input type="text" id="birthdate" placeholder="DD/MM/AAAA" required>
+                        <p style="font-size: 0.9rem; color: var(--text-color-light); margin-top: 5px;">
+                            Formato: dia/mês/ano completo (ex: 15/07/1985)
+                        </p>
+                    </div>
+                    <button type="submit" class="btn w-full mt-4">
+                        <i class="fas fa-calculator"></i> Calcular Matriz Kármica
+                    </button>
+                </form>
+            </div>
+        </section>
+        
+        <!-- Matrix Page -->
+        <section id="matrix-page" class="container hidden">
+            <div class="flex justify-between items-center mb-4">
+                <h1>Sua Matriz Kármica Pessoal</h1>
+                <button id="back-button" class="btn btn-outline">
+                    <i class="fas fa-arrow-left"></i> Voltar
+                </button>
+            </div>
+            
+            <div class="matrix-container">
+                <div class="tabs">
+                    <button class="tab-button active" data-tab="overview">Visão Geral</button>
+                    <button class="tab-button" data-tab="personal">Missão Pessoal</button>
+                    <button class="tab-button" data-tab="spiritual">Caminho Espiritual</button>
+                    <button class="tab-button" data-tab="challenges">Desafios & Lições</button>
+                </div>
+                
+                <div id="tab-content">
+                    <!-- Tab Overview -->
+                    <div id="overview-tab" class="tab-content active">
+                        <div class="matrix-grid" id="matrix-numbers">
+                            <!-- Estes valores serão preenchidos dinamicamente pelo JavaScript -->
+                            <div class="number-card">
+                                <h3>Selo Kármico</h3>
+                                <p id="karmic-seal">7</p>
+                            </div>
+                            
+                            <div class="number-card">
+                                <h3>Chamado do Destino</h3>
+                                <p id="destiny-call">3</p>
+                            </div>
+                            
+                            <div class="number-card">
+                                <h3>Portal Kármico</h3>
+                                <p id="karma-portal">1</p>
+                            </div>
+                            
+                            <div class="number-card">
+                                <h3>Herança Kármica</h3>
+                                <p id="karmic-inheritance">9</p>
+                            </div>
+                            
+                            <div class="number-card">
+                                <h3>Reprogramação Kármica</h3>
+                                <p id="karmic-reprogramming">8</p>
+                            </div>
+                            
+                            <div class="number-card">
+                                <h3>Profecia de Ciclo</h3>
+                                <p id="cycle-prophecy">2</p>
+                            </div>
+                            
+                            <div class="number-card">
+                                <h3>Marca Espiritual</h3>
+                                <p id="spiritual-mark">4</p>
+                            </div>
+                            
+                            <div class="number-card">
+                                <h3>Enigma de Manifestação</h3>
+                                <p id="manifestation-enigma">6</p>
+                            </div>
+                        </div>
+                        
+                        <div class="mt-4">
+                            <h2>Resumo da Sua Matriz</h2>
+                            <p>
+                                Sua matriz kármica revela um caminho único de evolução espiritual. Os números acima
+                                representam as energias kármicas que você traz de vidas passadas e as lições que 
+                                está destinado a aprender nesta encarnação.
+                            </p>
+                            <p>
+                                Explore cada uma das abas acima para descobrir interpretações detalhadas sobre
+                                os diferentes aspectos da sua jornada kármica.
+                            </p>
+                        </div>
+                    </div>
+                    
+                    <!-- Tab Personal -->
+                    <div id="personal-tab" class="tab-content hidden">
+                        <h2>Sua Missão Pessoal</h2>
+                        
+                        <div class="interpretation-section">
+                            <h3>Propósito de Vida</h3>
+                            <p>
+                                Seu propósito de vida está diretamente relacionado ao seu número do Chamado do Destino (3).
+                                Este número indica uma forte inclinação para a comunicação, expressão criativa e conexão social.
+                                Você veio a este mundo para compartilhar ideias, inspirar os outros e trazer alegria através
+                                da sua expressão única.
+                            </p>
+                            <p>
+                                O número 3 é o número da expressão e da expansão. Representa a tríade divina e está associado
+                                à comunicação, criatividade e otimismo. Pessoas com esse número em posição de destino frequentemente
+                                se tornam professores, artistas, escritores ou outros tipos de comunicadores.
+                            </p>
+                        </div>
+                        
+                        <div class="interpretation-section">
+                            <h3>Talentos Inatos</h3>
+                            <p>
+                                Seu Selo Kármico (7) revela seus talentos inatos para análise profunda, intuição e busca espiritual.
+                                Você tem uma mente naturalmente analítica e contemplativa, com capacidade para mergulhar em assuntos
+                                complexos e extrair sabedoria profunda.
+                            </p>
+                            <p>
+                                Esta combinação de números sugere que você tem o dom de comunicar verdades espirituais e filosóficas
+                                de maneira acessível e inspiradora. Sua missão pode envolver ser uma ponte entre o mundo espiritual
+                                e o material, traduzindo conceitos profundos em insights práticos para os outros.
+                            </p>
+                        </div>
+                    </div>
+                    
+                    <!-- Tab Spiritual -->
+                    <div id="spiritual-tab" class="tab-content hidden">
+                        <h2>Seu Caminho Espiritual</h2>
+                        
+                        <div class="interpretation-section">
+                            <h3>Lições de Vidas Passadas</h3>
+                            <p>
+                                Sua Herança Kármica (9) indica que você traz de vidas passadas uma grande compaixão e 
+                                senso de serviço humanitário. Este número está associado à conclusão, altruísmo e sabedoria universal.
+                                Em vidas anteriores, você provavelmente esteve envolvido em trabalhos de cura, ensino ou serviço.
+                            </p>
+                            <p>
+                                O número 9 simboliza conclusão e integração. Você traz uma rica tapeçaria de experiências
+                                de vidas passadas que agora precisam ser integradas e transmutadas em sabedoria para
+                                compartilhar com os outros.
+                            </p>
+                        </div>
+                        
+                        <div class="interpretation-section">
+                            <h3>Evolução Espiritual</h3>
+                            <p>
+                                Seu Portal Kármico (1) revela que seu caminho de evolução espiritual nesta vida está
+                                ligado ao desenvolvimento da independência, liderança e iniciativa. Você está aprendendo
+                                a confiar em sua própria força interior e ser pioneiro em novas direções.
+                            </p>
+                            <p>
+                                Este é um número de novos começos e autodescoberta. Indica que você está em um ciclo
+                                de renascimento espiritual, onde velhos padrões são liberados para dar lugar a uma
+                                nova expressão da sua identidade espiritual.
+                            </p>
+                        </div>
+                    </div>
+                    
+                    <!-- Tab Challenges -->
+                    <div id="challenges-tab" class="tab-content hidden">
+                        <h2>Seus Desafios e Lições</h2>
+                        
+                        <div class="interpretation-section">
+                            <h3>Desafios Principais</h3>
+                            <p>
+                                Sua Reprogramação Kármica (8) aponta para desafios relacionados a poder, abundância
+                                e autoridade. Você está aprendendo a equilibrar aspectos materiais e espirituais da vida,
+                                e a usar seu poder de forma ética e responsável.
+                            </p>
+                            <p>
+                                Este número indica que você pode enfrentar testes relacionados a recursos, finanças
+                                ou posições de influência. São oportunidades para desenvolver integridade e sabedoria
+                                na administração de recursos e responsabilidades.
+                            </p>
+                        </div>
+                        
+                        <div class="interpretation-section">
+                            <h3>Oportunidades de Crescimento</h3>
+                            <p>
+                                Sua Marca Espiritual (4) e Profecia de Ciclo (2) juntas revelam um caminho de crescimento
+                                através da construção de estruturas estáveis (4) em parceria e cooperação com outros (2).
+                            </p>
+                            <p>
+                                Você está aprendendo a balancear disciplina e estrutura com sensibilidade e cooperação.
+                                Este é um caminho de construção paciente, onde resultados duradouros são alcançados
+                                através de trabalho consistente e relações harmoniosas.
+                            </p>
+                            <p>
+                                O Enigma de Manifestação (6) sugere que seu maior crescimento virá através do cultivo
+                                de responsabilidade, amor incondicional e serviço às necessidades dos outros, especialmente
+                                em contextos familiares ou comunitários.
+                            </p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+    </div>
+    
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // Elementos das páginas
+            const loginPage = document.getElementById('login-page');
+            const profilePage = document.getElementById('profile-page');
+            const matrixPage = document.getElementById('matrix-page');
+            
+            // Formulários
+            const loginForm = document.getElementById('login-form');
+            const profileForm = document.getElementById('profile-form');
+            const backButton = document.getElementById('back-button');
+            
+            // Tabs da matriz
+            const tabButtons = document.querySelectorAll('.tab-button');
+            const tabContents = document.querySelectorAll('.tab-content');
+            
+            // Dados de usuário (simulados)
+            let userData = {
+                currentEmail: '',
+                users: {}
+            };
+            
+            // Tentar recuperar dados do localStorage
+            try {
+                const storedData = localStorage.getItem('matrixAppData');
+                if (storedData) {
+                    userData = JSON.parse(storedData);
+                }
+            } catch (e) {
+                console.error('Erro ao carregar dados salvos:', e);
+            }
+            
+            // Função para salvar dados
+            function saveUserData() {
+                localStorage.setItem('matrixAppData', JSON.stringify(userData));
+            }
+            
+            // Função para gerar números kármicos
+            function generateKarmicNumbers(birthDate) {
+                // Em um sistema real, aqui teríamos os cálculos numerológicos baseados na data
+                // Para este exemplo, usamos números aleatórios entre 1-9
+                return {
+                    karmicSeal: Math.floor(Math.random() * 9) + 1,
+                    destinyCall: Math.floor(Math.random() * 9) + 1,
+                    karmaPortal: Math.floor(Math.random() * 9) + 1,
+                    karmicInheritance: Math.floor(Math.random() * 9) + 1,
+                    karmicReprogramming: Math.floor(Math.random() * 9) + 1,
+                    cycleProphecy: Math.floor(Math.random() * 9) + 1,
+                    spiritualMark: Math.floor(Math.random() * 9) + 1,
+                    manifestationEnigma: Math.floor(Math.random() * 9) + 1
+                };
+            }
+            
+            // Função para atualizar a interface com os números da matriz
+            function updateMatrixDisplay(karmicNumbers) {
+                document.getElementById('karmic-seal').textContent = karmicNumbers.karmicSeal;
+                document.getElementById('destiny-call').textContent = karmicNumbers.destinyCall;
+                document.getElementById('karma-portal').textContent = karmicNumbers.karmaPortal;
+                document.getElementById('karmic-inheritance').textContent = karmicNumbers.karmicInheritance;
+                document.getElementById('karmic-reprogramming').textContent = karmicNumbers.karmicReprogramming;
+                document.getElementById('cycle-prophecy').textContent = karmicNumbers.cycleProphecy;
+                document.getElementById('spiritual-mark').textContent = karmicNumbers.spiritualMark;
+                document.getElementById('manifestation-enigma').textContent = karmicNumbers.manifestationEnigma;
+            }
+            
+            // Login
+            loginForm.addEventListener('submit', function(e) {
+                e.preventDefault();
+                const email = document.getElementById('email').value.toLowerCase();
+                
+                // Em um sistema real, aqui verificaríamos se o email está autorizado
+                // Para este exemplo, permitimos qualquer email
+                userData.currentEmail = email;
+                
+                // Verificar se o usuário já tem perfil
+                if (userData.users[email] && userData.users[email].name) {
+                    // Já tem perfil, mostrar matriz
+                    loginPage.classList.add('hidden');
+                    matrixPage.classList.remove('hidden');
+                    
+                    // Atualizar exibição da matriz
+                    updateMatrixDisplay(userData.users[email].karmicNumbers);
+                } else {
+                    // Não tem perfil, ir para página de perfil
+                    loginPage.classList.add('hidden');
+                    profilePage.classList.remove('hidden');
+                }
+                
+                saveUserData();
+            });
+            
+            // Formulário de Perfil
+            profileForm.addEventListener('submit', function(e) {
+                e.preventDefault();
+                const name = document.getElementById('name').value;
+                const birthDate = document.getElementById('birthdate').value;
+                const email = userData.currentEmail;
+                
+                // Validar data no formato DD/MM/AAAA
+                const datePattern = /^(0[1-9]|[12][0-9]|3[01])\/(0[1-9]|1[0-2])\/\d{4}$/;
+                if (!datePattern.test(birthDate)) {
+                    alert('Por favor, insira uma data válida no formato DD/MM/AAAA');
+                    return;
+                }
+                
+                // Calcular números kármicos
+                const karmicNumbers = generateKarmicNumbers(birthDate);
+                
+                // Salvar dados do usuário
+                userData.users[email] = {
+                    name: name,
+                    birthDate: birthDate,
+                    karmicNumbers: karmicNumbers
+                };
+                
+                saveUserData();
+                
+                // Mostrar a matriz
+                profilePage.classList.add('hidden');
+                matrixPage.classList.remove('hidden');
+                
+                // Atualizar a interface
+                updateMatrixDisplay(karmicNumbers);
+            });
+            
+            // Voltar para o login
+            backButton.addEventListener('click', function() {
+                matrixPage.classList.add('hidden');
+                loginPage.classList.remove('hidden');
+            });
+            
+            // Navegação entre abas
+            tabButtons.forEach(button => {
+                button.addEventListener('click', function() {
+                    // Remover classe active de todas as abas
+                    tabButtons.forEach(btn => btn.classList.remove('active'));
+                    tabContents.forEach(content => content.classList.add('hidden'));
+                    
+                    // Adicionar classe active ao botão clicado
+                    this.classList.add('active');
+                    
+                    // Mostrar conteúdo da aba selecionada
+                    const tabName = this.getAttribute('data-tab');
+                    document.getElementById(tabName + '-tab').classList.remove('hidden');
+                });
+            });
+            
+            // Verificar se já havia um usuário logado
+            if (userData.currentEmail && userData.users[userData.currentEmail]?.name) {
+                loginPage.classList.add('hidden');
+                matrixPage.classList.remove('hidden');
+                updateMatrixDisplay(userData.users[userData.currentEmail].karmicNumbers);
+            }
+        });
+    </script>
+</body>
+</html>
+      `;
+      
+      // Criar um Blob com o conteúdo HTML
+      const blob = new Blob([elementorHTML], { type: 'text/html' });
+      
+      // Criar URL para download
+      const url = URL.createObjectURL(blob);
+      
+      // Criar elemento de link temporário para download
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `Sistema-Matriz-Karmica-Elementor.html`;
+      document.body.appendChild(a);
+      
+      // Iniciar download
+      a.click();
+      
+      // Limpar
+      setTimeout(() => {
+        document.body.removeChild(a);
+        URL.revokeObjectURL(url);
+        setIsDownloading(false);
+      }, 100);
+      
+      toast({
+        title: "Download iniciado",
+        description: "O download do sistema completo para Elementor foi iniciado."
+      });
+    } catch (err) {
+      console.error("Erro ao gerar sistema para Elementor:", err);
+      setIsDownloading(false);
+      toast({
+        title: "Erro ao gerar arquivo",
+        description: "Não foi possível gerar o sistema para Elementor.",
+        variant: "destructive"
+      });
+    }
+  };
   
   if (!isAuthorized) {
     return (
@@ -719,7 +1424,16 @@ const Admin = () => {
               className="flex items-center gap-2 bg-indigo-50 hover:bg-indigo-100 text-indigo-700 border-indigo-200"
             >
               <Laptop className="h-4 w-4" />
-              {isDownloading ? "Gerando..." : "Baixar Aplicação Completa"}
+              {isDownloading ? "Gerando..." : "Baixar App Simples"}
+            </Button>
+            <Button 
+              onClick={handleDownloadElementorSystem} 
+              variant="outline" 
+              disabled={isDownloading}
+              className="flex items-center gap-2 bg-pink-50 hover:bg-pink-100 text-pink-700 border-pink-200"
+            >
+              <Download className="h-4 w-4" />
+              {isDownloading ? "Gerando..." : "Sistema Elementor"}
             </Button>
             <Button 
               onClick={handleLogout} 
@@ -767,4 +1481,3 @@ const Admin = () => {
 };
 
 export default Admin;
-
