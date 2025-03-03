@@ -32,8 +32,10 @@ export default function Admin() {
     setIsLoading(true);
     setError(null);
     
-    // Senha simples para demonstração - em produção, use um sistema mais robusto
-    if (adminPassword === "admin123") {
+    // Senha fixa para acesso administrativo
+    const correctPassword = "admin123";
+    
+    if (adminPassword === correctPassword) {
       localStorage.setItem('adminAuthenticated', 'true');
       setIsAuthenticated(true);
       toast.success("Login administrativo realizado com sucesso");
@@ -88,7 +90,7 @@ export default function Admin() {
               {isLoading ? "Verificando..." : "Entrar"}
             </Button>
             <p className="text-xs text-center text-gray-500 mt-2">
-              Para fins de teste, use a senha: admin123
+              A senha de administrador é: <strong>admin123</strong>
             </p>
           </div>
         </div>
