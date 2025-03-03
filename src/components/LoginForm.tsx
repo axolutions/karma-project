@@ -193,17 +193,15 @@ const LoginForm: React.FC = () => {
         <MoveRight className="ml-2 h-4 w-4 transition-transform group-hover:translate-x-1" />
       </Button>
       
-      {/* Debug section - remove in production */}
-      {process.env.NODE_ENV === 'development' && (
-        <div className="mt-4 p-3 bg-gray-100 rounded-md">
-          <p className="text-xs font-semibold">Emails autorizados (debug):</p>
-          <ul className="text-xs">
-            {authorizedEmails.map((authEmail, index) => (
-              <li key={index}>{authEmail}</li>
-            ))}
-          </ul>
-        </div>
-      )}
+      {/* Debug section - show in all environments for troubleshooting */}
+      <div className="mt-4 p-3 bg-gray-100 rounded-md">
+        <p className="text-xs font-semibold">Emails autorizados (debug):</p>
+        <ul className="text-xs">
+          {authorizedEmails.map((authEmail, index) => (
+            <li key={index}>{authEmail}</li>
+          ))}
+        </ul>
+      </div>
     </form>
   );
 };

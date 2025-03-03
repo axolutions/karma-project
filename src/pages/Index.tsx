@@ -6,6 +6,7 @@ import LoginForm from '@/components/LoginForm';
 import ProfileForm from '@/components/ProfileForm';
 import IntroSection from '@/components/IntroSection';
 import { getCurrentUser, isLoggedIn, getUserData } from '@/lib/auth';
+import { Link } from 'react-router-dom';
 
 const Index = () => {
   const [userLoggedIn, setUserLoggedIn] = useState(false);
@@ -122,6 +123,16 @@ const Index = () => {
             </p>
           </div>
         </motion.div>
+        
+        {/* Admin Access Link */}
+        <div className="mt-8 text-center">
+          <Link 
+            to="/admin" 
+            className="text-sm text-karmic-500 hover:text-karmic-700 underline"
+          >
+            Acesso Administrativo
+          </Link>
+        </div>
       </div>
     </div>
   );
