@@ -46,11 +46,11 @@ export const getAllUserData = (): Database => {
 export const getUserDataByEmail = (email: string): UserData | null => {
   const db = getDb();
   // Normaliza o email para minúsculas
-  const normalizedEmail = email.toLowerCase();
+  const normalizedEmail = email.toLowerCase().trim();
   
   // Verifica se o email existe no banco de dados (case-insensitive)
   for (const storedEmail in db) {
-    if (storedEmail.toLowerCase() === normalizedEmail) {
+    if (storedEmail.toLowerCase().trim() === normalizedEmail) {
       return db[storedEmail];
     }
   }
@@ -62,7 +62,7 @@ export const getUserDataByEmail = (email: string): UserData | null => {
 export const saveUserData = (email: string, data: UserData): void => {
   const db = getDb();
   // Normaliza o email para minúsculas
-  const normalizedEmail = email.toLowerCase();
+  const normalizedEmail = email.toLowerCase().trim();
   db[normalizedEmail] = { ...data, email: normalizedEmail };
   saveDb(db);
 };
@@ -81,7 +81,7 @@ export const getCurrentMatrixId = (email: string): string | null => {
 
 export const setCurrentMatrixId = (email: string, matrixId: string): void => {
   // Normaliza o email para minúsculas
-  const normalizedEmail = email.toLowerCase();
+  const normalizedEmail = email.toLowerCase().trim();
   const userData = getUserDataByEmail(normalizedEmail);
   if (userData) {
     userData.currentMatrixId = matrixId;
@@ -95,16 +95,28 @@ const AUTHORIZED_EMAILS_KEY = 'authorizedEmails';
 export const getAllAuthorizedEmails = (): string[] => {
   try {
     const emailsString = localStorage.getItem(AUTHORIZED_EMAILS_KEY);
-    // Add teste@teste.com to the default list
-    const defaultEmails = ['example1@example.com', 'example2@example.com', 'teste@teste.com'];
+    // Add teste@teste.com and projetovmtd@gmail.com to the default list
+    const defaultEmails = ['example1@example.com', 'example2@example.com', 'teste@teste.com', 'projetovmtd@gmail.com', 'carlamaiaprojetos@gmail.com'];
     
     if (emailsString) {
       const storedEmails = JSON.parse(emailsString);
-      // Ensure teste@teste.com is always included
-      if (!storedEmails.some((email: string) => email.toLowerCase() === 'teste@teste.com')) {
+      // Ensure teste@teste.com and projetovmtd@gmail.com are always included
+      let updated = false;
+      
+      if (!storedEmails.some((email: string) => email.toLowerCase().trim() === 'teste@teste.com')) {
         storedEmails.push('teste@teste.com');
+        updated = true;
+      }
+      
+      if (!storedEmails.some((email: string) => email.toLowerCase().trim() === 'projetovmtd@gmail.com')) {
+        storedEmails.push('projetovmtd@gmail.com');
+        updated = true;
+      }
+      
+      if (updated) {
         localStorage.setItem(AUTHORIZED_EMAILS_KEY, JSON.stringify(storedEmails));
       }
+      
       return storedEmails;
     }
     
@@ -113,17 +125,17 @@ export const getAllAuthorizedEmails = (): string[] => {
     return defaultEmails;
   } catch (error) {
     console.error('Error getting authorized emails:', error);
-    // Always include teste@teste.com in fallback
-    return ['example1@example.com', 'example2@example.com', 'teste@teste.com'];
+    // Always include both test emails in fallback
+    return ['example1@example.com', 'example2@example.com', 'teste@teste.com', 'projetovmtd@gmail.com', 'carlamaiaprojetos@gmail.com'];
   }
 };
 
 export const addAuthorizedEmail = (email: string): void => {
   const emails = getAllAuthorizedEmails();
-  const normalizedEmail = email.toLowerCase();
+  const normalizedEmail = email.toLowerCase().trim();
   
   // Verifica se o email já existe na lista (case-insensitive)
-  if (!emails.some(e => e.toLowerCase() === normalizedEmail)) {
+  if (!emails.some(e => e.toLowerCase().trim() === normalizedEmail)) {
     emails.push(normalizedEmail);
     localStorage.setItem(AUTHORIZED_EMAILS_KEY, JSON.stringify(emails));
   }
@@ -131,7 +143,7 @@ export const addAuthorizedEmail = (email: string): void => {
 
 export const removeAuthorizedEmail = (email: string): void => {
   const emails = getAllAuthorizedEmails();
-  const normalizedEmail = email.toLowerCase();
-  const newEmails = emails.filter(e => e.toLowerCase() !== normalizedEmail);
+  const normalizedEmail = email.toLowerCase().trim();
+  const newEmails = emails.filter(e => e.toLowerCase().trim() !== normalizedEmail);
   localStorage.setItem(AUTHORIZED_EMAILS_KEY, JSON.stringify(newEmails));
 };

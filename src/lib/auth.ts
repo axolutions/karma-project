@@ -109,19 +109,57 @@ export const setCurrentMatrixId = (matrixId: string): void => {
 export const getAllAuthorizedEmails = (): string[] => {
   try {
     const emailsString = localStorage.getItem('authorizedEmails');
-    return emailsString ? JSON.parse(emailsString) : [];
+    
+    // Se não houver emails armazenados, inicializa com valores padrão
+    if (!emailsString) {
+      // Inclui o email do exemplo e o email projetovmtd@gmail.com
+      const defaultEmails = ['example1@example.com', 'example2@example.com', 'teste@teste.com', 'projetovmtd@gmail.com', 'carlamaiaprojetos@gmail.com'];
+      localStorage.setItem('authorizedEmails', JSON.stringify(defaultEmails));
+      return defaultEmails;
+    }
+    
+    // Caso contrário, retorna os emails armazenados
+    const storedEmails = JSON.parse(emailsString);
+    
+    // Verifica se projetovmtd@gmail.com já está na lista
+    if (!storedEmails.includes('projetovmtd@gmail.com')) {
+      storedEmails.push('projetovmtd@gmail.com');
+      localStorage.setItem('authorizedEmails', JSON.stringify(storedEmails));
+    }
+    
+    // Verifica se o email de teste está na lista
+    if (!storedEmails.includes('teste@teste.com')) {
+      storedEmails.push('teste@teste.com');
+      localStorage.setItem('authorizedEmails', JSON.stringify(storedEmails));
+    }
+    
+    return storedEmails;
   } catch (error) {
     console.error('Erro ao obter emails autorizados:', error);
-    return [];
+    // Em caso de erro, retorna uma lista padrão
+    return ['example1@example.com', 'example2@example.com', 'teste@teste.com', 'projetovmtd@gmail.com'];
   }
 };
 
 export const isAuthorizedEmail = (email: string): boolean => {
   try {
     const authorizedEmails = getAllAuthorizedEmails();
-    return authorizedEmails.some(authorizedEmail => 
-      authorizedEmail.toLowerCase() === email.toLowerCase()
-    );
+    const normalizedEmail = email.toLowerCase().trim();
+    
+    // Imprime para debug
+    console.log("Verificando autorização para:", normalizedEmail);
+    console.log("Lista de emails autorizados:", authorizedEmails);
+    
+    // Compara o email normalizado com cada email autorizado
+    for (const authorizedEmail of authorizedEmails) {
+      if (authorizedEmail.toLowerCase().trim() === normalizedEmail) {
+        console.log("Email autorizado encontrado:", authorizedEmail);
+        return true;
+      }
+    }
+    
+    console.log("Email não autorizado");
+    return false;
   } catch (error) {
     console.error('Erro ao verificar se email é autorizado:', error);
     return false;
@@ -131,11 +169,15 @@ export const isAuthorizedEmail = (email: string): boolean => {
 export const addAuthorizedEmail = (email: string): void => {
   try {
     const authorizedEmails = getAllAuthorizedEmails();
+    const normalizedEmail = email.toLowerCase().trim();
     
     // Verificar se o email já está na lista
-    if (!isAuthorizedEmail(email)) {
-      authorizedEmails.push(email);
+    if (!authorizedEmails.some(e => e.toLowerCase().trim() === normalizedEmail)) {
+      authorizedEmails.push(normalizedEmail);
       localStorage.setItem('authorizedEmails', JSON.stringify(authorizedEmails));
+      console.log("Email adicionado à lista de autorizados:", normalizedEmail);
+    } else {
+      console.log("Email já está na lista de autorizados:", normalizedEmail);
     }
   } catch (error) {
     console.error('Erro ao adicionar email autorizado:', error);
@@ -144,14 +186,16 @@ export const addAuthorizedEmail = (email: string): void => {
 
 export const removeAuthorizedEmail = (email: string): void => {
   try {
-    let authorizedEmails = getAllAuthorizedEmails();
+    const authorizedEmails = getAllAuthorizedEmails();
+    const normalizedEmail = email.toLowerCase().trim();
     
-    // Remover o email da lista
-    authorizedEmails = authorizedEmails.filter(
-      authorizedEmail => authorizedEmail.toLowerCase() !== email.toLowerCase()
+    // Filtrar o email a ser removido
+    const updatedEmails = authorizedEmails.filter(
+      authorizedEmail => authorizedEmail.toLowerCase().trim() !== normalizedEmail
     );
     
-    localStorage.setItem('authorizedEmails', JSON.stringify(authorizedEmails));
+    localStorage.setItem('authorizedEmails', JSON.stringify(updatedEmails));
+    console.log("Email removido da lista de autorizados:", normalizedEmail);
   } catch (error) {
     console.error('Erro ao remover email autorizado:', error);
   }
