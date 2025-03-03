@@ -26,8 +26,11 @@ const LoginForm: React.FC = () => {
       return;
     }
     
+    // Normaliza o email para minúsculas
+    const normalizedEmail = email.toLowerCase().trim();
+    
     // Check if email is authorized
-    if (!isAuthorizedEmail(email)) {
+    if (!isAuthorizedEmail(normalizedEmail)) {
       toast({
         title: "Acesso negado",
         description: "Este email não está autorizado a acessar o sistema.",
@@ -38,32 +41,32 @@ const LoginForm: React.FC = () => {
     }
     
     // Login the user
-    console.log("Tentativa de login para:", email);
+    console.log("Tentativa de login para:", normalizedEmail);
     
     // Verificar se o usuário já existe, se não, criar um registro básico
-    let userData = getUserData(email);
+    let userData = getUserData(normalizedEmail);
     
     if (!userData) {
       console.log("Usuário não encontrado, criando registro inicial");
       // Cria um registro básico para o usuário
       saveUserData({
-        email: email,
+        email: normalizedEmail,
         name: "",
         id: crypto.randomUUID()
       });
     }
     
-    const success = login(email);
+    const success = login(normalizedEmail);
     if (success) {
-      console.log("Login realizado com sucesso para:", email);
+      console.log("Login realizado com sucesso para:", normalizedEmail);
       toast({
         title: "Login realizado com sucesso",
         description: "Bem-vindo ao Sistema de Matriz Kármica Pessoal 2025.",
       });
       
       // Check if user has already completed profile
-      userData = getUserData(email);
-      console.log("Obtendo dados do usuário. Email:", email, "Dados:", userData);
+      userData = getUserData(normalizedEmail);
+      console.log("Obtendo dados do usuário. Email:", normalizedEmail, "Dados:", userData);
       
       // Garantindo que o redirecionamento aconteça após um pequeno delay
       setTimeout(() => {
@@ -79,7 +82,7 @@ const LoginForm: React.FC = () => {
         }
       }, 1000);
     } else {
-      console.log("Falha no login para:", email);
+      console.log("Falha no login para:", normalizedEmail);
       toast({
         title: "Erro no login",
         description: "Houve um problema ao processar seu login. Por favor, tente novamente.",

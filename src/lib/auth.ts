@@ -34,10 +34,15 @@ export const getCurrentUser = (): string | null => {
 export const getUserData = (email: string): UserProfile | null => {
   const db = getDb();
   
-  // Verifica se o email existe no banco de dados
-  if (db && db[email]) {
-    console.log("Obtendo dados do usuário. Email:", email, "Dados:", db[email]);
-    return db[email];
+  // Normaliza o email para minúsculas para garantir consistência
+  const normalizedEmail = email.toLowerCase();
+  
+  // Verifica se o email existe no banco de dados (verificando também versões com capitalização diferente)
+  for (const storedEmail in db) {
+    if (storedEmail.toLowerCase() === normalizedEmail) {
+      console.log("Obtendo dados do usuário. Email:", storedEmail, "Dados:", db[storedEmail]);
+      return db[storedEmail];
+    }
   }
   
   console.log("Usuário não encontrado. Email:", email);
@@ -48,17 +53,21 @@ export const getUserData = (email: string): UserProfile | null => {
 export const login = (email: string): boolean => {
   console.log("Tentando fazer login para o email:", email);
   
+  // Normaliza o email para minúsculas
+  const normalizedEmail = email.toLowerCase();
+  
   // Check if the email is authorized first
-  const authorized = isAuthorizedEmail(email);
+  const authorized = isAuthorizedEmail(normalizedEmail);
   console.log("Email está autorizado?", authorized);
   
   if (authorized) {
-    localStorage.setItem('currentUser', email);
-    console.log("Login bem-sucedido para:", email);
+    // Armazena o email normalizado para garantir consistência
+    localStorage.setItem('currentUser', normalizedEmail);
+    console.log("Login bem-sucedido para:", normalizedEmail);
     return true;
   }
   
-  console.log("Login falhou para:", email);
+  console.log("Login falhou para:", normalizedEmail);
   return false;
 };
 
@@ -67,8 +76,12 @@ export const isAuthorizedEmail = (email: string): boolean => {
   const authorizedEmails = getAllAuthorizedEmails();
   console.log("Lista completa de emails autorizados:", authorizedEmails);
   
-  const isAuthorized = authorizedEmails.includes(email);
-  console.log("Verificando autorização para:", email, "Autorizado:", isAuthorized);
+  // Normaliza o email para minúsculas
+  const normalizedEmail = email.toLowerCase();
+  
+  // Verifica se o email está na lista de forma case-insensitive
+  const isAuthorized = authorizedEmails.some(e => e.toLowerCase() === normalizedEmail);
+  console.log("Verificando autorização para:", normalizedEmail, "Autorizado:", isAuthorized);
   
   return isAuthorized;
 };
@@ -91,7 +104,9 @@ export const saveUserData = (data: { email: string; [key: string]: any }): strin
     throw new Error('Email is required to save user data');
   }
   
-  const email = data.email;
+  // Normaliza o email para minúsculas
+  const normalizedEmail = data.email.toLowerCase();
+  data.email = normalizedEmail;
   
   // Ensure the data has id and name properties as required by UserData type
   if (!data.id) {
@@ -106,12 +121,12 @@ export const saveUserData = (data: { email: string; [key: string]: any }): strin
   const userData = {
     id: data.id,
     name: data.name,
-    email: data.email,
+    email: normalizedEmail,
     ...data
   };
   
   console.log("Salvando dados do usuário:", userData);
-  saveData(email, userData);
+  saveData(normalizedEmail, userData);
   return userData.id || '';
 };
 

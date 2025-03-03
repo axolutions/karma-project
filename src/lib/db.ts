@@ -1,3 +1,4 @@
+
 interface UserData {
   id: string;
   name: string;
@@ -44,13 +45,25 @@ export const getAllUserData = (): Database => {
 // Get user data by email
 export const getUserDataByEmail = (email: string): UserData | null => {
   const db = getDb();
-  return db[email] || null;
+  // Normaliza o email para minúsculas
+  const normalizedEmail = email.toLowerCase();
+  
+  // Verifica se o email existe no banco de dados (case-insensitive)
+  for (const storedEmail in db) {
+    if (storedEmail.toLowerCase() === normalizedEmail) {
+      return db[storedEmail];
+    }
+  }
+  
+  return null;
 };
 
 // Save user data
 export const saveUserData = (email: string, data: UserData): void => {
   const db = getDb();
-  db[email] = { ...db[email], ...data };
+  // Normaliza o email para minúsculas
+  const normalizedEmail = email.toLowerCase();
+  db[normalizedEmail] = { ...data, email: normalizedEmail };
   saveDb(db);
 };
 
@@ -67,10 +80,12 @@ export const getCurrentMatrixId = (email: string): string | null => {
 };
 
 export const setCurrentMatrixId = (email: string, matrixId: string): void => {
-  const userData = getUserDataByEmail(email);
+  // Normaliza o email para minúsculas
+  const normalizedEmail = email.toLowerCase();
+  const userData = getUserDataByEmail(normalizedEmail);
   if (userData) {
     userData.currentMatrixId = matrixId;
-    saveUserData(email, userData);
+    saveUserData(normalizedEmail, userData);
   }
 };
 
@@ -86,7 +101,7 @@ export const getAllAuthorizedEmails = (): string[] => {
     if (emailsString) {
       const storedEmails = JSON.parse(emailsString);
       // Ensure teste@teste.com is always included
-      if (!storedEmails.includes('teste@teste.com')) {
+      if (!storedEmails.some((email: string) => email.toLowerCase() === 'teste@teste.com')) {
         storedEmails.push('teste@teste.com');
         localStorage.setItem(AUTHORIZED_EMAILS_KEY, JSON.stringify(storedEmails));
       }
@@ -105,14 +120,18 @@ export const getAllAuthorizedEmails = (): string[] => {
 
 export const addAuthorizedEmail = (email: string): void => {
   const emails = getAllAuthorizedEmails();
-  if (!emails.includes(email)) {
-    emails.push(email);
+  const normalizedEmail = email.toLowerCase();
+  
+  // Verifica se o email já existe na lista (case-insensitive)
+  if (!emails.some(e => e.toLowerCase() === normalizedEmail)) {
+    emails.push(normalizedEmail);
     localStorage.setItem(AUTHORIZED_EMAILS_KEY, JSON.stringify(emails));
   }
 };
 
 export const removeAuthorizedEmail = (email: string): void => {
   const emails = getAllAuthorizedEmails();
-  const newEmails = emails.filter(e => e !== email);
+  const normalizedEmail = email.toLowerCase();
+  const newEmails = emails.filter(e => e.toLowerCase() !== normalizedEmail);
   localStorage.setItem(AUTHORIZED_EMAILS_KEY, JSON.stringify(newEmails));
 };

@@ -28,7 +28,8 @@ const EmailManager: React.FC = () => {
     const stats: Record<string, number> = {};
     authorizedEmails.forEach(email => {
       const userMaps = getAllUserDataByEmail();
-      stats[email] = userMaps.filter(map => map.email === email).length;
+      const normalizedEmail = email.toLowerCase();
+      stats[email] = userMaps.filter(map => map.email.toLowerCase() === normalizedEmail).length;
     });
     
     setEmailStats(stats);
@@ -53,16 +54,19 @@ const EmailManager: React.FC = () => {
       return;
     }
     
+    // Normaliza o email para minúsculas
+    const normalizedEmail = newEmail.toLowerCase().trim();
+    
     // Verificar se o email já existe na lista
-    const emailExists = emails.includes(newEmail.toLowerCase());
+    const emailExists = emails.some(e => e.toLowerCase() === normalizedEmail);
     
     // Se o email já existe, perguntar se deseja conceder um novo acesso
     if (emailExists) {
-      const existingMaps = getAllUserDataByEmail().filter(map => map.email === newEmail.toLowerCase());
+      const existingMaps = getAllUserDataByEmail().filter(map => map.email.toLowerCase() === normalizedEmail);
       
       if (existingMaps.length > 0) {
         const confirmAdd = confirm(
-          `O email ${newEmail} já está na lista e possui ${existingMaps.length} mapa(s) criado(s). ` +
+          `O email ${normalizedEmail} já está na lista e possui ${existingMaps.length} mapa(s) criado(s). ` +
           `Adicioná-lo novamente concederá permissão para criar um novo mapa. Deseja continuar?`
         );
         
@@ -72,16 +76,16 @@ const EmailManager: React.FC = () => {
         
         // Se confirmou, remova primeiro para depois adicionar novamente
         // Isso simula a renovação do acesso
-        removeAuthorizedEmail(newEmail);
+        removeAuthorizedEmail(normalizedEmail);
       }
     }
     
     // Adicionar o email à lista de autorizados
-    addAuthorizedEmail(newEmail);
+    addAuthorizedEmail(normalizedEmail);
     
     toast({
       title: "Email adicionado",
-      description: `O email ${newEmail} foi adicionado com sucesso.`
+      description: `O email ${normalizedEmail} foi adicionado com sucesso.`
     });
     setNewEmail('');
     refreshEmails();
