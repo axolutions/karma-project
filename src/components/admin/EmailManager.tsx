@@ -2,7 +2,7 @@
 import React, { useState, useEffect } from 'react';
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { toast } from "@/components/ui/use-toast";
+import { toast } from "sonner";
 import { 
   getAllAuthorizedEmails, 
   addAuthorizedEmail, 
@@ -27,9 +27,9 @@ const EmailManager: React.FC = () => {
     // Calcular estatísticas - quantos mapas cada email possui
     const stats: Record<string, number> = {};
     authorizedEmails.forEach(email => {
-      const userMaps = getAllUserDataByEmail();
+      const userMaps = getAllUserDataByEmail(email) || [];
       const normalizedEmail = email.toLowerCase();
-      stats[email] = userMaps.filter(map => map.email.toLowerCase() === normalizedEmail).length;
+      stats[email] = userMaps.filter(map => map.email && map.email.toLowerCase() === normalizedEmail).length;
     });
     
     setEmailStats(stats);
@@ -37,19 +37,15 @@ const EmailManager: React.FC = () => {
   
   const handleAddEmail = () => {
     if (!newEmail.trim()) {
-      toast({
-        title: "Email obrigatório",
-        description: "Por favor, insira um email para adicionar.",
-        variant: "destructive"
+      toast.error("Email obrigatório", {
+        description: "Por favor, insira um email para adicionar."
       });
       return;
     }
     
     if (!isValidEmail(newEmail)) {
-      toast({
-        title: "Email inválido",
-        description: "Por favor, insira um email válido.",
-        variant: "destructive"
+      toast.error("Email inválido", {
+        description: "Por favor, insira um email válido."
       });
       return;
     }
@@ -62,7 +58,7 @@ const EmailManager: React.FC = () => {
     
     // Se o email já existe, perguntar se deseja conceder um novo acesso
     if (emailExists) {
-      const existingMaps = getAllUserDataByEmail().filter(map => map.email.toLowerCase() === normalizedEmail);
+      const existingMaps = getAllUserDataByEmail(normalizedEmail) || [];
       
       if (existingMaps.length > 0) {
         const confirmAdd = confirm(
@@ -83,8 +79,7 @@ const EmailManager: React.FC = () => {
     // Adicionar o email à lista de autorizados
     addAuthorizedEmail(normalizedEmail);
     
-    toast({
-      title: "Email adicionado",
+    toast.success("Email adicionado", {
       description: `O email ${normalizedEmail} foi adicionado com sucesso.`
     });
     setNewEmail('');
@@ -103,8 +98,7 @@ const EmailManager: React.FC = () => {
     
     removeAuthorizedEmail(email);
     
-    toast({
-      title: "Email removido",
+    toast.success("Email removido", {
       description: `O email ${email} foi removido com sucesso.`
     });
     refreshEmails();
