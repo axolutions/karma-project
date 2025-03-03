@@ -1,3 +1,4 @@
+
 import React, { useState, useRef, useEffect } from 'react';
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -57,14 +58,30 @@ const YampiIntegration = () => {
     if (storedUserData) {
       try {
         const parsedData = JSON.parse(storedUserData);
-        // Convert the object into an array of user data
-        const usersArray = Object.keys(parsedData).map(email => ({
-          email: email,
-          ...parsedData[email]
-        }));
-        setAllUsersData(usersArray);
+        // Convert the object into an array of user data with null check
+        if (parsedData && typeof parsedData === 'object') {
+          const usersArray = Object.keys(parsedData).map(email => {
+            // Add safety check to ensure email is defined
+            if (email) {
+              return {
+                email: email,
+                ...parsedData[email]
+              };
+            }
+            // Return a default object if email is undefined
+            return {
+              id: 'default-id',
+              name: 'Unknown',
+              email: 'unknown@example.com'
+            };
+          }).filter(user => user && user.email); // Filter out any possible undefined or null users
+          
+          setAllUsersData(usersArray);
+        }
       } catch (error) {
         console.error("Error parsing user data from localStorage:", error);
+        // Set empty array in case of error
+        setAllUsersData([]);
       }
     }
   }, []);
@@ -143,7 +160,6 @@ const YampiIntegration = () => {
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Matriz Kármica Pessoal 2025</title>
-    <link rel="stylesheet" href="${baseUrl}/index.css">
     <style>
         /* Estilos básicos da aplicação */
         :root {
@@ -344,7 +360,7 @@ const YampiIntegration = () => {
                 
                 <div id="matrix-content">
                     <!-- O conteúdo da matriz será carregado aqui dinamicamente -->
-                    ${renderMatrixHTML() || '<p class="text-center">Selecione um usuário para ver sua matriz</p>'}
+                    ${matrixHTML || '<p class="text-center">Sua matriz será carregada aqui</p>'}
                 </div>
             </div>
         </section>
@@ -473,46 +489,89 @@ const YampiIntegration = () => {
 
   // Function to download the full application HTML
   const downloadFullApp = () => {
-    const fullHTML = generateFullAppHTML();
-    const blob = new Blob([fullHTML], { type: 'text/html' });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = 'matriz-karmica-completa.html';
-    document.body.appendChild(a);
-    a.click();
-    document.body.removeChild(a);
-    URL.revokeObjectURL(url);
+    try {
+      const fullHTML = generateFullAppHTML();
+      const blob = new Blob([fullHTML], { type: 'text/html' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = 'matriz-karmica-completa.html';
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+      
+      toast({
+        title: "Download iniciado",
+        description: "O download da aplicação completa foi iniciado com sucesso."
+      });
+    } catch (err) {
+      console.error("Erro ao gerar aplicação completa:", err);
+      toast({
+        title: "Erro",
+        description: "Não foi possível gerar a aplicação completa para download.",
+        variant: "destructive"
+      });
+    }
   };
 
   const downloadMatrixHTML = () => {
-    const htmlContent = renderMatrixHTML(userData);
-    const blob = new Blob([htmlContent], { type: 'text/html' });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = 'matriz-karmica.html';
-    document.body.appendChild(a);
-    a.click();
-    document.body.removeChild(a);
-    URL.revokeObjectURL(url);
+    try {
+      const htmlContent = renderMatrixHTML(userData);
+      const blob = new Blob([htmlContent], { type: 'text/html' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = 'matriz-karmica.html';
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+      
+      toast({
+        title: "Download iniciado",
+        description: "O download da matriz kármica foi iniciado com sucesso."
+      });
+    } catch (err) {
+      console.error("Erro ao gerar matriz para download:", err);
+      toast({
+        title: "Erro",
+        description: "Não foi possível gerar a matriz para download.",
+        variant: "destructive"
+      });
+    }
   };
 
   const openInNewTab = () => {
-    setPreviewVisible(true);
-    setTimeout(() => {
-      if (previewRef.current) {
-        const doc = previewRef.current.contentDocument;
-        const win = previewRef.current.contentWindow;
-        if (doc && win) {
-          doc.body.innerHTML = renderMatrixHTML(userData);
+    try {
+      setPreviewVisible(true);
+      setTimeout(() => {
+        if (previewRef.current) {
+          const doc = previewRef.current.contentDocument;
+          const win = previewRef.current.contentWindow;
+          if (doc && win) {
+            doc.body.innerHTML = renderMatrixHTML(userData);
+          }
         }
-      }
-    }, 500);
+      }, 500);
+      
+      toast({
+        title: "Preview aberto",
+        description: "O preview da matriz foi aberto com sucesso."
+      });
+    } catch (err) {
+      console.error("Erro ao abrir preview:", err);
+      toast({
+        title: "Erro",
+        description: "Não foi possível abrir o preview da matriz.",
+        variant: "destructive"
+      });
+    }
   };
 
   const downloadTemplate = () => {
-    const templateHTML = `
+    try {
+      const templateHTML = `
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
@@ -544,16 +603,29 @@ const YampiIntegration = () => {
     </div>
 </body>
 </html>
-    `;
-    const blob = new Blob([templateHTML], { type: 'text/html' });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = 'template-matriz-karmica.html';
-    document.body.appendChild(a);
-    a.click();
-    document.body.removeChild(a);
-    URL.revokeObjectURL(url);
+      `;
+      const blob = new Blob([templateHTML], { type: 'text/html' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = 'template-matriz-karmica.html';
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+      
+      toast({
+        title: "Download iniciado",
+        description: "O download do template foi iniciado com sucesso."
+      });
+    } catch (err) {
+      console.error("Erro ao gerar template para download:", err);
+      toast({
+        title: "Erro",
+        description: "Não foi possível gerar o template para download.",
+        variant: "destructive"
+      });
+    }
   };
 
   return (
@@ -600,13 +672,25 @@ const YampiIntegration = () => {
           </TableRow>
         </TableHeader>
         <TableBody>
-          {allUsersData.map((user) => (
-            <TableRow key={user.email} onClick={() => setSelectedUserEmail(user.email)}>
-              <TableCell className="font-medium">{user.email}</TableCell>
-              <TableCell>{user.name}</TableCell>
-              <TableCell>{user.birthDate}</TableCell>
+          {allUsersData.length > 0 ? (
+            allUsersData.map((user) => (
+              <TableRow 
+                key={user.email || 'unknown'} 
+                onClick={() => setSelectedUserEmail(user.email)}
+                className="cursor-pointer hover:bg-gray-50"
+              >
+                <TableCell className="font-medium">{user.email || 'N/A'}</TableCell>
+                <TableCell>{user.name || 'N/A'}</TableCell>
+                <TableCell>{user.birthDate || 'N/A'}</TableCell>
+              </TableRow>
+            ))
+          ) : (
+            <TableRow>
+              <TableCell colSpan={3} className="text-center py-4">
+                Nenhum usuário encontrado
+              </TableCell>
             </TableRow>
-          ))}
+          )}
         </TableBody>
       </Table>
       
