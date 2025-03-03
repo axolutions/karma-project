@@ -6,17 +6,16 @@ import UserHeader from '../components/matrix/UserHeader';
 import KarmicMatrix from '../components/KarmicMatrix';
 import MatrixInterpretations from '../components/MatrixInterpretations';
 import { Button } from "@/components/ui/button";
-import { Share2 } from "lucide-react";
 import { useToast } from "@/components/ui/use-toast";
 import LoadingState from '../components/matrix/LoadingState';
 import ErrorState from '../components/matrix/ErrorState';
+import { generateInterpretationsHTML } from '@/lib/interpretations';
 
 const MatrixResult: React.FC = () => {
   const [userData, setUserData] = useState<any>(null);
   const [userMaps, setUserMaps] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [showShareLink, setShowShareLink] = useState(false);
   const [refreshing, setRefreshing] = useState(false);
   const { toast } = useToast();
   
@@ -83,31 +82,6 @@ const MatrixResult: React.FC = () => {
     
     loadUserData();
   }, []);
-  
-  const handleShareLink = () => {
-    setShowShareLink(!showShareLink);
-    
-    // Se estiver abrindo o link, copia para a área de transferência
-    if (!showShareLink) {
-      const currentUrl = window.location.href;
-      navigator.clipboard.writeText(currentUrl).then(
-        () => {
-          toast({
-            title: "Link copiado!",
-            description: "O link da sua matriz foi copiado para a área de transferência.",
-          });
-        },
-        (err) => {
-          console.error('Erro ao copiar link:', err);
-          toast({
-            title: "Erro ao copiar",
-            description: "Não foi possível copiar o link automaticamente.",
-            variant: "destructive"
-          });
-        }
-      );
-    }
-  };
 
   // Funções para o UserHeader
   const handleRefresh = () => {
@@ -133,12 +107,52 @@ const MatrixResult: React.FC = () => {
   };
 
   const handleDownloadPDF = () => {
-    console.log("Baixando PDF...");
-    // Implementação real seria necessária aqui
-    toast({
-      title: "Download iniciado",
-      description: "O download das interpretações em PDF foi iniciado."
-    });
+    if (!userData?.karmicNumbers) {
+      toast({
+        title: "Erro ao gerar PDF",
+        description: "Dados kármicos não disponíveis para download.",
+        variant: "destructive"
+      });
+      return;
+    }
+
+    try {
+      // Gerar o conteúdo HTML para o PDF
+      const htmlContent = generateInterpretationsHTML(userData.karmicNumbers);
+      
+      // Criar um Blob com o conteúdo HTML
+      const blob = new Blob([htmlContent], { type: 'text/html' });
+      
+      // Criar URL para download
+      const url = URL.createObjectURL(blob);
+      
+      // Criar elemento de link temporário para download
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `Matriz-Karmica-${userData.name || 'Usuario'}.html`;
+      document.body.appendChild(a);
+      
+      // Iniciar download
+      a.click();
+      
+      // Limpar
+      setTimeout(() => {
+        document.body.removeChild(a);
+        URL.revokeObjectURL(url);
+      }, 100);
+      
+      toast({
+        title: "Download iniciado",
+        description: "O download das interpretações foi iniciado."
+      });
+    } catch (err) {
+      console.error("Erro ao gerar arquivo para download:", err);
+      toast({
+        title: "Erro ao gerar arquivo",
+        description: "Não foi possível gerar o arquivo para download.",
+        variant: "destructive"
+      });
+    }
   };
   
   if (loading) return <LoadingState />;
@@ -168,29 +182,6 @@ const MatrixResult: React.FC = () => {
         handleCreateNewMap={handleCreateNewMap}
         handleDownloadPDF={handleDownloadPDF}
       />
-      
-      <div className="flex justify-end mb-4">
-        <Button 
-          onClick={handleShareLink} 
-          variant="outline" 
-          className="flex items-center gap-2"
-        >
-          <Share2 className="h-4 w-4" />
-          Compartilhar Matriz
-        </Button>
-      </div>
-      
-      {showShareLink && (
-        <div className="mb-6 p-4 border rounded-md bg-karmic-50 text-karmic-800">
-          <p className="font-medium">Use este link para acessar sua matriz:</p>
-          <p className="mt-2 text-sm bg-white p-2 rounded border select-all overflow-x-auto">
-            {window.location.href}
-          </p>
-          <p className="mt-2 text-xs">
-            Este link contém sua matriz atual. Você pode compartilhá-lo ou salvá-lo para acessar posteriormente.
-          </p>
-        </div>
-      )}
       
       <KarmicMatrix karmicData={karmicData} />
       <MatrixInterpretations karmicData={karmicData} />
