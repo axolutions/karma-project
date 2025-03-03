@@ -49,7 +49,7 @@ const KarmicMatrix: React.FC<KarmicMatrixProps> = ({
     karmaPortal: { top: "24%", left: "72%" },       // portal_karma
     karmicInheritance: { top: "48%", left: "25%" }, // heranca_karmica
     karmicReprogramming: { top: "75%", left: "47%" }, // codex_reprogramacao
-    cycleProphecy: { top: "60%", left: "72%" },     // profecia_ciclos - SOMENTE este número 6 foi movido
+    cycleProphecy: { top: "88%", left: "47%" },     // profecia_ciclos - Número 6 posicionado mais baixo
     spiritualMark: { top: "72%", left: "25%" },     // marca_espiritual
     manifestationEnigma: { top: "85%", left: "72%" } // enigma_manifestacao
   };
