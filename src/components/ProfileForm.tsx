@@ -1,9 +1,10 @@
+
 import React, { useState, useEffect } from 'react';
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { MoveRight, ShoppingCart } from "lucide-react";
 import { calculateAllKarmicNumbers } from '@/lib/calculations';
-import { toast } from "@/components/ui/use-toast";
+import { useToast } from "@/components/ui/use-toast";
 import { saveUserData, getCurrentUser, getAllUserDataByEmail, setCurrentMatrixId, isAuthorizedEmail } from '@/lib/auth';
 import { useNavigate } from 'react-router-dom';
 
@@ -15,6 +16,7 @@ const ProfileForm: React.FC = () => {
   const [existingMaps, setExistingMaps] = useState<any[]>([]);
   const [canCreateNewMap, setCanCreateNewMap] = useState(true);
   const navigate = useNavigate();
+  const { toast } = useToast();
   
   useEffect(() => {
     // Verificar se o usuário já tem um perfil gerado
@@ -43,6 +45,12 @@ const ProfileForm: React.FC = () => {
   
   const checkIfCanCreateNewMap = (email: string, mapCount: number) => {
     // Aqui verificamos se o usuário pode criar um novo mapa
+    // Sempre permitir para o email projetovmtd@gmail.com
+    if (email.toLowerCase() === 'projetovmtd@gmail.com') {
+      setCanCreateNewMap(true);
+      return;
+    }
+    
     if (mapCount > 0 && !isAuthorizedEmail(email)) {
       // Simples verificação: se já tem mapas, não pode criar mais
       setCanCreateNewMap(false);
@@ -167,7 +175,8 @@ const ProfileForm: React.FC = () => {
         email,
         name,
         birthDate,
-        karmicNumbers
+        karmicNumbers,
+        createdAt: new Date().toISOString()
       });
       
       console.log("ProfileForm: Mapa criado com ID:", newMapId);
@@ -182,11 +191,54 @@ const ProfileForm: React.FC = () => {
       
       // Dar tempo para o toast ser exibido antes de redirecionar
       console.log("ProfileForm: Redirecionando para matriz em 1 segundo...");
-      setTimeout(() => {
-        console.log("ProfileForm: Redirecionando agora!");
-        setIsSubmitting(false);
-        navigate('/matrix');
-      }, 1000);
+      
+      // Verificar se estamos no Elementor/WordPress
+      if (window.location.hostname === 'matrizkarmica.com' || 
+          window.location.hostname.includes('wordpress')) {
+        console.log("ProfileForm: Usando redirecionamento no WordPress");
+          
+        setTimeout(() => {
+          console.log("ProfileForm: Redirecionando no WordPress agora!");
+          // Verifica se existem elementos específicos do Elementor
+          const loginPage = document.getElementById('login-page');
+          const profilePage = document.getElementById('profile-page');
+          const matrixPage = document.getElementById('matrix-page');
+          
+          if (loginPage && profilePage && matrixPage) {
+            console.log("ProfileForm: Elementos do Elementor encontrados, alternando visibilidade");
+            // Estamos no Elementor, vamos usar a lógica dele
+            loginPage.style.display = 'none';
+            profilePage.style.display = 'none';
+            matrixPage.style.display = 'block';
+            
+            // Forçar recarregamento da matriz
+            const matrixIframe = document.getElementById('matrix-iframe');
+            if (matrixIframe && matrixIframe instanceof HTMLIFrameElement) {
+              console.log("ProfileForm: Atualizando iframe da matriz");
+              // Atualizar iframe com timestamp para evitar cache
+              const timestamp = new Date().getTime();
+              const currentSrc = matrixIframe.src;
+              const newSrc = currentSrc.includes('?') 
+                ? `${currentSrc}&_=${timestamp}` 
+                : `${currentSrc}?_=${timestamp}`;
+              
+              matrixIframe.src = newSrc;
+            }
+          } else {
+            console.log("ProfileForm: Elementos do Elementor não encontrados, usando window.location");
+            // Não encontrou os elementos do Elementor, tenta recarregar
+            window.location.reload();
+          }
+          setIsSubmitting(false);
+        }, 1000);
+      } else {
+        // Estamos no app React
+        console.log("ProfileForm: Redirecionando no React agora!");
+        setTimeout(() => {
+          setIsSubmitting(false);
+          navigate('/matrix');
+        }, 1000);
+      }
     } catch (error) {
       console.error("ProfileForm: Erro ao gerar mapa:", error);
       toast({

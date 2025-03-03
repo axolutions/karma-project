@@ -85,42 +85,61 @@ const LoginForm: React.FC = () => {
         console.log("Dados do usuário após login:", userData);
         
         // Agora redirecionamos explicitamente para a página inicial
-        // em vez de apenas recarregar a página
         setTimeout(() => {
           setIsSubmitting(false);
-          if (window.location.pathname.includes('/matrix')) {
-            window.location.reload(); // Caso já esteja na página da matriz
-          } else {
-            // Verifica se estamos no app React ou no Elementor do WordPress
-            if (window.location.hostname === 'matrizkarmica.com' || 
-                window.location.hostname.includes('wordpress')) {
-              console.log("Detectado site WordPress/Elementor, usando JS local");
-              
-              // Verifica se existem elementos específicos do Elementor
-              const loginPage = document.getElementById('login-page');
-              const profilePage = document.getElementById('profile-page');
-              const matrixPage = document.getElementById('matrix-page');
-              
-              if (loginPage && profilePage && matrixPage) {
-                // Estamos no Elementor, vamos usar a lógica dele
-                if (userData && userData.name) {
-                  // Usuário tem perfil, mostrar matriz
-                  loginPage.style.display = 'none';
-                  profilePage.style.display = 'none';
-                  matrixPage.style.display = 'block';
-                } else {
-                  // Usuário não tem perfil, mostrar formulário de perfil
-                  loginPage.style.display = 'none';
-                  profilePage.style.display = 'block';
-                  matrixPage.style.display = 'none';
+          
+          // Verifica se estamos no app React ou no Elementor do WordPress
+          if (window.location.hostname === 'matrizkarmica.com' || 
+              window.location.hostname.includes('wordpress')) {
+            console.log("Detectado site WordPress/Elementor, usando JS local");
+            
+            // Verifica se existem elementos específicos do Elementor
+            const loginPage = document.getElementById('login-page');
+            const profilePage = document.getElementById('profile-page');
+            const matrixPage = document.getElementById('matrix-page');
+            
+            if (loginPage && profilePage && matrixPage) {
+              console.log("Encontrou elementos do Elementor, alternando visibilidade");
+              // Estamos no Elementor, vamos usar a lógica dele
+              if (userData && userData.name) {
+                // Usuário tem perfil, mostrar matriz
+                loginPage.style.display = 'none';
+                profilePage.style.display = 'none';
+                matrixPage.style.display = 'block';
+                
+                // Forçar recarregamento da matriz
+                const matrixIframe = document.getElementById('matrix-iframe');
+                if (matrixIframe && matrixIframe instanceof HTMLIFrameElement) {
+                  console.log("Atualizando iframe da matriz");
+                  // Atualizar iframe com timestamp para evitar cache
+                  const timestamp = new Date().getTime();
+                  const currentSrc = matrixIframe.src;
+                  const newSrc = currentSrc.includes('?') 
+                    ? `${currentSrc}&_=${timestamp}` 
+                    : `${currentSrc}?_=${timestamp}`;
+                  
+                  matrixIframe.src = newSrc;
                 }
               } else {
-                // Não encontrou os elementos do Elementor, tenta recarregar
-                window.location.reload();
+                // Usuário não tem perfil, mostrar formulário de perfil
+                loginPage.style.display = 'none';
+                profilePage.style.display = 'block';
+                matrixPage.style.display = 'none';
               }
             } else {
-              // Estamos no app React
-              window.location.href = "/"; // forçamos redirecionamento explícito
+              console.log("Não encontrou os elementos do Elementor, tentando recarregar a página");
+              // Não encontrou os elementos do Elementor, tenta recarregar
+              window.location.reload();
+            }
+          } else {
+            // Estamos no app React
+            console.log("Estamos no app React, navegando com router");
+            if (userData && userData.name) {
+              navigate('/matrix');
+            } else {
+              // Se o usuário não tem perfil, navegamos para a página inicial
+              // que mostrará o formulário de perfil
+              navigate('/');
             }
           }
         }, 1000);
