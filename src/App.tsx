@@ -15,9 +15,16 @@ const queryClient = new QueryClient();
 
 // Protected route component for users
 const ProtectedUserRoute = ({ children }: { children: React.ReactNode }) => {
-  // Modified to ensure proper redirection
+  // Verificação mais robusta de autenticação
   if (!isLoggedIn()) {
     console.log("Usuário não autenticado. Redirecionando para a página inicial.");
+    return <Navigate to="/" replace />;
+  }
+  
+  // Verificar se o usuário tem um email armazenado
+  const userEmail = localStorage.getItem('currentUser');
+  if (!userEmail) {
+    console.log("Email do usuário não encontrado. Redirecionando para a página inicial.");
     return <Navigate to="/" replace />;
   }
   

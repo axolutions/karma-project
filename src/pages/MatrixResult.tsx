@@ -21,38 +21,57 @@ const MatrixResult: React.FC = () => {
   const { toast } = useToast();
   
   useEffect(() => {
-    const loadUserData = () => {
+    const loadUserData = async () => {
       try {
+        // Verificar se o usuário está logado
         if (!isLoggedIn()) {
+          console.error("Usuário não está logado");
           setError('Sessão expirada. Por favor, faça login novamente.');
           setLoading(false);
           return;
         }
         
-        const email = localStorage.getItem('userEmail');
+        // Obter o email do usuário atual
+        const email = localStorage.getItem('currentUser');
         if (!email) {
+          console.error("Email do usuário não encontrado no localStorage");
           setError('Dados de usuário não encontrados.');
           setLoading(false);
           return;
         }
         
+        // Obter os dados do usuário pelo email
         const data = getUserData(email);
+        console.log("Dados obtidos:", data);
+        
         if (!data) {
+          console.error("Dados do usuário não encontrados para o email:", email);
           setError('Dados de usuário não encontrados.');
           setLoading(false);
           return;
         }
         
-        // Verificar se tem matrix ID
-        const matrixId = getCurrentMatrixId(email);
+        // Verificar se o usuário tem uma matriz ativa
+        const matrixId = data.currentMatrixId || getCurrentMatrixId(email);
         if (!matrixId) {
+          console.error("ID da matriz não encontrado para o usuário:", email);
           setError('Matriz Kármica não encontrada para este usuário.');
           setLoading(false);
           return;
         }
         
+        // Verificar se o usuário tem dados kármicos
+        if (!data.karmicNumbers) {
+          console.error("Dados kármicos não encontrados para o usuário:", email);
+          setError('Dados kármicos não encontrados para este usuário.');
+          setLoading(false);
+          return;
+        }
+        
+        console.log("Dados kármicos encontrados:", data.karmicNumbers);
         setUserData(data);
-        // Simulação de múltiplos mapas para o usuário
+        
+        // Simulação de múltiplos mapas para o usuário (apenas o atual neste momento)
         setUserMaps([data]);
         setLoading(false);
       } catch (err) {
@@ -90,7 +109,7 @@ const MatrixResult: React.FC = () => {
     }
   };
 
-  // Funções fictícias para satisfazer a tipagem do UserHeader
+  // Funções para o UserHeader
   const handleRefresh = () => {
     setRefreshing(true);
     // Simular atualização
@@ -125,16 +144,16 @@ const MatrixResult: React.FC = () => {
   if (loading) return <LoadingState />;
   if (error) return <ErrorState />;
   
-  // Apenas para garantir que temos os dados kármicos
-  const karmicData = userData?.karmicData || {
-    karmicSeal: userData?.karmicSeal || 0,
-    destinyCall: userData?.destinyCall || 0,
-    karmaPortal: userData?.karmaPortal || 0,
-    karmicInheritance: userData?.karmicInheritance || 0,
-    karmicReprogramming: userData?.karmicReprogramming || 0,
-    cycleProphecy: userData?.cycleProphecy || 0,
-    spiritualMark: userData?.spiritualMark || 0,
-    manifestationEnigma: userData?.manifestationEnigma || 0
+  // Garantir que temos dados kármicos válidos
+  const karmicData = userData?.karmicNumbers || {
+    karmicSeal: 0,
+    destinyCall: 0,
+    karmaPortal: 0,
+    karmicInheritance: 0,
+    karmicReprogramming: 0,
+    cycleProphecy: 0,
+    spiritualMark: 0,
+    manifestationEnigma: 0
   };
   
   return (
