@@ -2,13 +2,7 @@
 import React, { useState } from 'react';
 import { Button } from '../ui/button';
 import { toast } from 'sonner';
-import { Download, HelpCircle, RefreshCw, Copy } from 'lucide-react';
-import { 
-  Accordion,
-  AccordionContent,
-  AccordionItem,
-  AccordionTrigger,
-} from "../ui/accordion";
+import { Download, Copy, CheckCircle } from 'lucide-react';
 import {
   Card,
   CardContent,
@@ -17,12 +11,17 @@ import {
   CardHeader,
   CardTitle,
 } from "../ui/card";
+import { Switch } from "../ui/switch";
+import { Label } from "../ui/label";
 
 export const ElementorExport = () => {
   const [isGenerating, setIsGenerating] = useState(false);
   const [isTestingMode, setIsTestingMode] = useState(false);
+  const [includeDebugInfo, setIncludeDebugInfo] = useState(true);
+  const [useInlineStyles, setUseInlineStyles] = useState(true);
+  const [copied, setCopied] = useState(false);
 
-  const generateElementorHTML = () => {
+  const generateBasicElementorHTML = () => {
     setIsGenerating(true);
     
     // Add more authorized emails for testing
@@ -33,280 +32,128 @@ export const ElementorExport = () => {
 
     // This creates a simplified HTML version that works with Elementor's HTML widget
     const elementorHTML = `
-<!-- Widget de HTML do Elementor - Coloque este código em um widget HTML -->
-
-<div id="matriz-karmica-app" class="matriz-karmica-container">
-  <!-- Login Page -->
-  <div id="login-page" class="matriz-section">
-    <h2 class="matriz-title">Acesse sua Matriz Pessoal</h2>
-    <div class="matriz-form">
-      <div class="matriz-field">
-        <label for="email">Email</label>
-        <input type="email" id="email" placeholder="seu@email.com" required />
-        <p class="matriz-hint">Informe o email utilizado na compra</p>
-      </div>
-      <button id="matriz-login-btn" class="matriz-button">Acessar Matriz</button>
-      <div id="login-message" class="matriz-message" style="display:none; margin-top: 15px; padding: 10px; border-radius: 5px;"></div>
-    </div>
-  </div>
-  
-  <!-- Profile Page -->
-  <div id="profile-page" class="matriz-section" style="display:none;">
-    <h2 class="matriz-title">Complete seu Perfil</h2>
-    <div class="matriz-form">
-      <div class="matriz-field">
-        <label for="name">Nome Completo</label>
-        <input type="text" id="name" placeholder="Seu nome completo" required />
-      </div>
-      <div class="matriz-field">
-        <label for="birthdate">Data de Nascimento</label>
-        <input type="text" id="birthdate" placeholder="DD/MM/AAAA" required />
-        <p class="matriz-hint">Formato: dia/mês/ano completo (ex: 15/07/1985)</p>
-      </div>
-      <button id="matriz-calc-btn" class="matriz-button">Calcular Matriz Kármica</button>
-    </div>
-  </div>
-  
-  <!-- Matrix Page -->
-  <div id="matrix-page" class="matriz-section" style="display:none;">
-    <div class="matriz-header">
-      <h2 class="matriz-title">Sua Matriz Kármica Pessoal</h2>
-      <button id="back-button" class="matriz-button-secondary">Voltar</button>
+<!-- WIDGET HTML: COLOQUE ISTO EM UM WIDGET HTML NO ELEMENTOR -->
+<div style="${useInlineStyles ? 'max-width: 800px; margin: 0 auto; font-family: Arial, sans-serif;' : ''}">
+  <!-- Formulário de Login -->
+  <div id="login-form" style="${useInlineStyles ? 'background-color: #f9f7ff; border-radius: 10px; padding: 30px; margin-bottom: 20px;' : ''}">
+    <h2 style="${useInlineStyles ? 'color: #6D28D9; text-align: center; margin-bottom: 25px; font-size: 24px;' : ''}">Acesse sua Matriz Kármica</h2>
+    
+    <div style="${useInlineStyles ? 'margin-bottom: 20px;' : ''}">
+      <label for="email-input" style="${useInlineStyles ? 'display: block; margin-bottom: 8px; font-weight: bold;' : ''}">Email de Compra</label>
+      <input 
+        type="email" 
+        id="email-input" 
+        placeholder="Seu email de compra" 
+        style="${useInlineStyles ? 'width: 100%; padding: 12px; border: 1px solid #E5E7EB; border-radius: 5px; font-size: 16px; box-sizing: border-box;' : ''}"
+      />
+      <p style="${useInlineStyles ? 'font-size: 14px; color: #6B7280; margin-top: 5px;' : ''}">Informe o mesmo email utilizado na compra</p>
     </div>
     
-    <div class="matriz-tabs">
-      <button class="matriz-tab active" data-tab="overview">Visão Geral</button>
-      <button class="matriz-tab" data-tab="personal">Missão Pessoal</button>
-      <button class="matriz-tab" data-tab="spiritual">Caminho Espiritual</button>
-      <button class="matriz-tab" data-tab="challenges">Desafios & Lições</button>
+    <button 
+      id="login-button" 
+      style="${useInlineStyles ? 'display: block; width: 100%; padding: 12px; background-color: #6D28D9; color: white; border: none; border-radius: 5px; font-weight: bold; cursor: pointer; font-size: 16px;' : ''}"
+    >
+      Acessar Minha Matriz
+    </button>
+    
+    <div id="login-message" style="${useInlineStyles ? 'margin-top: 15px; padding: 10px; border-radius: 5px; display: none; text-align: center;' : ''}"></div>
+  </div>
+  
+  <!-- Formulário de Perfil (inicialmente oculto) -->
+  <div id="profile-form" style="${useInlineStyles ? 'background-color: #f9f7ff; border-radius: 10px; padding: 30px; margin-bottom: 20px; display: none;' : 'display: none;'}">
+    <h2 style="${useInlineStyles ? 'color: #6D28D9; text-align: center; margin-bottom: 25px; font-size: 24px;' : ''}">Complete seu Perfil</h2>
+    
+    <div style="${useInlineStyles ? 'margin-bottom: 20px;' : ''}">
+      <label for="name-input" style="${useInlineStyles ? 'display: block; margin-bottom: 8px; font-weight: bold;' : ''}">Nome Completo</label>
+      <input 
+        type="text" 
+        id="name-input" 
+        placeholder="Seu nome completo" 
+        style="${useInlineStyles ? 'width: 100%; padding: 12px; border: 1px solid #E5E7EB; border-radius: 5px; font-size: 16px; box-sizing: border-box;' : ''}"
+      />
+    </div>
+    
+    <div style="${useInlineStyles ? 'margin-bottom: 20px;' : ''}">
+      <label for="birthdate-input" style="${useInlineStyles ? 'display: block; margin-bottom: 8px; font-weight: bold;' : ''}">Data de Nascimento</label>
+      <input 
+        type="text" 
+        id="birthdate-input" 
+        placeholder="DD/MM/AAAA" 
+        style="${useInlineStyles ? 'width: 100%; padding: 12px; border: 1px solid #E5E7EB; border-radius: 5px; font-size: 16px; box-sizing: border-box;' : ''}"
+      />
+      <p style="${useInlineStyles ? 'font-size: 14px; color: #6B7280; margin-top: 5px;' : ''}">Formato: dia/mês/ano (ex: 15/07/1985)</p>
+    </div>
+    
+    <button 
+      id="calculate-button" 
+      style="${useInlineStyles ? 'display: block; width: 100%; padding: 12px; background-color: #6D28D9; color: white; border: none; border-radius: 5px; font-weight: bold; cursor: pointer; font-size: 16px;' : ''}"
+    >
+      Calcular Minha Matriz
+    </button>
+  </div>
+  
+  <!-- Resultado da Matriz (inicialmente oculto) -->
+  <div id="matrix-result" style="${useInlineStyles ? 'background-color: #f9f7ff; border-radius: 10px; padding: 30px; display: none;' : 'display: none;'}">
+    <div style="${useInlineStyles ? 'display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;' : ''}">
+      <h2 style="${useInlineStyles ? 'color: #6D28D9; margin: 0; font-size: 24px;' : ''}">Sua Matriz Kármica</h2>
+      <button 
+        id="back-button" 
+        style="${useInlineStyles ? 'background-color: transparent; color: #6D28D9; border: 1px solid #6D28D9; padding: 8px 15px; border-radius: 5px; cursor: pointer;' : ''}"
+      >
+        Voltar
+      </button>
+    </div>
+    
+    <div id="matrix-tabs" style="${useInlineStyles ? 'display: flex; border-bottom: 1px solid #E5E7EB; margin-bottom: 20px;' : ''}">
+      <button class="matrix-tab active" data-tab="overview" style="${useInlineStyles ? 'padding: 10px 15px; background: none; border: none; border-bottom: 3px solid #6D28D9; cursor: pointer; font-weight: bold; color: #6D28D9;' : ''}">Visão Geral</button>
+      <button class="matrix-tab" data-tab="personal" style="${useInlineStyles ? 'padding: 10px 15px; background: none; border: none; border-bottom: 3px solid transparent; cursor: pointer; color: #6B7280;' : ''}">Missão Pessoal</button>
+      <button class="matrix-tab" data-tab="spiritual" style="${useInlineStyles ? 'padding: 10px 15px; background: none; border: none; border-bottom: 3px solid transparent; cursor: pointer; color: #6B7280;' : ''}">Caminho Espiritual</button>
     </div>
     
     <div id="tab-content">
-      <!-- Conteúdo das abas será preenchido dinamicamente pelo JS -->
-      <div id="overview-tab" class="matriz-tab-content active">
-        <div class="matriz-grid" id="matriz-numbers">
-          <!-- Números serão preenchidos pelo JS -->
+      <div id="overview-tab" class="matrix-tab-content">
+        <div id="matrix-numbers" style="${useInlineStyles ? 'display: grid; grid-template-columns: repeat(auto-fill, minmax(170px, 1fr)); gap: 15px;' : ''}">
+          <!-- Será preenchido pelo JavaScript -->
         </div>
       </div>
       
-      <div id="personal-tab" class="matriz-tab-content" style="display:none;">
-        <!-- Conteúdo pessoal -->
+      <div id="personal-tab" class="matrix-tab-content" style="${useInlineStyles ? 'display: none;' : 'display: none;'}">
+        <!-- Será preenchido pelo JavaScript -->
       </div>
       
-      <div id="spiritual-tab" class="matriz-tab-content" style="display:none;">
-        <!-- Conteúdo espiritual -->
-      </div>
-      
-      <div id="challenges-tab" class="matriz-tab-content" style="display:none;">
-        <!-- Conteúdo desafios -->
+      <div id="spiritual-tab" class="matrix-tab-content" style="${useInlineStyles ? 'display: none;' : 'display: none;'}">
+        <!-- Será preenchido pelo JavaScript -->
       </div>
     </div>
   </div>
+  
+  ${includeDebugInfo ? `
+  <!-- Seção de Debug (visível apenas durante testes) -->
+  <div id="debug-section" style="${useInlineStyles ? 'margin-top: 30px; background-color: #f0f0f0; padding: 15px; border-radius: 5px; font-family: monospace; font-size: 12px; display: none;' : 'display: none;'}">
+    <h3 style="${useInlineStyles ? 'margin-top: 0; font-size: 14px;' : ''}">Debug Info</h3>
+    <div id="debug-log" style="${useInlineStyles ? 'max-height: 200px; overflow-y: auto;' : ''}"></div>
+  </div>
+  ` : ''}
 </div>
 
-<!-- Adicione este CSS em uma Seção de CSS personalizado no Elementor -->
-<style>
-/* Estilos para o aplicativo da Matriz Kármica */
-.matriz-karmica-container {
-  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-  max-width: 1000px;
-  margin: 0 auto;
-  padding: 20px;
-  background-color: #fff;
-  border-radius: 10px;
-  box-shadow: 0 4px 12px rgba(0,0,0,0.05);
-}
-
-.matriz-title {
-  color: #6D28D9;
-  text-align: center;
-  margin-bottom: 20px;
-}
-
-.matriz-form {
-  background-color: #F5F3FF;
-  padding: 30px;
-  border-radius: 10px;
-  margin-bottom: 20px;
-}
-
-.matriz-field {
-  margin-bottom: 20px;
-}
-
-.matriz-field label {
-  display: block;
-  margin-bottom: 8px;
-  font-weight: 500;
-}
-
-.matriz-field input {
-  width: 100%;
-  padding: 12px;
-  border: 1px solid #E5E7EB;
-  border-radius: 5px;
-  font-size: 16px;
-}
-
-.matriz-hint {
-  font-size: 0.9rem;
-  color: #6B7280;
-  margin-top: 5px;
-}
-
-.matriz-button {
-  display: block;
-  width: 100%;
-  padding: 12px;
-  background-color: #6D28D9;
-  color: white;
-  border: none;
-  border-radius: 5px;
-  font-weight: 500;
-  cursor: pointer;
-  transition: all 0.2s ease;
-}
-
-.matriz-button:hover {
-  background-color: #5B21B6;
-}
-
-.matriz-button-secondary {
-  background-color: transparent;
-  color: #6D28D9;
-  border: 1px solid #6D28D9;
-  padding: 8px 16px;
-  border-radius: 5px;
-  cursor: pointer;
-}
-
-.matriz-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 20px;
-}
-
-.matriz-tabs {
-  display: flex;
-  border-bottom: 1px solid #E5E7EB;
-  margin-bottom: 20px;
-  overflow-x: auto;
-}
-
-.matriz-tab {
-  padding: 12px 20px;
-  background: none;
-  border: none;
-  border-bottom: 3px solid transparent;
-  cursor: pointer;
-  font-weight: 500;
-  color: #6B7280;
-}
-
-.matriz-tab.active {
-  border-bottom-color: #6D28D9;
-  color: #5B21B6;
-}
-
-.matriz-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-  gap: 20px;
-  margin-bottom: 30px;
-}
-
-.matriz-number-card {
-  background-color: #F5F3FF;
-  border-radius: 10px;
-  padding: 20px;
-  text-align: center;
-  border: 1px solid #E5E7EB;
-  transition: all 0.3s ease;
-}
-
-.matriz-number-card:hover {
-  transform: translateY(-5px);
-  box-shadow: 0 10px 25px rgba(0,0,0,0.1);
-}
-
-.matriz-number-title {
-  font-size: 1.1rem;
-  color: #5B21B6;
-  margin-bottom: 10px;
-}
-
-.matriz-number {
-  font-size: 2rem;
-  font-weight: bold;
-  color: #6D28D9;
-}
-
-.matriz-message {
-  text-align: center;
-  font-weight: 500;
-}
-
-.matriz-message.success {
-  background-color: #DCFCE7;
-  color: #166534;
-}
-
-.matriz-message.error {
-  background-color: #FEE2E2;
-  color: #991B1B;
-}
-
-/* Responsividade */
-@media (max-width: 768px) {
-  .matriz-grid {
-    grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
-  }
-  
-  .matriz-tabs {
-    flex-wrap: wrap;
-  }
-}
-</style>
-
-<!-- Adicione este JavaScript em uma Seção de JavaScript no Elementor -->
+<!-- JAVASCRIPT: COLOQUE ESTE CÓDIGO EM UM WIDGET DE HTML DEDICADO APENAS AO JAVASCRIPT -->
 <script>
 document.addEventListener('DOMContentLoaded', function() {
-  // Auxiliar de debug para testes
-  function debug(msg, obj) {
-    console.log("[Matriz Kármica DEBUG]:", msg, obj || '');
-  }
-  
-  debug("Inicializando aplicativo da Matriz Kármica no Elementor");
-  
-  // Elementos das páginas
-  const loginPage = document.getElementById('login-page');
-  const profilePage = document.getElementById('profile-page');
-  const matrixPage = document.getElementById('matrix-page');
-  
-  // Botões e formulários
-  const loginBtn = document.getElementById('matriz-login-btn');
-  const calcBtn = document.getElementById('matriz-calc-btn');
-  const backBtn = document.getElementById('back-button');
-  const emailInput = document.getElementById('email');
-  const nameInput = document.getElementById('name');
-  const birthdateInput = document.getElementById('birthdate');
+  // Elementos da página
+  const loginForm = document.getElementById('login-form');
+  const profileForm = document.getElementById('profile-form');
+  const matrixResult = document.getElementById('matrix-result');
+  const loginButton = document.getElementById('login-button');
+  const calculateButton = document.getElementById('calculate-button');
+  const backButton = document.getElementById('back-button');
+  const emailInput = document.getElementById('email-input');
+  const nameInput = document.getElementById('name-input');
+  const birthdateInput = document.getElementById('birthdate-input');
   const loginMessage = document.getElementById('login-message');
-  
-  debug("Elementos encontrados:", {
-    loginPage: !!loginPage,
-    profilePage: !!profilePage,
-    matrixPage: !!matrixPage,
-    loginBtn: !!loginBtn,
-    calcBtn: !!calcBtn,
-    emailInput: !!emailInput,
-    nameInput: !!nameInput,
-    birthdateInput: !!birthdateInput
-  });
-  
-  // Tabs da matriz
-  const tabButtons = document.querySelectorAll('.matriz-tab');
-  const tabContents = document.querySelectorAll('.matriz-tab-content');
+  const matrixTabs = document.querySelectorAll('.matrix-tab');
+  const tabContents = document.querySelectorAll('.matrix-tab-content');
+  const debugSection = document.getElementById('debug-section');
+  const debugLog = document.getElementById('debug-log');
   
   // Lista de emails autorizados
   const authorizedEmails = [
@@ -320,131 +167,248 @@ document.addEventListener('DOMContentLoaded', function() {
     'tesete@testelcom.br'
   ];
   
-  debug("Emails autorizados:", authorizedEmails);
-  
-  // Dados dos usuários (simulação)
-  let userData = {
-    currentEmail: '',
-    users: {}
-  };
-  
-  // Tentar recuperar dados do localStorage
-  try {
-    const storedData = localStorage.getItem('matrizKarmica');
-    if (storedData) {
-      userData = JSON.parse(storedData);
-      debug("Dados recuperados do localStorage:", userData);
-    } else {
-      debug("Nenhum dado encontrado no localStorage");
-    }
+  // Função para log com debug
+  function log(message, data) {
+    // Sempre registra no console
+    console.log('[Matriz Kármica]', message, data || '');
     
-    // Recuperar usuário logado (do sistema React)
-    const currentUser = localStorage.getItem('currentUser');
-    if (currentUser) {
-      debug("Usuário atual encontrado:", currentUser);
+    // Se temos a seção de debug, mostramos lá também
+    if (debugSection && debugLog) {
+      debugSection.style.display = 'block';
+      const entry = document.createElement('div');
+      entry.innerHTML = \`<strong>\${new Date().toISOString().substr(11, 8)}:</strong> \${message} \${data ? JSON.stringify(data) : ''}\`;
+      debugLog.appendChild(entry);
+      debugLog.scrollTop = debugLog.scrollHeight;
+    }
+  }
+  
+  log('Inicializando aplicativo da Matriz Kármica');
+  
+  // Formatar e validar data
+  if (birthdateInput) {
+    birthdateInput.addEventListener('input', function(e) {
+      let value = e.target.value.replace(/[^\\d\\/]/g, '');
       
-      if (authorizedEmails.some(email => 
-          email.toLowerCase().trim() === currentUser.toLowerCase().trim())) {
-        debug("Usuário autorizado, definindo como atual");
-        userData.currentEmail = currentUser;
-        
-        // Verificar se já tem dados completos no sistema React
-        const userMapsString = localStorage.getItem('userMaps');
-        if (userMapsString) {
-          debug("userMaps encontrado");
-          try {
-            const userMaps = JSON.parse(userMapsString);
-            const userDataFromReact = userMaps.find(map => 
-              map && map.email && map.email.toLowerCase() === currentUser.toLowerCase()
-            );
-            
-            if (userDataFromReact) {
-              debug("Dados do usuário encontrados no sistema React", userDataFromReact);
-              // Copiar dados do sistema React para o sistema Elementor
-              userData.users[currentUser] = {
-                name: userDataFromReact.name || '',
-                birthdate: userDataFromReact.birthDate || '',
-                email: currentUser
-              };
-              
-              // Se já tiver nome, considerar que tem dados de matriz
-              if (userDataFromReact.name) {
-                userData.users[currentUser].karmicNumbers = generateKarmicNumbers(userDataFromReact.birthDate);
-              }
-              
-              saveUserData();
-            } else {
-              debug("Dados do usuário não encontrados no userMaps");
-            }
-          } catch (e) {
-            debug("Erro ao processar userMaps", e);
-          }
-        } else {
-          debug("userMaps não encontrado");
-        }
-      } else {
-        debug("Usuário atual não está na lista de autorizados");
+      if (value.length > 2 && value.charAt(2) !== '/') {
+        value = value.substring(0, 2) + '/' + value.substring(2);
       }
-    } else {
-      debug("Nenhum usuário atual encontrado");
-    }
-  } catch (e) {
-    debug('Erro ao carregar dados salvos:', e);
+      if (value.length > 5 && value.charAt(5) !== '/') {
+        value = value.substring(0, 5) + '/' + value.substring(5);
+      }
+      
+      if (value.length > 10) value = value.substring(0, 10);
+      
+      e.target.value = value;
+    });
   }
   
-  // Função para exibir mensagens
-  function showMessage(message, type) {
-    if (!loginMessage) {
-      debug("Elemento de mensagem não encontrado");
-      return;
+  // Função para mostrar mensagem
+  function showMessage(message, isError) {
+    if (loginMessage) {
+      loginMessage.textContent = message;
+      loginMessage.style.display = 'block';
+      if (isError) {
+        loginMessage.style.backgroundColor = '#FEE2E2';
+        loginMessage.style.color = '#991B1B';
+      } else {
+        loginMessage.style.backgroundColor = '#DCFCE7';
+        loginMessage.style.color = '#166534';
+      }
+      
+      // Ocultar após 5 segundos
+      setTimeout(() => {
+        loginMessage.style.display = 'none';
+      }, 5000);
     }
     
-    debug("Exibindo mensagem:", { message, type });
-    
-    loginMessage.textContent = message;
-    loginMessage.className = 'matriz-message ' + type;
-    loginMessage.style.display = 'block';
-    
-    // Ocultar mensagem após 5 segundos
-    setTimeout(() => {
-      loginMessage.style.display = 'none';
-    }, 5000);
+    log(message, { isError });
   }
   
-  // Função para salvar dados
-  function saveUserData() {
-    localStorage.setItem('matrizKarmica', JSON.stringify(userData));
-    debug("Dados salvos:", userData);
-    
-    // Também salvar o usuário atual no formato do sistema React
-    if (userData.currentEmail) {
-      localStorage.setItem('currentUser', userData.currentEmail);
-      debug("Usuário atual salvo:", userData.currentEmail);
-    }
+  // Verificar login
+  if (loginButton) {
+    loginButton.addEventListener('click', function() {
+      const email = emailInput.value.toLowerCase().trim();
+      
+      if (!email) {
+        showMessage('Por favor, informe seu email', true);
+        return;
+      }
+      
+      log('Tentando login com:', email);
+      
+      // Verificar se o email está autorizado
+      const isAuthorized = authorizedEmails.some(authEmail => 
+        authEmail.toLowerCase().trim() === email
+      );
+      
+      if (!isAuthorized) {
+        log('Email não autorizado:', email);
+        showMessage('Este email não está autorizado para acessar a matriz', true);
+        return;
+      }
+      
+      // Verificar se o usuário já tem perfil no localStorage
+      try {
+        const userData = localStorage.getItem('matrizUser_' + email);
+        
+        if (userData) {
+          // Já tem dados, mostrar a matriz
+          const user = JSON.parse(userData);
+          log('Usuário tem perfil salvo:', user);
+          
+          if (user.name && user.birthdate) {
+            // Mostrar matriz
+            loginForm.style.display = 'none';
+            profileForm.style.display = 'none';
+            matrixResult.style.display = 'block';
+            
+            // Criar matriz
+            createMatrix(user);
+            return;
+          }
+        }
+        
+        // Se chegou aqui, não tem perfil completo
+        log('Usuário autorizado, mas sem perfil completo');
+        showMessage('Email verificado com sucesso!', false);
+        
+        // Armazenar o email atual
+        localStorage.setItem('currentMatrixEmail', email);
+        
+        // Mostrar formulário de perfil
+        loginForm.style.display = 'none';
+        profileForm.style.display = 'block';
+        
+      } catch (error) {
+        log('Erro ao verificar dados do usuário:', error);
+        showMessage('Ocorreu um erro. Por favor, tente novamente.', true);
+      }
+    });
   }
   
-  // Função para gerar números kármicos com base na data
+  // Cálculo da matriz
+  if (calculateButton) {
+    calculateButton.addEventListener('click', function() {
+      const name = nameInput.value.trim();
+      const birthdate = birthdateInput.value.trim();
+      const email = localStorage.getItem('currentMatrixEmail');
+      
+      if (!email) {
+        showMessage('Sessão expirada. Por favor, faça login novamente.', true);
+        profileForm.style.display = 'none';
+        loginForm.style.display = 'block';
+        return;
+      }
+      
+      if (!name) {
+        showMessage('Por favor, informe seu nome completo', true);
+        return;
+      }
+      
+      if (!birthdate) {
+        showMessage('Por favor, informe sua data de nascimento', true);
+        return;
+      }
+      
+      // Validar formato da data
+      const datePattern = /^(0[1-9]|[12][0-9]|3[01])\/(0[1-9]|1[0-2])\\/\\d{4}$/;
+      if (!datePattern.test(birthdate)) {
+        showMessage('Formato de data inválido. Use DD/MM/AAAA', true);
+        return;
+      }
+      
+      // Validar se a data existe
+      const [day, month, year] = birthdate.split('/').map(Number);
+      const date = new Date(year, month - 1, day);
+      if (date.getDate() !== day || date.getMonth() !== month - 1 || date.getFullYear() !== year) {
+        showMessage('Data inválida. Verifique se a data existe no calendário.', true);
+        return;
+      }
+      
+      log('Calculando matriz para:', { name, birthdate, email });
+      
+      // Gerar números da matriz
+      const karmicNumbers = generateKarmicNumbers(birthdate);
+      
+      // Salvar dados do usuário
+      const userData = {
+        name,
+        birthdate,
+        email,
+        karmicNumbers,
+        createdAt: new Date().toISOString()
+      };
+      
+      try {
+        localStorage.setItem('matrizUser_' + email, JSON.stringify(userData));
+        log('Dados do usuário salvos:', userData);
+        
+        // Mostrar a matriz
+        profileForm.style.display = 'none';
+        matrixResult.style.display = 'block';
+        
+        // Criar interface da matriz
+        createMatrix(userData);
+        
+      } catch (error) {
+        log('Erro ao salvar dados:', error);
+        showMessage('Ocorreu um erro ao salvar seus dados. Por favor, tente novamente.', true);
+      }
+    });
+  }
+  
+  // Voltar para tela de login
+  if (backButton) {
+    backButton.addEventListener('click', function() {
+      matrixResult.style.display = 'none';
+      loginForm.style.display = 'block';
+      localStorage.removeItem('currentMatrixEmail');
+    });
+  }
+  
+  // Navegação entre abas
+  if (matrixTabs.length > 0) {
+    matrixTabs.forEach(tab => {
+      tab.addEventListener('click', function() {
+        const tabName = this.getAttribute('data-tab');
+        log('Trocando para aba:', tabName);
+        
+        // Remover classe active de todas as abas
+        matrixTabs.forEach(t => {
+          t.classList.remove('active');
+          if (t.style) {
+            t.style.borderBottomColor = 'transparent';
+            t.style.color = '#6B7280';
+          }
+        });
+        
+        // Adicionar classe active na aba clicada
+        this.classList.add('active');
+        if (this.style) {
+          this.style.borderBottomColor = '#6D28D9';
+          this.style.color = '#6D28D9';
+        }
+        
+        // Ocultar todos os conteúdos
+        tabContents.forEach(content => {
+          content.style.display = 'none';
+        });
+        
+        // Mostrar conteúdo da aba selecionada
+        const selectedTab = document.getElementById(tabName + '-tab');
+        if (selectedTab) {
+          selectedTab.style.display = 'block';
+        }
+      });
+    });
+  }
+  
+  // Função para gerar números da matriz
   function generateKarmicNumbers(birthdate) {
-    debug("Gerando números kármicos para data:", birthdate);
+    log('Gerando números para data:', birthdate);
     
-    // Extrair dia, mês e ano
-    const parts = birthdate.split('/');
-    if (parts.length !== 3) {
-      debug("Formato de data inválido");
-      return null;
-    }
+    const [day, month, year] = birthdate.split('/').map(Number);
     
-    const day = parseInt(parts[0], 10);
-    const month = parseInt(parts[1], 10);
-    const year = parseInt(parts[2], 10);
-    
-    // Verificar se a data é válida
-    if (isNaN(day) || isNaN(month) || isNaN(year)) {
-      debug("Data inválida, contém valores não numéricos");
-      return null;
-    }
-    
-    // Cálculos numerológicos básicos
     const dayNum = day;
     const monthNum = month;
     const yearNum = reduceToSingleDigit(year);
@@ -456,423 +420,141 @@ document.addEventListener('DOMContentLoaded', function() {
       karmaPortal: reduceToSingleDigit(monthNum + yearNum),
       karmicInheritance: reduceToSingleDigit(dayNum + yearNum),
       karmicReprogramming: reduceToSingleDigit(fullDateNum * 2),
-      cycleProphecy: reduceToSingleDigit(dayNum * monthNum),
-      spiritualMark: reduceToSingleDigit(yearNum + monthNum),
-      manifestationEnigma: reduceToSingleDigit(dayNum + monthNum + yearNum)
+      spiritualMark: reduceToSingleDigit(yearNum + monthNum)
     };
     
-    debug("Números kármicos gerados:", numbers);
+    log('Números gerados:', numbers);
     return numbers;
   }
   
-  // Função para reduzir um número a um único dígito (1-9)
+  // Função para reduzir a um dígito
   function reduceToSingleDigit(num) {
     if (num <= 9) return num;
     
-    // Somar os dígitos
     let sum = 0;
     while (num > 0) {
       sum += num % 10;
       num = Math.floor(num / 10);
     }
     
-    // Recursivamente reduzir até ter um único dígito
     return reduceToSingleDigit(sum);
   }
   
-  // Função para criar a matriz visual
-  function createMatrixDisplay(karmicNumbers) {
-    const matrixGrid = document.getElementById('matriz-numbers');
-    if (!matrixGrid) {
-      debug("Elemento da matriz não encontrado");
+  // Função para criar a matriz na interface
+  function createMatrix(userData) {
+    log('Criando interface da matriz para:', userData.name);
+    
+    const matrixNumbers = document.getElementById('matrix-numbers');
+    if (!matrixNumbers) {
+      log('Elemento matrix-numbers não encontrado');
       return;
     }
     
-    debug("Criando exibição da matriz para números:", karmicNumbers);
+    matrixNumbers.innerHTML = '';
     
-    matrixGrid.innerHTML = '';
-    
-    // Verificar se temos números kármicos válidos
-    if (!karmicNumbers) {
-      matrixGrid.innerHTML = '<p>Não foi possível calcular a matriz. Verifique a data de nascimento.</p>';
-      debug("Números kármicos inválidos");
-      return;
-    }
-    
-    // Criar cartões para cada número
+    // Criar cards para cada número
     const numbers = [
-      { name: 'Selo Kármico', value: karmicNumbers.karmicSeal },
-      { name: 'Chamado do Destino', value: karmicNumbers.destinyCall },
-      { name: 'Portal Kármico', value: karmicNumbers.karmaPortal },
-      { name: 'Herança Kármica', value: karmicNumbers.karmicInheritance },
-      { name: 'Reprogramação Kármica', value: karmicNumbers.karmicReprogramming },
-      { name: 'Profecia de Ciclo', value: karmicNumbers.cycleProphecy },
-      { name: 'Marca Espiritual', value: karmicNumbers.spiritualMark },
-      { name: 'Enigma de Manifestação', value: karmicNumbers.manifestationEnigma }
+      { name: 'Selo Kármico', value: userData.karmicNumbers.karmicSeal },
+      { name: 'Chamado do Destino', value: userData.karmicNumbers.destinyCall },
+      { name: 'Portal Kármico', value: userData.karmicNumbers.karmaPortal },
+      { name: 'Herança Kármica', value: userData.karmicNumbers.karmicInheritance },
+      { name: 'Reprogramação', value: userData.karmicNumbers.karmicReprogramming },
+      { name: 'Marca Espiritual', value: userData.karmicNumbers.spiritualMark }
     ];
-    
-    debug("Criando cartões para números:", numbers);
     
     numbers.forEach(num => {
       const card = document.createElement('div');
-      card.className = 'matriz-number-card';
+      card.style.backgroundColor = '#F5F3FF';
+      card.style.borderRadius = '8px';
+      card.style.padding = '15px';
+      card.style.textAlign = 'center';
+      card.style.border = '1px solid #E5E7EB';
+      
       card.innerHTML = \`
-        <h3 class="matriz-number-title">\${num.name}</h3>
-        <p class="matriz-number">\${num.value}</p>
+        <h3 style="font-size: 16px; color: #5B21B6; margin-bottom: 10px;">\${num.name}</h3>
+        <p style="font-size: 28px; font-weight: bold; color: #6D28D9; margin: 0;">\${num.value}</p>
       \`;
-      matrixGrid.appendChild(card);
+      
+      matrixNumbers.appendChild(card);
     });
     
-    // Preencher as interpretações nas outras abas
-    createInterpretationTabs(karmicNumbers);
-  }
-  
-  // Função para criar as abas de interpretação
-  function createInterpretationTabs(karmicNumbers) {
-    debug("Criando abas de interpretação");
-    
-    // Aba Pessoal
+    // Criar conteúdo das abas
     const personalTab = document.getElementById('personal-tab');
     if (personalTab) {
       personalTab.innerHTML = \`
-        <h2>Sua Missão Pessoal</h2>
-        <div class="matriz-interpretation">
-          <h3>Propósito de Vida</h3>
-          <p>
-            Seu propósito de vida está diretamente relacionado ao seu número do Chamado do Destino (\${karmicNumbers.destinyCall}).
-            Este número indica sua verdadeira missão e os talentos que você possui para realizá-la.
-          </p>
-          <p>
-            Você veio a este mundo com dons específicos e um caminho único a seguir. Sua matriz revela
-            as energias que você traz de vidas passadas e como elas podem ser utilizadas para seu crescimento
-            nesta encarnação.
-          </p>
-        </div>
+        <h3 style="color: #5B21B6; margin-bottom: 15px;">Sua Missão Pessoal</h3>
+        <p>Seu número de Chamado do Destino (\${userData.karmicNumbers.destinyCall}) revela sua missão nesta vida.</p>
+        <p>Este número indica seus talentos e o caminho que deve seguir para realizar seu potencial máximo.</p>
       \`;
-      debug("Aba pessoal criada");
-    } else {
-      debug("Elemento da aba pessoal não encontrado");
     }
     
-    // Aba Espiritual
     const spiritualTab = document.getElementById('spiritual-tab');
     if (spiritualTab) {
       spiritualTab.innerHTML = \`
-        <h2>Seu Caminho Espiritual</h2>
-        <div class="matriz-interpretation">
-          <h3>Lições de Vidas Passadas</h3>
-          <p>
-            Sua Herança Kármica (\${karmicNumbers.karmicInheritance}) revela as lições que você traz
-            de vidas anteriores e os aprendizados que precisam ser integrados nesta existência.
-          </p>
-          <p>
-            O número \${karmicNumbers.karmicInheritance} sugere padrões específicos de comportamento e experiências
-            que estão sendo trabalhados para sua evolução espiritual.
-          </p>
-        </div>
+        <h3 style="color: #5B21B6; margin-bottom: 15px;">Seu Caminho Espiritual</h3>
+        <p>Sua Herança Kármica (\${userData.karmicNumbers.karmicInheritance}) e Marca Espiritual (\${userData.karmicNumbers.spiritualMark}) revelam sua jornada de alma.</p>
+        <p>Estes números mostram os aprendizados que sua alma busca nesta encarnação e como acessar sua sabedoria interior.</p>
       \`;
-      debug("Aba espiritual criada");
-    } else {
-      debug("Elemento da aba espiritual não encontrado");
-    }
-    
-    // Aba Desafios
-    const challengesTab = document.getElementById('challenges-tab');
-    if (challengesTab) {
-      challengesTab.innerHTML = \`
-        <h2>Seus Desafios e Lições</h2>
-        <div class="matriz-interpretation">
-          <h3>Desafios Principais</h3>
-          <p>
-            Sua Reprogramação Kármica (\${karmicNumbers.karmicReprogramming}) aponta para os principais
-            desafios que você enfrenta nesta vida e como superá-los para avançar em seu caminho espiritual.
-          </p>
-          <p>
-            Estes desafios não são obstáculos, mas oportunidades de crescimento que, quando abraçadas
-            conscientemente, levam a grandes avanços em sua jornada.
-          </p>
-        </div>
-      \`;
-      debug("Aba desafios criada");
-    } else {
-      debug("Elemento da aba desafios não encontrado");
     }
   }
   
-  // Formatação e validação da data
-  if (birthdateInput) {
-    debug("Configurando validação de data de nascimento");
-    birthdateInput.addEventListener('input', function(e) {
-      let value = e.target.value;
+  // Verificar se já existe um usuário com perfil
+  try {
+    // Tentar recuperar o email salvo de sessões anteriores
+    const currentEmail = localStorage.getItem('currentMatrixEmail');
+    if (currentEmail) {
+      log('Email encontrado em localStorage:', currentEmail);
       
-      // Remover caracteres não numéricos, exceto /
-      value = value.replace(/[^\\d\\/]/g, '');
-      
-      // Adicionar barras automaticamente
-      if (value.length > 2 && value.charAt(2) !== '/') {
-        value = value.substring(0, 2) + '/' + value.substring(2);
-      }
-      if (value.length > 5 && value.charAt(5) !== '/') {
-        value = value.substring(0, 5) + '/' + value.substring(5);
-      }
-      
-      // Truncar se for muito longo
-      if (value.length > 10) {
-        value = value.substring(0, 10);
-      }
-      
-      // Atualizar valor formatado
-      e.target.value = value;
-    });
-  } else {
-    debug("Campo de data de nascimento não encontrado");
-  }
-  
-  // Login (verificação de email)
-  if (loginBtn) {
-    debug("Configurando botão de login");
-    loginBtn.addEventListener('click', function() {
-      const email = emailInput.value.toLowerCase().trim();
-      
-      if (!email) {
-        showMessage('Por favor, informe seu email', 'error');
-        debug("Email não informado");
-        return;
-      }
-      
-      debug('Tentando login com:', email);
-      
-      // Verificar se o email está na lista de autorizados
-      const isAuthorized = authorizedEmails.some(authEmail => 
-        authEmail.toLowerCase().trim() === email
-      );
-      
-      if (!isAuthorized) {
-        debug('Email não autorizado:', email);
-        showMessage('Este email não está autorizado para acessar o sistema', 'error');
-        return;
-      }
-      
-      // Email autorizado, prosseguir
-      debug('Email autorizado:', email);
-      showMessage('Email verificado com sucesso!', 'success');
-      userData.currentEmail = email;
-      
-      // Sincronizar com o sistema React
-      localStorage.setItem('currentUser', email);
-      
-      // Verificar se o usuário já tem perfil
-      if (userData.users[email] && userData.users[email].name) {
-        // Já tem perfil, mostrar matriz
-        debug('Usuário já tem perfil:', userData.users[email]);
-        loginPage.style.display = 'none';
-        profilePage.style.display = 'none';
-        matrixPage.style.display = 'block';
+      const userData = localStorage.getItem('matrizUser_' + currentEmail);
+      if (userData) {
+        const user = JSON.parse(userData);
         
-        // Criar exibição da matriz
-        createMatrixDisplay(userData.users[email].karmicNumbers);
-      } else {
-        // Não tem perfil, ir para página de perfil
-        debug('Usuário não tem perfil, mostrando formulário de perfil');
-        loginPage.style.display = 'none';
-        profilePage.style.display = 'block';
-        matrixPage.style.display = 'none';
-      }
-      
-      saveUserData();
-    });
-  } else {
-    debug('Botão de login não encontrado!');
-  }
-  
-  // Formulário de Perfil
-  if (calcBtn) {
-    debug("Configurando botão de cálculo");
-    calcBtn.addEventListener('click', function() {
-      debug("Botão de cálculo clicado");
-      
-      const name = nameInput.value.trim();
-      const birthdate = birthdateInput.value.trim();
-      const email = userData.currentEmail;
-      
-      debug("Dados do formulário:", { name, birthdate, email });
-      
-      if (!email) {
-        debug("Email não definido!");
-        showMessage('Sessão expirada, faça login novamente', 'error');
-        loginPage.style.display = 'block';
-        profilePage.style.display = 'none';
-        matrixPage.style.display = 'none';
-        return;
-      }
-      
-      if (!name) {
-        debug("Nome não informado");
-        showMessage('Por favor, informe seu nome completo', 'error');
-        return;
-      }
-      
-      if (!birthdate) {
-        debug("Data não informada");
-        showMessage('Por favor, informe sua data de nascimento', 'error');
-        return;
-      }
-      
-      // Validar data no formato DD/MM/AAAA
-      const datePattern = /^(0[1-9]|[12][0-9]|3[01])\/(0[1-9]|1[0-2])\/\\d{4}$/;
-      if (!datePattern.test(birthdate)) {
-        debug("Formato de data inválido");
-        showMessage('Por favor, informe uma data válida no formato DD/MM/AAAA', 'error');
-        return;
-      }
-      
-      // Extrair partes da data para validação adicional
-      const [day, month, year] = birthdate.split('/').map(Number);
-      
-      // Verificar se o dia é válido para o mês
-      const daysInMonth = new Date(year, month, 0).getDate();
-      if (day > daysInMonth) {
-        debug("Dia inválido para o mês");
-        showMessage(\`O mês \${month} não possui \${day} dias\`, 'error');
-        return;
-      }
-      
-      debug("Data validada, prosseguindo");
-      
-      // Calcular números kármicos
-      const karmicNumbers = generateKarmicNumbers(birthdate);
-      
-      if (!karmicNumbers) {
-        debug("Falha ao calcular números kármicos");
-        showMessage('Erro ao calcular a matriz. Verifique a data informada.', 'error');
-        return;
-      }
-      
-      // Salvar dados do usuário
-      userData.users[email] = {
-        name: name,
-        birthdate: birthdate,
-        email: email,
-        karmicNumbers: karmicNumbers,
-        createdAt: new Date().toISOString()
-      };
-      
-      debug("Dados do usuário salvos:", userData.users[email]);
-      
-      saveUserData();
-      
-      // Também salvar no formato do sistema React
-      try {
-        const userMapsString = localStorage.getItem('userMaps');
-        const userMaps = userMapsString ? JSON.parse(userMapsString) : [];
-        
-        // Criar objeto de usuário no formato React
-        const reactUserData = {
-          id: Math.random().toString(36).substring(2, 15),
-          name: name,
-          email: email,
-          birthDate: birthdate,
-          createdAt: new Date().toISOString()
-        };
-        
-        userMaps.push(reactUserData);
-        localStorage.setItem('userMaps', JSON.stringify(userMaps));
-        debug("Dados salvos no formato React:", reactUserData);
-      } catch (e) {
-        debug('Erro ao salvar no formato React:', e);
-      }
-      
-      // Mostrar a matriz
-      profilePage.style.display = 'none';
-      matrixPage.style.display = 'block';
-      
-      // Exibir mensagem de sucesso
-      showMessage('Matriz Kármica gerada com sucesso!', 'success');
-      
-      // Criar interface da matriz
-      createMatrixDisplay(karmicNumbers);
-    });
-  } else {
-    debug("Botão de cálculo não encontrado");
-  }
-  
-  // Voltar para o login
-  if (backBtn) {
-    debug("Configurando botão voltar");
-    backBtn.addEventListener('click', function() {
-      debug("Botão voltar clicado");
-      matrixPage.style.display = 'none';
-      loginPage.style.display = 'block';
-    });
-  } else {
-    debug("Botão voltar não encontrado");
-  }
-  
-  // Navegação entre abas
-  if (tabButtons.length > 0) {
-    debug("Configurando navegação entre abas");
-    tabButtons.forEach(button => {
-      button.addEventListener('click', function() {
-        debug("Aba clicada:", this.getAttribute('data-tab'));
-        
-        // Remover classe active de todas as abas
-        tabButtons.forEach(btn => btn.classList.remove('active'));
-        
-        // Ocultar todos os conteúdos
-        tabContents.forEach(content => {
-          content.style.display = 'none';
-        });
-        
-        // Adicionar classe active ao botão clicado
-        this.classList.add('active');
-        
-        // Mostrar conteúdo da aba selecionada
-        const tabName = this.getAttribute('data-tab');
-        const selectedTab = document.getElementById(tabName + '-tab');
-        if (selectedTab) {
-          selectedTab.style.display = 'block';
-        } else {
-          debug("Conteúdo da aba não encontrado:", tabName + '-tab');
+        if (user.name && user.birthdate) {
+          log('Usuário tem perfil completo, mostrando matriz diretamente');
+          loginForm.style.display = 'none';
+          profileForm.style.display = 'none';
+          matrixResult.style.display = 'block';
+          
+          // Criar matriz
+          createMatrix(user);
+          return;
         }
-      });
-    });
-  } else {
-    debug("Nenhum botão de aba encontrado");
-  }
-  
-  // Verificar se já havia um usuário logado
-  if (userData.currentEmail && userData.users[userData.currentEmail]?.name) {
-    debug('Usuário já logado:', userData.currentEmail);
-    debug('Dados do usuário:', userData.users[userData.currentEmail]);
-    
-    // Mostrar matriz diretamente
-    if (loginPage) loginPage.style.display = 'none';
-    if (profilePage) profilePage.style.display = 'none';
-    if (matrixPage) matrixPage.style.display = 'block';
-    
-    // Criar exibição da matriz
-    createMatrixDisplay(userData.users[userData.currentEmail].karmicNumbers);
-  } else {
-    debug('Nenhum usuário logado ou dados incompletos');
-    
-    // Verificar se temos email mas não temos perfil
-    if (userData.currentEmail && !userData.users[userData.currentEmail]?.name) {
-      debug('Usuário tem email mas não tem perfil, mostrando formulário de perfil');
-      if (loginPage) loginPage.style.display = 'none';
-      if (profilePage) profilePage.style.display = 'block';
-      if (matrixPage) matrixPage.style.display = 'none';
-    } else {
-      debug('Mostrando tela de login inicial');
-      if (loginPage) loginPage.style.display = 'block';
-      if (profilePage) profilePage.style.display = 'none';
-      if (matrixPage) matrixPage.style.display = 'none';
+      }
+      
+      // Se tem email mas não tem perfil completo
+      log('Usuário tem email mas sem perfil completo');
+      loginForm.style.display = 'none';
+      profileForm.style.display = 'block';
     }
+  } catch (error) {
+    log('Erro ao verificar dados salvos:', error);
   }
-  
-  // Debug final
-  debug("Inicialização do aplicativo concluída");
 });
 </script>
+
+<!-- CSS: OPCIONAL - COLOQUE ESTE CSS EM UM WIDGET DE CÓDIGO PERSONALIZADO NO ELEMENTOR SE NÃO ESTIVER USANDO ESTILOS INLINE -->
+<style>
+.matrix-tab-content {
+  display: none;
+}
+
+.matrix-tab-content:first-child {
+  display: block;
+}
+
+/* Estilos para responsividade em mobile */
+@media (max-width: 767px) {
+  #matrix-tabs {
+    overflow-x: auto;
+    white-space: nowrap;
+    padding-bottom: 5px;
+  }
+  
+  #matrix-numbers {
+    grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+  }
+}
+</style>
     `;
 
     // Criar um blob para download
@@ -882,7 +564,7 @@ document.addEventListener('DOMContentLoaded', function() {
     // Criar um link temporário para download
     const a = document.createElement('a');
     a.href = url;
-    a.download = 'matriz-karmica-elementor.html';
+    a.download = 'matriz-karmica-elementor-simples.html';
     document.body.appendChild(a);
     a.click();
     
@@ -893,11 +575,13 @@ document.addEventListener('DOMContentLoaded', function() {
       setIsGenerating(false);
     }, 500);
 
-    toast.success("HTML para Elementor exportado com sucesso!");
+    toast.success("HTML básico para Elementor exportado com sucesso!");
   };
 
   const copyElementorCode = async () => {
     try {
+      setCopied(false);
+      
       // Add more authorized emails for testing
       const additionalTestEmails = isTestingMode ? 
         `'usuario-teste@gmail.com',
@@ -905,43 +589,479 @@ document.addEventListener('DOMContentLoaded', function() {
         'matrix-test@yahoo.com',` : '';
 
       const elementorHTML = `
-<!-- Widget de HTML do Elementor - Coloque este código em um widget HTML -->
+<!-- WIDGET HTML PARA ELEMENTOR - COLOQUE ESTE CÓDIGO EM UM WIDGET HTML -->
 
-<div id="matriz-karmica-app" class="matriz-karmica-container">
-  <!-- Login Page -->
-  <div id="login-page" class="matriz-section">
-    <h2 class="matriz-title">Acesse sua Matriz Pessoal</h2>
-    <div class="matriz-form">
-      <div class="matriz-field">
-        <label for="email">Email</label>
-        <input type="email" id="email" placeholder="seu@email.com" required />
-        <p class="matriz-hint">Informe o email utilizado na compra</p>
-      </div>
-      <button id="matriz-login-btn" class="matriz-button">Acessar Matriz</button>
-      <div id="login-message" class="matriz-message" style="display:none; margin-top: 15px; padding: 10px; border-radius: 5px;"></div>
+<div style="max-width: 800px; margin: 0 auto; font-family: Arial, sans-serif;">
+  <!-- Formulário de Login -->
+  <div id="login-form" style="background-color: #f9f7ff; border-radius: 10px; padding: 30px; margin-bottom: 20px;">
+    <h2 style="color: #6D28D9; text-align: center; margin-bottom: 25px; font-size: 24px;">Acesse sua Matriz Kármica</h2>
+    
+    <div style="margin-bottom: 20px;">
+      <label for="email-input" style="display: block; margin-bottom: 8px; font-weight: bold;">Email de Compra</label>
+      <input 
+        type="email" 
+        id="email-input" 
+        placeholder="Seu email de compra" 
+        style="width: 100%; padding: 12px; border: 1px solid #E5E7EB; border-radius: 5px; font-size: 16px; box-sizing: border-box;"
+      />
+      <p style="font-size: 14px; color: #6B7280; margin-top: 5px;">Informe o mesmo email utilizado na compra</p>
     </div>
+    
+    <button 
+      id="login-button" 
+      style="display: block; width: 100%; padding: 12px; background-color: #6D28D9; color: white; border: none; border-radius: 5px; font-weight: bold; cursor: pointer; font-size: 16px;"
+    >
+      Acessar Minha Matriz
+    </button>
+    
+    <div id="login-message" style="margin-top: 15px; padding: 10px; border-radius: 5px; display: none; text-align: center;"></div>
   </div>
   
-  <!-- Profile Page -->
-  <div id="profile-page" class="matriz-section" style="display:none;">
-    <h2 class="matriz-title">Complete seu Perfil</h2>
-    <div class="matriz-form">
-      <div class="matriz-field">
-        <label for="name">Nome Completo</label>
-        <input type="text" id="name" placeholder="Seu nome completo" required />
-      </div>
-      <div class="matriz-field">
-        <label for="birthdate">Data de Nascimento</label>
-        <input type="text" id="birthdate" placeholder="DD/MM/AAAA" required />
-        <p class="matriz-hint">Formato: dia/mês/ano completo (ex: 15/07/1985)</p>
-      </div>
-      <button id="matriz-calc-btn" class="matriz-button">Calcular Matriz Kármica</button>
+  <!-- Formulário de Perfil (inicialmente oculto) -->
+  <div id="profile-form" style="background-color: #f9f7ff; border-radius: 10px; padding: 30px; margin-bottom: 20px; display: none;">
+    <h2 style="color: #6D28D9; text-align: center; margin-bottom: 25px; font-size: 24px;">Complete seu Perfil</h2>
+    
+    <div style="margin-bottom: 20px;">
+      <label for="name-input" style="display: block; margin-bottom: 8px; font-weight: bold;">Nome Completo</label>
+      <input 
+        type="text" 
+        id="name-input" 
+        placeholder="Seu nome completo" 
+        style="width: 100%; padding: 12px; border: 1px solid #E5E7EB; border-radius: 5px; font-size: 16px; box-sizing: border-box;"
+      />
     </div>
+    
+    <div style="margin-bottom: 20px;">
+      <label for="birthdate-input" style="display: block; margin-bottom: 8px; font-weight: bold;">Data de Nascimento</label>
+      <input 
+        type="text" 
+        id="birthdate-input" 
+        placeholder="DD/MM/AAAA" 
+        style="width: 100%; padding: 12px; border: 1px solid #E5E7EB; border-radius: 5px; font-size: 16px; box-sizing: border-box;"
+      />
+      <p style="font-size: 14px; color: #6B7280; margin-top: 5px;">Formato: dia/mês/ano (ex: 15/07/1985)</p>
+    </div>
+    
+    <button 
+      id="calculate-button" 
+      style="display: block; width: 100%; padding: 12px; background-color: #6D28D9; color: white; border: none; border-radius: 5px; font-weight: bold; cursor: pointer; font-size: 16px;"
+    >
+      Calcular Minha Matriz
+    </button>
   </div>
+</div>
 `;
 
       await navigator.clipboard.writeText(elementorHTML);
-      toast.success("Código copiado para a área de transferência!");
+      setCopied(true);
+      toast.success("Código HTML copiado para a área de transferência!");
+      
+      setTimeout(() => setCopied(false), 3000);
+    } catch (err) {
+      toast.error("Erro ao copiar: " + err.message);
+    }
+  };
+  
+  const copyJavaScriptCode = async () => {
+    try {
+      setCopied(false);
+      
+      // Add more authorized emails for testing
+      const additionalTestEmails = isTestingMode ? 
+        `'usuario-teste@gmail.com',
+        'teste123@hotmail.com',
+        'matrix-test@yahoo.com',` : '';
+
+      const scriptCode = `
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+  // Elementos da página
+  const loginForm = document.getElementById('login-form');
+  const profileForm = document.getElementById('profile-form');
+  const matrixResult = document.getElementById('matrix-result');
+  const loginButton = document.getElementById('login-button');
+  const calculateButton = document.getElementById('calculate-button');
+  const backButton = document.getElementById('back-button');
+  const emailInput = document.getElementById('email-input');
+  const nameInput = document.getElementById('name-input');
+  const birthdateInput = document.getElementById('birthdate-input');
+  const loginMessage = document.getElementById('login-message');
+  const matrixTabs = document.querySelectorAll('.matrix-tab');
+  const tabContents = document.querySelectorAll('.matrix-tab-content');
+  
+  // Lista de emails autorizados
+  const authorizedEmails = [
+    ${additionalTestEmails}
+    'example1@example.com',
+    'example2@example.com',
+    'teste@teste.com',
+    'projetovmtd@gmail.com',
+    'carlamaiaprojetos@gmail.com',
+    'mariaal020804@gmail.com',
+    'tesete@testelcom.br'
+  ];
+  
+  // Função para log com debug
+  function log(message, data) {
+    console.log('[Matriz Kármica]', message, data || '');
+  }
+  
+  log('Inicializando aplicativo da Matriz Kármica');
+  
+  // Formatar e validar data
+  if (birthdateInput) {
+    birthdateInput.addEventListener('input', function(e) {
+      let value = e.target.value.replace(/[^\\d\\/]/g, '');
+      
+      if (value.length > 2 && value.charAt(2) !== '/') {
+        value = value.substring(0, 2) + '/' + value.substring(2);
+      }
+      if (value.length > 5 && value.charAt(5) !== '/') {
+        value = value.substring(0, 5) + '/' + value.substring(5);
+      }
+      
+      if (value.length > 10) value = value.substring(0, 10);
+      
+      e.target.value = value;
+    });
+  }
+  
+  // Função para mostrar mensagem
+  function showMessage(message, isError) {
+    if (loginMessage) {
+      loginMessage.textContent = message;
+      loginMessage.style.display = 'block';
+      if (isError) {
+        loginMessage.style.backgroundColor = '#FEE2E2';
+        loginMessage.style.color = '#991B1B';
+      } else {
+        loginMessage.style.backgroundColor = '#DCFCE7';
+        loginMessage.style.color = '#166534';
+      }
+      
+      // Ocultar após 5 segundos
+      setTimeout(() => {
+        loginMessage.style.display = 'none';
+      }, 5000);
+    }
+    
+    log(message, { isError });
+  }
+  
+  // Verificar login
+  if (loginButton) {
+    loginButton.addEventListener('click', function() {
+      const email = emailInput.value.toLowerCase().trim();
+      
+      if (!email) {
+        showMessage('Por favor, informe seu email', true);
+        return;
+      }
+      
+      log('Tentando login com:', email);
+      
+      // Verificar se o email está autorizado
+      const isAuthorized = authorizedEmails.some(authEmail => 
+        authEmail.toLowerCase().trim() === email
+      );
+      
+      if (!isAuthorized) {
+        log('Email não autorizado:', email);
+        showMessage('Este email não está autorizado para acessar a matriz', true);
+        return;
+      }
+      
+      // Verificar se o usuário já tem perfil no localStorage
+      try {
+        const userData = localStorage.getItem('matrizUser_' + email);
+        
+        if (userData) {
+          // Já tem dados, mostrar a matriz
+          const user = JSON.parse(userData);
+          log('Usuário tem perfil salvo:', user);
+          
+          if (user.name && user.birthdate) {
+            // Mostrar matriz
+            loginForm.style.display = 'none';
+            profileForm.style.display = 'none';
+            matrixResult.style.display = 'block';
+            
+            // Criar matriz
+            createMatrix(user);
+            return;
+          }
+        }
+        
+        // Se chegou aqui, não tem perfil completo
+        log('Usuário autorizado, mas sem perfil completo');
+        showMessage('Email verificado com sucesso!', false);
+        
+        // Armazenar o email atual
+        localStorage.setItem('currentMatrixEmail', email);
+        
+        // Mostrar formulário de perfil
+        loginForm.style.display = 'none';
+        profileForm.style.display = 'block';
+        
+      } catch (error) {
+        log('Erro ao verificar dados do usuário:', error);
+        showMessage('Ocorreu um erro. Por favor, tente novamente.', true);
+      }
+    });
+  }
+  
+  // Cálculo da matriz
+  if (calculateButton) {
+    calculateButton.addEventListener('click', function() {
+      const name = nameInput.value.trim();
+      const birthdate = birthdateInput.value.trim();
+      const email = localStorage.getItem('currentMatrixEmail');
+      
+      if (!email) {
+        showMessage('Sessão expirada. Por favor, faça login novamente.', true);
+        profileForm.style.display = 'none';
+        loginForm.style.display = 'block';
+        return;
+      }
+      
+      if (!name) {
+        showMessage('Por favor, informe seu nome completo', true);
+        return;
+      }
+      
+      if (!birthdate) {
+        showMessage('Por favor, informe sua data de nascimento', true);
+        return;
+      }
+      
+      // Validar formato da data
+      const datePattern = /^(0[1-9]|[12][0-9]|3[01])\/(0[1-9]|1[0-2])\\/\\d{4}$/;
+      if (!datePattern.test(birthdate)) {
+        showMessage('Formato de data inválido. Use DD/MM/AAAA', true);
+        return;
+      }
+      
+      // Validar se a data existe
+      const [day, month, year] = birthdate.split('/').map(Number);
+      const date = new Date(year, month - 1, day);
+      if (date.getDate() !== day || date.getMonth() !== month - 1 || date.getFullYear() !== year) {
+        showMessage('Data inválida. Verifique se a data existe no calendário.', true);
+        return;
+      }
+      
+      log('Calculando matriz para:', { name, birthdate, email });
+      
+      // Gerar números da matriz
+      const karmicNumbers = generateKarmicNumbers(birthdate);
+      
+      // Salvar dados do usuário
+      const userData = {
+        name,
+        birthdate,
+        email,
+        karmicNumbers,
+        createdAt: new Date().toISOString()
+      };
+      
+      try {
+        localStorage.setItem('matrizUser_' + email, JSON.stringify(userData));
+        log('Dados do usuário salvos:', userData);
+        
+        // Mostrar a matriz
+        profileForm.style.display = 'none';
+        matrixResult.style.display = 'block';
+        
+        // Criar interface da matriz
+        createMatrix(userData);
+        
+      } catch (error) {
+        log('Erro ao salvar dados:', error);
+        showMessage('Ocorreu um erro ao salvar seus dados. Por favor, tente novamente.', true);
+      }
+    });
+  }
+  
+  // Voltar para tela de login
+  if (backButton) {
+    backButton.addEventListener('click', function() {
+      matrixResult.style.display = 'none';
+      loginForm.style.display = 'block';
+      localStorage.removeItem('currentMatrixEmail');
+    });
+  }
+  
+  // Navegação entre abas
+  if (matrixTabs.length > 0) {
+    matrixTabs.forEach(tab => {
+      tab.addEventListener('click', function() {
+        const tabName = this.getAttribute('data-tab');
+        log('Trocando para aba:', tabName);
+        
+        // Remover classe active de todas as abas
+        matrixTabs.forEach(t => {
+          t.classList.remove('active');
+          if (t.style) {
+            t.style.borderBottomColor = 'transparent';
+            t.style.color = '#6B7280';
+          }
+        });
+        
+        // Adicionar classe active na aba clicada
+        this.classList.add('active');
+        if (this.style) {
+          this.style.borderBottomColor = '#6D28D9';
+          this.style.color = '#6D28D9';
+        }
+        
+        // Ocultar todos os conteúdos
+        tabContents.forEach(content => {
+          content.style.display = 'none';
+        });
+        
+        // Mostrar conteúdo da aba selecionada
+        const selectedTab = document.getElementById(tabName + '-tab');
+        if (selectedTab) {
+          selectedTab.style.display = 'block';
+        }
+      });
+    });
+  }
+  
+  // Função para gerar números da matriz
+  function generateKarmicNumbers(birthdate) {
+    log('Gerando números para data:', birthdate);
+    
+    const [day, month, year] = birthdate.split('/').map(Number);
+    
+    const dayNum = day;
+    const monthNum = month;
+    const yearNum = reduceToSingleDigit(year);
+    const fullDateNum = reduceToSingleDigit(day + month + yearNum);
+    
+    const numbers = {
+      karmicSeal: reduceToSingleDigit(dayNum + monthNum),
+      destinyCall: reduceToSingleDigit(fullDateNum + dayNum),
+      karmaPortal: reduceToSingleDigit(monthNum + yearNum),
+      karmicInheritance: reduceToSingleDigit(dayNum + yearNum),
+      karmicReprogramming: reduceToSingleDigit(fullDateNum * 2),
+      spiritualMark: reduceToSingleDigit(yearNum + monthNum)
+    };
+    
+    log('Números gerados:', numbers);
+    return numbers;
+  }
+  
+  // Função para reduzir a um dígito
+  function reduceToSingleDigit(num) {
+    if (num <= 9) return num;
+    
+    let sum = 0;
+    while (num > 0) {
+      sum += num % 10;
+      num = Math.floor(num / 10);
+    }
+    
+    return reduceToSingleDigit(sum);
+  }
+  
+  // Função para criar a matriz na interface
+  function createMatrix(userData) {
+    log('Criando interface da matriz para:', userData.name);
+    
+    const matrixNumbers = document.getElementById('matrix-numbers');
+    if (!matrixNumbers) {
+      log('Elemento matrix-numbers não encontrado');
+      return;
+    }
+    
+    matrixNumbers.innerHTML = '';
+    
+    // Criar cards para cada número
+    const numbers = [
+      { name: 'Selo Kármico', value: userData.karmicNumbers.karmicSeal },
+      { name: 'Chamado do Destino', value: userData.karmicNumbers.destinyCall },
+      { name: 'Portal Kármico', value: userData.karmicNumbers.karmaPortal },
+      { name: 'Herança Kármica', value: userData.karmicNumbers.karmicInheritance },
+      { name: 'Reprogramação', value: userData.karmicNumbers.karmicReprogramming },
+      { name: 'Marca Espiritual', value: userData.karmicNumbers.spiritualMark }
+    ];
+    
+    numbers.forEach(num => {
+      const card = document.createElement('div');
+      card.style.backgroundColor = '#F5F3FF';
+      card.style.borderRadius = '8px';
+      card.style.padding = '15px';
+      card.style.textAlign = 'center';
+      card.style.border = '1px solid #E5E7EB';
+      
+      card.innerHTML = \`
+        <h3 style="font-size: 16px; color: #5B21B6; margin-bottom: 10px;">\${num.name}</h3>
+        <p style="font-size: 28px; font-weight: bold; color: #6D28D9; margin: 0;">\${num.value}</p>
+      \`;
+      
+      matrixNumbers.appendChild(card);
+    });
+    
+    // Criar conteúdo das abas
+    const personalTab = document.getElementById('personal-tab');
+    if (personalTab) {
+      personalTab.innerHTML = \`
+        <h3 style="color: #5B21B6; margin-bottom: 15px;">Sua Missão Pessoal</h3>
+        <p>Seu número de Chamado do Destino (\${userData.karmicNumbers.destinyCall}) revela sua missão nesta vida.</p>
+        <p>Este número indica seus talentos e o caminho que deve seguir para realizar seu potencial máximo.</p>
+      \`;
+    }
+    
+    const spiritualTab = document.getElementById('spiritual-tab');
+    if (spiritualTab) {
+      spiritualTab.innerHTML = \`
+        <h3 style="color: #5B21B6; margin-bottom: 15px;">Seu Caminho Espiritual</h3>
+        <p>Sua Herança Kármica (\${userData.karmicNumbers.karmicInheritance}) e Marca Espiritual (\${userData.karmicNumbers.spiritualMark}) revelam sua jornada de alma.</p>
+        <p>Estes números mostram os aprendizados que sua alma busca nesta encarnação e como acessar sua sabedoria interior.</p>
+      \`;
+    }
+  }
+  
+  // Verificar se já existe um usuário com perfil
+  try {
+    // Tentar recuperar o email salvo de sessões anteriores
+    const currentEmail = localStorage.getItem('currentMatrixEmail');
+    if (currentEmail) {
+      log('Email encontrado em localStorage:', currentEmail);
+      
+      const userData = localStorage.getItem('matrizUser_' + currentEmail);
+      if (userData) {
+        const user = JSON.parse(userData);
+        
+        if (user.name && user.birthdate) {
+          log('Usuário tem perfil completo, mostrando matriz diretamente');
+          loginForm.style.display = 'none';
+          profileForm.style.display = 'none';
+          matrixResult.style.display = 'block';
+          
+          // Criar matriz
+          createMatrix(user);
+          return;
+        }
+      }
+      
+      // Se tem email mas não tem perfil completo
+      log('Usuário tem email mas sem perfil completo');
+      loginForm.style.display = 'none';
+      profileForm.style.display = 'block';
+    }
+  } catch (error) {
+    log('Erro ao verificar dados salvos:', error);
+  }
+});
+</script>
+`;
+
+      await navigator.clipboard.writeText(scriptCode);
+      setCopied(true);
+      toast.success("Código JavaScript copiado para a área de transferência!");
+      
+      setTimeout(() => setCopied(false), 3000);
     } catch (err) {
       toast.error("Erro ao copiar: " + err.message);
     }
@@ -949,149 +1069,131 @@ document.addEventListener('DOMContentLoaded', function() {
 
   return (
     <div className="space-y-6">
-      <h2 className="text-2xl font-bold mb-4 text-purple-800">Exportação para Elementor</h2>
+      <h2 className="text-2xl font-bold mb-4 text-purple-800">Exportação Simplificada para Elementor</h2>
       
-      <Card className="mb-6">
+      <Card>
         <CardHeader>
           <CardTitle>Instruções de Uso</CardTitle>
           <CardDescription>
-            Como implementar a Matriz Kármica no seu site WordPress com Elementor
+            Como implementar a versão simplificada da Matriz Kármica no seu site WordPress com Elementor
           </CardDescription>
         </CardHeader>
-        <CardContent>
-          <div className="mb-4 p-4 bg-amber-50 border border-amber-200 rounded-md">
-            <div className="flex items-start space-x-2">
-              <HelpCircle className="h-5 w-5 text-amber-600 mt-0.5 flex-shrink-0" />
-              <div>
-                <h3 className="font-medium text-amber-800">Importante: Como Publicar no Elementor</h3>
-                <p className="text-amber-700 text-sm mt-1">
-                  Após importar o HTML no Elementor, você <strong>precisa clicar no botão "Publicar"</strong> ou "Atualizar" 
-                  no canto inferior direito da tela do Elementor para que as alterações fiquem visíveis no seu site.
+        <CardContent className="space-y-6">
+          <div className="p-4 bg-amber-50 border border-amber-200 rounded-md">
+            <h3 className="font-medium text-amber-800 mb-2">Guia Rápido</h3>
+            <ol className="list-decimal pl-5 text-amber-700 space-y-2 text-sm">
+              <li>Copie o <strong>Código HTML</strong> e cole em um widget HTML do Elementor</li>
+              <li>Copie o <strong>Código JavaScript</strong> e cole em <strong>outro</strong> widget HTML do Elementor (na mesma página)</li>
+              <li>Clique em <strong>PUBLICAR</strong> ou <strong>ATUALIZAR</strong> no Elementor</li>
+              <li>Teste o funcionamento acessando a página publicada</li>
+            </ol>
+          </div>
+          
+          <div className="space-y-4">
+            <div className="flex items-center justify-between">
+              <div className="space-y-0.5">
+                <Label htmlFor="testing-mode">Modo de Teste</Label>
+                <p className="text-sm text-muted-foreground">
+                  Adiciona emails de teste na lista de autorizados
                 </p>
               </div>
+              <Switch
+                id="testing-mode"
+                checked={isTestingMode}
+                onCheckedChange={setIsTestingMode}
+              />
+            </div>
+            
+            <div className="flex items-center justify-between">
+              <div className="space-y-0.5">
+                <Label htmlFor="debug-info">Incluir Informações de Debug</Label>
+                <p className="text-sm text-muted-foreground">
+                  Adiciona uma seção de debug para facilitar a solução de problemas
+                </p>
+              </div>
+              <Switch
+                id="debug-info"
+                checked={includeDebugInfo}
+                onCheckedChange={setIncludeDebugInfo}
+              />
+            </div>
+            
+            <div className="flex items-center justify-between">
+              <div className="space-y-0.5">
+                <Label htmlFor="inline-styles">Usar Estilos Inline</Label>
+                <p className="text-sm text-muted-foreground">
+                  Aplica estilos diretamente nos elementos HTML
+                </p>
+              </div>
+              <Switch
+                id="inline-styles"
+                checked={useInlineStyles}
+                onCheckedChange={setUseInlineStyles}
+              />
             </div>
           </div>
-          
-          <Accordion type="single" collapsible>
-            <AccordionItem value="instructions">
-              <AccordionTrigger className="text-purple-700">
-                Instruções passo a passo para publicar
-              </AccordionTrigger>
-              <AccordionContent className="text-gray-600 space-y-4">
-                <ol className="list-decimal pl-5 space-y-3">
-                  <li>
-                    <strong>Baixe o arquivo HTML</strong> clicando no botão abaixo
-                  </li>
-                  <li>
-                    <strong>Abra o arquivo</strong> em um editor de texto (como Bloco de Notas, VS Code)
-                  </li>
-                  <li>
-                    <strong>Copie todo o código</strong> do arquivo
-                  </li>
-                  <li>
-                    <strong>No WordPress:</strong>
-                    <ul className="list-disc pl-5 mt-1 space-y-1">
-                      <li>Vá para o editor Elementor da página onde deseja adicionar a Matriz Kármica</li>
-                      <li>Adicione um widget "HTML" do Elementor à sua página</li>
-                      <li>Cole o código copiado no widget HTML</li>
-                    </ul>
-                  </li>
-                  <li>
-                    <strong>Configure o CSS e JavaScript</strong> seguindo as instruções nos comentários do código
-                  </li>
-                  <li className="font-medium text-purple-800">
-                    <strong>IMPORTANTE: Clique no botão "PUBLICAR" ou "ATUALIZAR"</strong> no canto inferior direito do Elementor
-                  </li>
-                  <li>
-                    Agora sua Matriz Kármica estará funcionando no seu site WordPress!
-                  </li>
-                </ol>
-                
-                <div className="bg-gray-100 p-3 rounded-md mt-3">
-                  <p className="text-sm text-gray-600 italic">
-                    Se o botão Publicar/Atualizar estiver acinzentado (desativado), tente fazer uma pequena alteração em qualquer elemento 
-                    da página para ativá-lo, como adicionar um espaço em um texto ou mover ligeiramente um elemento.
-                  </p>
-                </div>
-              </AccordionContent>
-            </AccordionItem>
-            
-            <AccordionItem value="troubleshooting">
-              <AccordionTrigger className="text-purple-700">
-                Problemas comuns e soluções
-              </AccordionTrigger>
-              <AccordionContent className="text-gray-600">
-                <ul className="space-y-3">
-                  <li>
-                    <strong>Problema:</strong> O botão "Calcular Matriz Kármica" não funciona.
-                    <br />
-                    <strong>Solução:</strong> Verifique se você publicou a página com o botão Publicar/Atualizar e se o JavaScript foi adicionado corretamente.
-                  </li>
-                  <li>
-                    <strong>Problema:</strong> O conteúdo aparece no editor, mas não no site publicado.
-                    <br />
-                    <strong>Solução:</strong> Certifique-se de clicar no botão "Publicar" ou "Atualizar" após fazer alterações.
-                  </li>
-                  <li>
-                    <strong>Problema:</strong> Os emails dos clientes não são reconhecidos pelo sistema.
-                    <br />
-                    <strong>Solução:</strong> Verifique a lista de emails autorizados no código JavaScript e adicione os emails dos seus clientes.
-                  </li>
-                  <li>
-                    <strong>Problema:</strong> Os estilos não estão sendo aplicados corretamente.
-                    <br />
-                    <strong>Solução:</strong> Certifique-se de que o código CSS foi adicionado corretamente na seção de CSS personalizado do Elementor.
-                  </li>
-                </ul>
-              </AccordionContent>
-            </AccordionItem>
-          </Accordion>
         </CardContent>
         <CardFooter className="flex flex-col space-y-4">
-          <div className="flex items-center">
-            <label className="flex items-center cursor-pointer">
-              <input 
-                type="checkbox"
-                checked={isTestingMode}
-                onChange={() => setIsTestingMode(!isTestingMode)}
-                className="mr-2 h-4 w-4"
-              />
-              <span className="text-sm text-gray-600">Modo de teste (adiciona emails de teste)</span>
-            </label>
-          </div>
-          
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 w-full">
-            <Button 
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 w-full">
+            <Button
               onClick={copyElementorCode}
               className="w-full bg-blue-600 hover:bg-blue-700"
               variant="secondary"
             >
-              <Copy className="mr-2 h-4 w-4" /> Copiar Código
+              {copied ? <CheckCircle className="mr-2 h-4 w-4" /> : <Copy className="mr-2 h-4 w-4" />}
+              Copiar Código HTML
             </Button>
             
-            <Button 
-              onClick={generateElementorHTML}
-              className="w-full bg-purple-700 hover:bg-purple-800"
+            <Button
+              onClick={copyJavaScriptCode}
+              className="w-full bg-green-600 hover:bg-green-700"
+              variant="secondary"
+            >
+              <Copy className="mr-2 h-4 w-4" />
+              Copiar Código JavaScript
+            </Button>
+            
+            <Button
+              onClick={generateBasicElementorHTML}
+              className="w-full sm:col-span-2 bg-purple-700 hover:bg-purple-800"
               disabled={isGenerating}
             >
               {isGenerating ? (
-                <>
-                  <RefreshCw className="mr-2 h-4 w-4 animate-spin" /> Gerando...
-                </>
+                <>Gerando...</>
               ) : (
                 <>
-                  <Download className="mr-2 h-4 w-4" /> Baixar HTML Completo
+                  <Download className="mr-2 h-4 w-4" /> Baixar Arquivo Completo
                 </>
               )}
             </Button>
           </div>
           
           <p className="text-sm text-center text-gray-500 mt-2">
-            Após baixar e importar, não esqueça de clicar em "Publicar" ou "Atualizar" no Elementor!
+            Após adicionar o código no Elementor, clique em "Publicar" ou "Atualizar" para aplicar as mudanças!
           </p>
         </CardFooter>
       </Card>
+      
+      <div className="text-sm text-karmic-600 p-4 bg-karmic-50 rounded-md">
+        <h3 className="font-medium mb-2">Importante: Passo a Passo</h3>
+        <ol className="list-decimal pl-5 space-y-1">
+          <li>
+            Use o botão <strong>Copiar Código HTML</strong> e cole em um widget HTML no Elementor
+          </li>
+          <li>
+            Use o botão <strong>Copiar Código JavaScript</strong> e cole em OUTRO widget HTML no Elementor
+          </li>
+          <li>
+            Posicione os dois widgets um após o outro na sua página
+          </li>
+          <li>
+            Clique em <strong>PUBLICAR</strong> ou <strong>ATUALIZAR</strong> no Elementor
+          </li>
+          <li>
+            O código foi feito para ser extremamente simples e usar estilos inline para evitar conflitos com temas
+          </li>
+        </ol>
+      </div>
     </div>
   );
 };
-
