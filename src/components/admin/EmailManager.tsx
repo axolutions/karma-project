@@ -9,7 +9,7 @@ import {
   removeAuthorizedEmail,
   getAllUserDataByEmail
 } from '@/lib/auth';
-import { X, Plus, Map } from 'lucide-react';
+import { X, Plus, Map, Zap } from 'lucide-react';
 
 const EmailManager: React.FC = () => {
   const [emails, setEmails] = useState<string[]>([]);
@@ -18,6 +18,13 @@ const EmailManager: React.FC = () => {
   
   useEffect(() => {
     refreshEmails();
+    
+    // Verificar se existe algum email cadastrado
+    // Se não existir, podemos inicializar com um email padrão para testes
+    const authorizedEmails = getAllAuthorizedEmails();
+    if (authorizedEmails.length === 0) {
+      console.log("Nenhum email autorizado encontrado. Inicializando sistema...");
+    }
   }, []);
   
   const refreshEmails = () => {
@@ -115,6 +122,16 @@ const EmailManager: React.FC = () => {
     return regex.test(email);
   };
   
+  // Função para adicionar o email de exemplo
+  const handleAddSampleEmail = () => {
+    const sampleEmail = "carlamaiaprojetos@gmail.com";
+    addAuthorizedEmail(sampleEmail);
+    toast.success("Email de teste adicionado", {
+      description: `O email ${sampleEmail} foi adicionado com sucesso.`
+    });
+    refreshEmails();
+  };
+  
   return (
     <div className="space-y-6">
       <div className="flex items-end gap-3">
@@ -139,6 +156,22 @@ const EmailManager: React.FC = () => {
           <Plus className="h-4 w-4 mr-1" /> Adicionar
         </Button>
       </div>
+      
+      {emails.length === 0 && (
+        <div className="p-4 bg-amber-50 border border-amber-200 rounded-md">
+          <h3 className="text-amber-800 text-sm font-medium mb-2">Nenhum email cadastrado</h3>
+          <p className="text-amber-700 text-xs mb-3">
+            Você precisa adicionar pelo menos um email autorizado para que os usuários possam fazer login.
+          </p>
+          <Button 
+            onClick={handleAddSampleEmail} 
+            variant="outline"
+            className="bg-white border-amber-300 text-amber-700 hover:bg-amber-100 text-xs"
+          >
+            <Zap className="h-3 w-3 mr-1" /> Adicionar email de exemplo (carlamaiaprojetos@gmail.com)
+          </Button>
+        </div>
+      )}
       
       <div>
         <h3 className="text-lg font-medium text-karmic-800 mb-3">Emails Autorizados</h3>
