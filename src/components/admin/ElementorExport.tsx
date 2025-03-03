@@ -30,6 +30,7 @@ export const ElementorExport = () => {
         <p class="matriz-hint">Informe o email utilizado na compra</p>
       </div>
       <button id="matriz-login-btn" class="matriz-button">Acessar Matriz</button>
+      <div id="login-message" class="matriz-message" style="display:none; margin-top: 15px; padding: 10px; border-radius: 5px;"></div>
     </div>
   </div>
   
@@ -225,6 +226,21 @@ export const ElementorExport = () => {
   color: #6D28D9;
 }
 
+.matriz-message {
+  text-align: center;
+  font-weight: 500;
+}
+
+.matriz-message.success {
+  background-color: #DCFCE7;
+  color: #166534;
+}
+
+.matriz-message.error {
+  background-color: #FEE2E2;
+  color: #991B1B;
+}
+
 /* Responsividade */
 @media (max-width: 768px) {
   .matriz-grid {
@@ -252,10 +268,22 @@ document.addEventListener('DOMContentLoaded', function() {
   const emailInput = document.getElementById('email');
   const nameInput = document.getElementById('name');
   const birthdateInput = document.getElementById('birthdate');
+  const loginMessage = document.getElementById('login-message');
   
   // Tabs da matriz
   const tabButtons = document.querySelectorAll('.matriz-tab');
   const tabContents = document.querySelectorAll('.matriz-tab-content');
+  
+  // Lista de emails autorizados
+  const authorizedEmails = [
+    'example1@example.com',
+    'example2@example.com',
+    'teste@teste.com',
+    'projetovmtd@gmail.com',
+    'carlamaiaprojetos@gmail.com',
+    'mariaal020804@gmail.com',
+    'tesete@testelcom.br'
+  ];
   
   // Dados dos usuários (simulação)
   let userData = {
@@ -269,13 +297,62 @@ document.addEventListener('DOMContentLoaded', function() {
     if (storedData) {
       userData = JSON.parse(storedData);
     }
+    
+    // Recuperar usuário logado (do sistema React)
+    const currentUser = localStorage.getItem('currentUser');
+    if (currentUser && authorizedEmails.includes(currentUser.toLowerCase().trim())) {
+      userData.currentEmail = currentUser;
+      
+      // Verificar se já tem dados completos no sistema React
+      const userMapsString = localStorage.getItem('userMaps');
+      if (userMapsString) {
+        const userMaps = JSON.parse(userMapsString);
+        const userDataFromReact = userMaps.find(map => 
+          map.email && map.email.toLowerCase() === currentUser.toLowerCase()
+        );
+        
+        if (userDataFromReact) {
+          // Copiar dados do sistema React para o sistema Elementor
+          userData.users[currentUser] = {
+            name: userDataFromReact.name || '',
+            birthdate: userDataFromReact.birthDate || '',
+            email: currentUser
+          };
+          
+          // Se já tiver nome, considerar que tem dados de matriz
+          if (userDataFromReact.name) {
+            userData.users[currentUser].karmicNumbers = generateKarmicNumbers(userDataFromReact.birthDate);
+          }
+          
+          saveUserData();
+        }
+      }
+    }
   } catch (e) {
     console.error('Erro ao carregar dados salvos:', e);
+  }
+  
+  // Função para exibir mensagens
+  function showMessage(message, type) {
+    if (!loginMessage) return;
+    
+    loginMessage.textContent = message;
+    loginMessage.className = 'matriz-message ' + type;
+    loginMessage.style.display = 'block';
+    
+    // Ocultar mensagem após 5 segundos
+    setTimeout(() => {
+      loginMessage.style.display = 'none';
+    }, 5000);
   }
   
   // Função para salvar dados
   function saveUserData() {
     localStorage.setItem('matrizKarmica', JSON.stringify(userData));
+    // Também salvar o usuário atual no formato do sistema React
+    if (userData.currentEmail) {
+      localStorage.setItem('currentUser', userData.currentEmail);
+    }
   }
   
   // Função para gerar números kármicos com base na data
@@ -287,6 +364,11 @@ document.addEventListener('DOMContentLoaded', function() {
     const day = parseInt(parts[0], 10);
     const month = parseInt(parts[1], 10);
     const year = parseInt(parts[2], 10);
+    
+    // Verificar se a data é válida
+    if (isNaN(day) || isNaN(month) || isNaN(year)) {
+      return null;
+    }
     
     // Cálculos numerológicos básicos
     const dayNum = day;
@@ -324,7 +406,15 @@ document.addEventListener('DOMContentLoaded', function() {
   // Função para criar a matriz visual
   function createMatrixDisplay(karmicNumbers) {
     const matrixGrid = document.getElementById('matriz-numbers');
+    if (!matrixGrid) return;
+    
     matrixGrid.innerHTML = '';
+    
+    // Verificar se temos números kármicos válidos
+    if (!karmicNumbers) {
+      matrixGrid.innerHTML = '<p>Não foi possível calcular a matriz. Verifique a data de nascimento.</p>';
+      return;
+    }
     
     // Criar cartões para cada número
     const numbers = [
@@ -356,137 +446,193 @@ document.addEventListener('DOMContentLoaded', function() {
   function createInterpretationTabs(karmicNumbers) {
     // Aba Pessoal
     const personalTab = document.getElementById('personal-tab');
-    personalTab.innerHTML = \`
-      <h2>Sua Missão Pessoal</h2>
-      <div class="matriz-interpretation">
-        <h3>Propósito de Vida</h3>
-        <p>
-          Seu propósito de vida está diretamente relacionado ao seu número do Chamado do Destino (\${karmicNumbers.destinyCall}).
-          Este número indica sua verdadeira missão e os talentos que você possui para realizá-la.
-        </p>
-        <p>
-          Você veio a este mundo com dons específicos e um caminho único a seguir. Sua matriz revela
-          as energias que você traz de vidas passadas e como elas podem ser utilizadas para seu crescimento
-          nesta encarnação.
-        </p>
-      </div>
-    \`;
+    if (personalTab) {
+      personalTab.innerHTML = \`
+        <h2>Sua Missão Pessoal</h2>
+        <div class="matriz-interpretation">
+          <h3>Propósito de Vida</h3>
+          <p>
+            Seu propósito de vida está diretamente relacionado ao seu número do Chamado do Destino (\${karmicNumbers.destinyCall}).
+            Este número indica sua verdadeira missão e os talentos que você possui para realizá-la.
+          </p>
+          <p>
+            Você veio a este mundo com dons específicos e um caminho único a seguir. Sua matriz revela
+            as energias que você traz de vidas passadas e como elas podem ser utilizadas para seu crescimento
+            nesta encarnação.
+          </p>
+        </div>
+      \`;
+    }
     
     // Aba Espiritual
     const spiritualTab = document.getElementById('spiritual-tab');
-    spiritualTab.innerHTML = \`
-      <h2>Seu Caminho Espiritual</h2>
-      <div class="matriz-interpretation">
-        <h3>Lições de Vidas Passadas</h3>
-        <p>
-          Sua Herança Kármica (\${karmicNumbers.karmicInheritance}) revela as lições que você traz
-          de vidas anteriores e os aprendizados que precisam ser integrados nesta existência.
-        </p>
-        <p>
-          O número \${karmicNumbers.karmicInheritance} sugere padrões específicos de comportamento e experiências
-          que estão sendo trabalhados para sua evolução espiritual.
-        </p>
-      </div>
-    \`;
+    if (spiritualTab) {
+      spiritualTab.innerHTML = \`
+        <h2>Seu Caminho Espiritual</h2>
+        <div class="matriz-interpretation">
+          <h3>Lições de Vidas Passadas</h3>
+          <p>
+            Sua Herança Kármica (\${karmicNumbers.karmicInheritance}) revela as lições que você traz
+            de vidas anteriores e os aprendizados que precisam ser integrados nesta existência.
+          </p>
+          <p>
+            O número \${karmicNumbers.karmicInheritance} sugere padrões específicos de comportamento e experiências
+            que estão sendo trabalhados para sua evolução espiritual.
+          </p>
+        </div>
+      \`;
+    }
     
     // Aba Desafios
     const challengesTab = document.getElementById('challenges-tab');
-    challengesTab.innerHTML = \`
-      <h2>Seus Desafios e Lições</h2>
-      <div class="matriz-interpretation">
-        <h3>Desafios Principais</h3>
-        <p>
-          Sua Reprogramação Kármica (\${karmicNumbers.karmicReprogramming}) aponta para os principais
-          desafios que você enfrenta nesta vida e como superá-los para avançar em seu caminho espiritual.
-        </p>
-        <p>
-          Estes desafios não são obstáculos, mas oportunidades de crescimento que, quando abraçadas
-          conscientemente, levam a grandes avanços em sua jornada.
-        </p>
-      </div>
-    \`;
+    if (challengesTab) {
+      challengesTab.innerHTML = \`
+        <h2>Seus Desafios e Lições</h2>
+        <div class="matriz-interpretation">
+          <h3>Desafios Principais</h3>
+          <p>
+            Sua Reprogramação Kármica (\${karmicNumbers.karmicReprogramming}) aponta para os principais
+            desafios que você enfrenta nesta vida e como superá-los para avançar em seu caminho espiritual.
+          </p>
+          <p>
+            Estes desafios não são obstáculos, mas oportunidades de crescimento que, quando abraçadas
+            conscientemente, levam a grandes avanços em sua jornada.
+          </p>
+        </div>
+      \`;
+    }
   }
   
   // Login (verificação de email)
-  loginBtn.addEventListener('click', function() {
-    const email = emailInput.value.toLowerCase().trim();
-    
-    if (!email) {
-      alert('Por favor, informe seu email');
-      return;
-    }
-    
-    // Em um sistema real, aqui verificaríamos se o email está autorizado
-    // Para este exemplo, permitimos qualquer email
-    userData.currentEmail = email;
-    
-    // Verificar se o usuário já tem perfil
-    if (userData.users[email] && userData.users[email].name) {
-      // Já tem perfil, mostrar matriz
-      loginPage.style.display = 'none';
+  if (loginBtn) {
+    loginBtn.addEventListener('click', function() {
+      const email = emailInput.value.toLowerCase().trim();
+      
+      if (!email) {
+        showMessage('Por favor, informe seu email', 'error');
+        return;
+      }
+      
+      console.log('Tentando login com:', email);
+      console.log('Emails autorizados:', authorizedEmails);
+      
+      // Verificar se o email está na lista de autorizados
+      if (!authorizedEmails.some(authEmail => authEmail.toLowerCase().trim() === email)) {
+        console.log('Email não autorizado:', email);
+        showMessage('Este email não está autorizado para acessar o sistema', 'error');
+        return;
+      }
+      
+      // Email autorizado, prosseguir
+      console.log('Email autorizado:', email);
+      showMessage('Email verificado com sucesso!', 'success');
+      userData.currentEmail = email;
+      
+      // Sincronizar com o sistema React
+      localStorage.setItem('currentUser', email);
+      
+      // Verificar se o usuário já tem perfil
+      if (userData.users[email] && userData.users[email].name) {
+        // Já tem perfil, mostrar matriz
+        console.log('Usuário já tem perfil:', userData.users[email]);
+        loginPage.style.display = 'none';
+        profilePage.style.display = 'none';
+        matrixPage.style.display = 'block';
+        
+        // Criar exibição da matriz
+        createMatrixDisplay(userData.users[email].karmicNumbers);
+      } else {
+        // Não tem perfil, ir para página de perfil
+        console.log('Usuário não tem perfil, mostrando formulário de perfil');
+        loginPage.style.display = 'none';
+        profilePage.style.display = 'block';
+        matrixPage.style.display = 'none';
+      }
+      
+      saveUserData();
+    });
+  } else {
+    console.error('Botão de login não encontrado!');
+  }
+  
+  // Formulário de Perfil
+  if (calcBtn) {
+    calcBtn.addEventListener('click', function() {
+      const name = nameInput.value.trim();
+      const birthdate = birthdateInput.value.trim();
+      const email = userData.currentEmail;
+      
+      if (!email) {
+        console.error('Email não definido!');
+        return;
+      }
+      
+      if (!name) {
+        alert('Por favor, informe seu nome');
+        return;
+      }
+      
+      if (!birthdate) {
+        alert('Por favor, informe sua data de nascimento');
+        return;
+      }
+      
+      // Validar data no formato DD/MM/AAAA
+      const datePattern = /^(0[1-9]|[12][0-9]|3[01])\/(0[1-9]|1[0-2])\/\\d{4}$/;
+      if (!datePattern.test(birthdate)) {
+        alert('Por favor, informe uma data válida no formato DD/MM/AAAA');
+        return;
+      }
+      
+      // Calcular números kármicos
+      const karmicNumbers = generateKarmicNumbers(birthdate);
+      
+      // Salvar dados do usuário
+      userData.users[email] = {
+        name: name,
+        birthdate: birthdate,
+        email: email,
+        karmicNumbers: karmicNumbers
+      };
+      
+      saveUserData();
+      
+      // Também salvar no formato do sistema React
+      try {
+        const userMapsString = localStorage.getItem('userMaps');
+        const userMaps = userMapsString ? JSON.parse(userMapsString) : [];
+        
+        // Criar objeto de usuário no formato React
+        const reactUserData = {
+          id: Math.random().toString(36).substring(2, 15),
+          name: name,
+          email: email,
+          birthDate: birthdate,
+          createdAt: new Date().toISOString()
+        };
+        
+        userMaps.push(reactUserData);
+        localStorage.setItem('userMaps', JSON.stringify(userMaps));
+      } catch (e) {
+        console.error('Erro ao salvar no formato React:', e);
+      }
+      
+      // Mostrar a matriz
       profilePage.style.display = 'none';
       matrixPage.style.display = 'block';
       
-      // Criar exibição da matriz
-      createMatrixDisplay(userData.users[email].karmicNumbers);
-    } else {
-      // Não tem perfil, ir para página de perfil
-      loginPage.style.display = 'none';
-      profilePage.style.display = 'block';
-      matrixPage.style.display = 'none';
-    }
-    
-    saveUserData();
-  });
-  
-  // Formulário de Perfil
-  calcBtn.addEventListener('click', function() {
-    const name = nameInput.value.trim();
-    const birthdate = birthdateInput.value.trim();
-    const email = userData.currentEmail;
-    
-    if (!name) {
-      alert('Por favor, informe seu nome');
-      return;
-    }
-    
-    if (!birthdate) {
-      alert('Por favor, informe sua data de nascimento');
-      return;
-    }
-    
-    // Validar data no formato DD/MM/AAAA
-    const datePattern = /^(0[1-9]|[12][0-9]|3[01])\/(0[1-9]|1[0-2])\/\\d{4}$/;
-    if (!datePattern.test(birthdate)) {
-      alert('Por favor, informe uma data válida no formato DD/MM/AAAA');
-      return;
-    }
-    
-    // Calcular números kármicos
-    const karmicNumbers = generateKarmicNumbers(birthdate);
-    
-    // Salvar dados do usuário
-    userData.users[email] = {
-      name: name,
-      birthdate: birthdate,
-      karmicNumbers: karmicNumbers
-    };
-    
-    saveUserData();
-    
-    // Mostrar a matriz
-    profilePage.style.display = 'none';
-    matrixPage.style.display = 'block';
-    
-    // Criar interface da matriz
-    createMatrixDisplay(karmicNumbers);
-  });
+      // Criar interface da matriz
+      createMatrixDisplay(karmicNumbers);
+    });
+  }
   
   // Voltar para o login
-  backBtn.addEventListener('click', function() {
-    matrixPage.style.display = 'none';
-    loginPage.style.display = 'block';
-  });
+  if (backBtn) {
+    backBtn.addEventListener('click', function() {
+      matrixPage.style.display = 'none';
+      loginPage.style.display = 'block';
+    });
+  }
   
   // Navegação entre abas
   tabButtons.forEach(button => {
@@ -513,10 +659,17 @@ document.addEventListener('DOMContentLoaded', function() {
   
   // Verificar se já havia um usuário logado
   if (userData.currentEmail && userData.users[userData.currentEmail]?.name) {
+    console.log('Usuário já logado:', userData.currentEmail);
     loginPage.style.display = 'none';
     matrixPage.style.display = 'block';
     createMatrixDisplay(userData.users[userData.currentEmail].karmicNumbers);
+  } else {
+    console.log('Nenhum usuário logado');
   }
+  
+  // Debug: exibir email autorizado 
+  console.log('Debug - Emails autorizados no sistema Elementor:');
+  console.log(authorizedEmails);
 });
 </script>
     `;

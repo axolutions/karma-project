@@ -1,4 +1,3 @@
-
 // Função para obter todos os dados do usuário por email
 export const getAllUserDataByEmail = (email?: string) => {
   try {
@@ -113,7 +112,15 @@ export const getAllAuthorizedEmails = (): string[] => {
     // Se não houver emails armazenados, inicializa com valores padrão
     if (!emailsString) {
       // Inclui o email do exemplo e o email projetovmtd@gmail.com
-      const defaultEmails = ['example1@example.com', 'example2@example.com', 'teste@teste.com', 'projetovmtd@gmail.com', 'carlamaiaprojetos@gmail.com'];
+      const defaultEmails = [
+        'example1@example.com', 
+        'example2@example.com', 
+        'teste@teste.com', 
+        'projetovmtd@gmail.com', 
+        'carlamaiaprojetos@gmail.com',
+        'mariaal020804@gmail.com',
+        'tesete@testelcom.br'
+      ];
       localStorage.setItem('authorizedEmails', JSON.stringify(defaultEmails));
       return defaultEmails;
     }
@@ -121,23 +128,42 @@ export const getAllAuthorizedEmails = (): string[] => {
     // Caso contrário, retorna os emails armazenados
     const storedEmails = JSON.parse(emailsString);
     
-    // Verifica se projetovmtd@gmail.com já está na lista
-    if (!storedEmails.includes('projetovmtd@gmail.com')) {
-      storedEmails.push('projetovmtd@gmail.com');
-      localStorage.setItem('authorizedEmails', JSON.stringify(storedEmails));
+    // Garante que todos os emails importantes estejam na lista
+    const criticalEmails = [
+      'projetovmtd@gmail.com',
+      'teste@teste.com',
+      'carlamaiaprojetos@gmail.com',
+      'mariaal020804@gmail.com',
+      'tesete@testelcom.br'
+    ];
+    
+    let updated = false;
+    for (const email of criticalEmails) {
+      if (!storedEmails.some((e: string) => e.toLowerCase().trim() === email.toLowerCase())) {
+        storedEmails.push(email);
+        updated = true;
+        console.log(`Email crítico adicionado: ${email}`);
+      }
     }
     
-    // Verifica se o email de teste está na lista
-    if (!storedEmails.includes('teste@teste.com')) {
-      storedEmails.push('teste@teste.com');
+    if (updated) {
       localStorage.setItem('authorizedEmails', JSON.stringify(storedEmails));
+      console.log('Lista de emails atualizada com emails críticos');
     }
     
     return storedEmails;
   } catch (error) {
     console.error('Erro ao obter emails autorizados:', error);
     // Em caso de erro, retorna uma lista padrão
-    return ['example1@example.com', 'example2@example.com', 'teste@teste.com', 'projetovmtd@gmail.com'];
+    return [
+      'example1@example.com', 
+      'example2@example.com', 
+      'teste@teste.com', 
+      'projetovmtd@gmail.com', 
+      'carlamaiaprojetos@gmail.com',
+      'mariaal020804@gmail.com',
+      'tesete@testelcom.br'
+    ];
   }
 };
 
@@ -149,6 +175,21 @@ export const isAuthorizedEmail = (email: string): boolean => {
     // Imprime para debug
     console.log("Verificando autorização para:", normalizedEmail);
     console.log("Lista de emails autorizados:", authorizedEmails);
+    
+    // Emails críticos que sempre devem ser autorizados
+    const criticalEmails = [
+      'projetovmtd@gmail.com',
+      'teste@teste.com',
+      'carlamaiaprojetos@gmail.com',
+      'mariaal020804@gmail.com',
+      'tesete@testelcom.br'
+    ];
+    
+    // Primeiro verifica emails críticos
+    if (criticalEmails.some(e => e.toLowerCase() === normalizedEmail)) {
+      console.log("Email crítico autorizado:", normalizedEmail);
+      return true;
+    }
     
     // Compara o email normalizado com cada email autorizado
     for (const authorizedEmail of authorizedEmails) {
@@ -162,6 +203,22 @@ export const isAuthorizedEmail = (email: string): boolean => {
     return false;
   } catch (error) {
     console.error('Erro ao verificar se email é autorizado:', error);
+    
+    // Em caso de erro, verifica se é um dos emails críticos
+    const normalizedEmail = email.toLowerCase().trim();
+    const criticalEmails = [
+      'projetovmtd@gmail.com',
+      'teste@teste.com',
+      'carlamaiaprojetos@gmail.com',
+      'mariaal020804@gmail.com',
+      'tesete@testelcom.br'
+    ];
+    
+    if (criticalEmails.some(e => e.toLowerCase() === normalizedEmail)) {
+      console.log("Email crítico autorizado (fallback):", normalizedEmail);
+      return true;
+    }
+    
     return false;
   }
 };

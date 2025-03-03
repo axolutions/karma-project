@@ -88,7 +88,41 @@ const LoginForm: React.FC = () => {
         // em vez de apenas recarregar a página
         setTimeout(() => {
           setIsSubmitting(false);
-          window.location.href = "/"; // forçamos redirecionamento explícito
+          if (window.location.pathname.includes('/matrix')) {
+            window.location.reload(); // Caso já esteja na página da matriz
+          } else {
+            // Verifica se estamos no app React ou no Elementor do WordPress
+            if (window.location.hostname === 'matrizkarmica.com' || 
+                window.location.hostname.includes('wordpress')) {
+              console.log("Detectado site WordPress/Elementor, usando JS local");
+              
+              // Verifica se existem elementos específicos do Elementor
+              const loginPage = document.getElementById('login-page');
+              const profilePage = document.getElementById('profile-page');
+              const matrixPage = document.getElementById('matrix-page');
+              
+              if (loginPage && profilePage && matrixPage) {
+                // Estamos no Elementor, vamos usar a lógica dele
+                if (userData && userData.name) {
+                  // Usuário tem perfil, mostrar matriz
+                  loginPage.style.display = 'none';
+                  profilePage.style.display = 'none';
+                  matrixPage.style.display = 'block';
+                } else {
+                  // Usuário não tem perfil, mostrar formulário de perfil
+                  loginPage.style.display = 'none';
+                  profilePage.style.display = 'block';
+                  matrixPage.style.display = 'none';
+                }
+              } else {
+                // Não encontrou os elementos do Elementor, tenta recarregar
+                window.location.reload();
+              }
+            } else {
+              // Estamos no app React
+              window.location.href = "/"; // forçamos redirecionamento explícito
+            }
+          }
         }, 1000);
       } else {
         console.error("Falha no login para:", normalizedEmail);
