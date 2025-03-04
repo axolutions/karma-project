@@ -1,6 +1,5 @@
-
-import React, { useState } from 'react';
-import { getInterpretation, getCategoryDisplayName } from '@/lib/interpretations';
+import React, { useState, useEffect } from 'react';
+import { getInterpretation, getCategoryDisplayName, loadInterpretations } from '@/lib/interpretations';
 import { motion, AnimatePresence } from 'framer-motion';
 import { ChevronDown, ChevronUp, AlertTriangle } from 'lucide-react';
 
@@ -19,6 +18,11 @@ interface MatrixInterpretationsProps {
 
 const MatrixInterpretations: React.FC<MatrixInterpretationsProps> = ({ karmicData }) => {
   const [expandedSections, setExpandedSections] = useState<Set<string>>(new Set(['karmicSeal']));
+
+  // Load interpretations on component mount
+  useEffect(() => {
+    loadInterpretations();
+  }, []);
 
   const toggleSection = (category: string) => {
     setExpandedSections(prev => {

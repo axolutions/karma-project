@@ -26,8 +26,10 @@ const ProfileForm: React.FC = () => {
       const allUserMaps = getAllUserDataByEmail();
       
       // Filtrar apenas mapas do usuário atual
-      const userMaps = allUserMaps.filter(map => map && map.email === currentUser);
-      console.log("ProfileForm: Mapas encontrados para este usuário:", userMaps);
+      const userMaps = allUserMaps.filter(map => 
+        map && map.email === currentUser && map.name && map.birthDate
+      );
+      console.log("ProfileForm: Mapas válidos encontrados para este usuário:", userMaps);
       
       setExistingMaps(userMaps || []);
       

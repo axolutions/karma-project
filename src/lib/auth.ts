@@ -1,3 +1,4 @@
+
 // Função para obter todos os dados do usuário por email
 export const getAllUserDataByEmail = (email?: string) => {
   try {
@@ -5,13 +6,18 @@ export const getAllUserDataByEmail = (email?: string) => {
     const userMapsString = localStorage.getItem('userMaps');
     const userMaps = userMapsString ? JSON.parse(userMapsString) : [];
     
-    // Se não foi fornecido email, retorna todos os mapas
+    // Filtrar mapas inválidos/incompletos
+    const validMaps = userMaps.filter((map: any) => 
+      map && map.id && map.email
+    );
+    
+    // Se não foi fornecido email, retorna todos os mapas válidos
     if (!email) {
-      return userMaps;
+      return validMaps;
     }
     
     // Filtrar mapas pelo email fornecido
-    return userMaps.filter((map: any) => 
+    return validMaps.filter((map: any) => 
       map.email && map.email.toLowerCase() === email.toLowerCase()
     );
   } catch (error) {
@@ -56,8 +62,16 @@ export const getUserData = (email: string): any => {
       return null;
     }
     
-    // Retorna o último mapa criado para o usuário
-    return userMaps[userMaps.length - 1];
+    // Filtrar apenas mapas completos (com nome e data de nascimento)
+    const completeMaps = userMaps.filter((map: any) => map.name && map.birthDate);
+    
+    if (completeMaps.length === 0) {
+      // Se não houver mapas completos, retornar o último mapa (mesmo incompleto)
+      return userMaps[userMaps.length - 1];
+    }
+    
+    // Retorna o último mapa completo criado para o usuário
+    return completeMaps[completeMaps.length - 1];
   } catch (error) {
     console.error('Erro ao obter dados do usuário:', error);
     return null;

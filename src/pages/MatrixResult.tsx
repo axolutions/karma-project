@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { getUserData, isLoggedIn, getCurrentUser } from '../lib/auth';
 import { getAllUserDataByEmail } from '../lib/auth';
@@ -7,7 +8,7 @@ import MatrixInterpretations from '../components/MatrixInterpretations';
 import { useToast } from "@/components/ui/use-toast";
 import LoadingState from '../components/matrix/LoadingState';
 import ErrorState from '../components/matrix/ErrorState';
-import { generateInterpretationsHTML } from '@/lib/interpretations';
+import { generateInterpretationsHTML, loadInterpretations } from '@/lib/interpretations';
 import { useNavigate } from 'react-router-dom';
 
 const MatrixResult: React.FC = () => {
@@ -20,6 +21,9 @@ const MatrixResult: React.FC = () => {
   const navigate = useNavigate();
   
   useEffect(() => {
+    // Ensure interpretations are loaded
+    loadInterpretations();
+    
     const loadUserData = async () => {
       try {
         // Verificar se o usuário está logado
@@ -71,14 +75,20 @@ const MatrixResult: React.FC = () => {
         console.log("MatrixResult: Dados kármicos encontrados:", data.karmicNumbers);
         setUserData(data);
         
-        // Obter todos os mapas do usuário
+        // Obter todos os mapas do usuário (apenas os que têm dados completos)
         const allUserMaps = getAllUserDataByEmail(email);
         if (allUserMaps && allUserMaps.length > 0) {
-          console.log("MatrixResult: Todos os mapas do usuário:", allUserMaps);
-          setUserMaps(allUserMaps);
+          // Filtrar apenas mapas válidos (com nome e data de nascimento)
+          const validMaps = allUserMaps.filter(map => map && map.name && map.birthDate);
+          console.log("MatrixResult: Todos os mapas válidos do usuário:", validMaps);
+          setUserMaps(validMaps);
         } else {
-          // Se não encontrar mapas adicionais, usar apenas o mapa atual
-          setUserMaps([data]);
+          // Se não encontrar mapas adicionais, usar apenas o mapa atual se for válido
+          if (data.name && data.birthDate) {
+            setUserMaps([data]);
+          } else {
+            setUserMaps([]);
+          }
         }
         
         setLoading(false);
