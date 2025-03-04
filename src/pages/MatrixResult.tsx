@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { getUserData, isLoggedIn, getCurrentUser } from '../lib/auth';
 import { getAllUserDataByEmail } from '../lib/auth';
@@ -40,20 +39,23 @@ const MatrixResult: React.FC = () => {
           return;
         }
         
+        console.log("MatrixResult: Carregando dados para o email:", email);
+        
         // Obter os dados do usuário pelo email
         const data = getUserData(email);
-        console.log("Dados obtidos:", data);
+        console.log("MatrixResult: Dados obtidos:", data);
         
         if (!data) {
           console.error("Dados do usuário não encontrados para o email:", email);
-          setError('Dados de usuário não encontrados.');
+          setError('Dados de usuário não encontrados. Por favor, faça login novamente.');
           setLoading(false);
           return;
         }
         
         // Se o usuário não tem nome ou dados kármicos, redirecionar para completar o perfil
         if (!data.name) {
-          console.log("Usuário sem nome, redirecionando para completar perfil");
+          console.log("MatrixResult: Usuário sem nome, redirecionando para completar perfil");
+          setError('Perfil incompleto. Por favor, complete seu perfil primeiro.');
           navigate('/');
           return;
         }
@@ -61,26 +63,18 @@ const MatrixResult: React.FC = () => {
         // Verificar se o usuário tem dados kármicos
         if (!data.karmicNumbers) {
           console.error("Dados kármicos não encontrados para o usuário:", email);
-          
-          // Se o usuário tem nome mas não tem dados kármicos, provavelmente precisa completar o perfil
-          if (data.name) {
-            console.log("Usuário tem nome mas não tem dados kármicos, redirecionando para completar perfil");
-            navigate('/');
-            return;
-          }
-          
-          setError('Dados kármicos não encontrados para este usuário.');
-          setLoading(false);
+          setError('Dados kármicos não encontrados. Por favor, complete seu perfil novamente.');
+          navigate('/');
           return;
         }
         
-        console.log("Dados kármicos encontrados:", data.karmicNumbers);
+        console.log("MatrixResult: Dados kármicos encontrados:", data.karmicNumbers);
         setUserData(data);
         
         // Obter todos os mapas do usuário
         const allUserMaps = getAllUserDataByEmail(email);
         if (allUserMaps && allUserMaps.length > 0) {
-          console.log("Todos os mapas do usuário:", allUserMaps);
+          console.log("MatrixResult: Todos os mapas do usuário:", allUserMaps);
           setUserMaps(allUserMaps);
         } else {
           // Se não encontrar mapas adicionais, usar apenas o mapa atual

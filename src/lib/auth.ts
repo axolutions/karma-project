@@ -1,4 +1,3 @@
-
 // Função para obter todos os dados do usuário por email
 export const getAllUserDataByEmail = (email?: string) => {
   try {
@@ -193,11 +192,9 @@ export const isAuthorizedEmail = (email: string): boolean => {
     }
     
     // Compara o email normalizado com cada email autorizado
-    for (const authorizedEmail of authorizedEmails) {
-      if (authorizedEmail.toLowerCase().trim() === normalizedEmail) {
-        console.log("Email autorizado encontrado:", authorizedEmail);
-        return true;
-      }
+    if (authorizedEmails.some(e => e.toLowerCase().trim() === normalizedEmail)) {
+      console.log("Email autorizado encontrado na lista");
+      return true;
     }
     
     console.log("Email não autorizado");

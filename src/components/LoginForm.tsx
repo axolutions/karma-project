@@ -83,58 +83,14 @@ const LoginForm: React.FC = () => {
         setTimeout(() => {
           setIsSubmitting(false);
           
-          // Se estamos no ambiente WordPress/Elementor
-          if (window.location.hostname === 'matrizkarmica.com' || 
-              window.location.hostname.includes('wordpress')) {
-            
-            // Verifica se existem elementos específicos do Elementor
-            const loginPage = document.getElementById('login-page');
-            const profilePage = document.getElementById('profile-page');
-            const matrixPage = document.getElementById('matrix-page');
-            
-            if (loginPage && profilePage && matrixPage) {
-              console.log("Elementos do Elementor encontrados");
-              // Estamos no Elementor, usar sua lógica
-              if (userData && userData.name) {
-                // Usuário tem perfil, mostrar matriz
-                loginPage.style.display = 'none';
-                profilePage.style.display = 'none';
-                matrixPage.style.display = 'block';
-                
-                // Atualizar iframe
-                const matrixIframe = document.getElementById('matrix-iframe');
-                if (matrixIframe && matrixIframe instanceof HTMLIFrameElement) {
-                  const timestamp = new Date().getTime();
-                  const currentSrc = matrixIframe.src;
-                  const newSrc = currentSrc.includes('?') 
-                    ? `${currentSrc}&_=${timestamp}` 
-                    : `${currentSrc}?_=${timestamp}`;
-                  
-                  matrixIframe.src = newSrc;
-                }
-              } else {
-                // Usuário não tem perfil, mostrar formulário
-                loginPage.style.display = 'none';
-                profilePage.style.display = 'block';
-                matrixPage.style.display = 'none';
-              }
-            } else {
-              // Elementos Elementor não encontrados, usar React Router
-              if (userData && userData.name) {
-                navigate('/matrix');
-              } else {
-                navigate('/');
-              }
-            }
+          // Verifica se o usuário tem nome completo preenchido
+          if (userData && userData.name) {
+            console.log("Usuário tem perfil completo, redirecionando para matriz");
+            navigate('/matrix');
           } else {
-            // Estamos no app React standalone
-            console.log("Navegando via React Router");
-            if (userData && userData.name) {
-              navigate('/matrix');
-            } else {
-              // Redirecionar para página inicial para completar perfil
-              navigate('/');
-            }
+            console.log("Usuário sem perfil completo, permanecendo na página inicial");
+            // Apenas recarregar a página para mostrar o form de perfil
+            window.location.reload();
           }
         }, 1000);
       } else {

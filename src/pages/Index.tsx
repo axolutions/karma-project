@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
@@ -33,7 +34,6 @@ const Index = () => {
           if (userData && userData.name) {
             console.log("Usuário já tem perfil completo");
             setHasProfile(true);
-            // Não redirecionamos automaticamente - forçamos o usuário a fazer uma ação explícita
           } else {
             console.log("Usuário logado, mas sem perfil");
             setHasProfile(false);
@@ -94,6 +94,7 @@ const Index = () => {
 
   // Função para navegar para a matriz quando o usuário tiver feito login e tiver perfil
   const handleAccessMatrix = () => {
+    console.log("Acessando matriz...");
     navigate('/matrix');
   };
 

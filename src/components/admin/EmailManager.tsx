@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -71,29 +70,6 @@ const EmailManager: React.FC = () => {
     
     // Normaliza o email para minúsculas
     const normalizedEmail = newEmail.toLowerCase().trim();
-    
-    // Verificar se o email já existe na lista
-    const emailExists = emails.some(e => e.toLowerCase() === normalizedEmail);
-    
-    // Se o email já existe, perguntar se deseja conceder um novo acesso
-    if (emailExists) {
-      const existingMaps = getAllUserDataByEmail(normalizedEmail) || [];
-      
-      if (existingMaps.length > 0) {
-        const confirmAdd = confirm(
-          `O email ${normalizedEmail} já está na lista e possui ${existingMaps.length} mapa(s) criado(s). ` +
-          `Adicioná-lo novamente concederá permissão para criar um novo mapa. Deseja continuar?`
-        );
-        
-        if (!confirmAdd) {
-          return;
-        }
-        
-        // Se confirmou, remova primeiro para depois adicionar novamente
-        // Isso simula a renovação do acesso
-        removeAuthorizedEmail(normalizedEmail);
-      }
-    }
     
     // Adicionar o email à lista de autorizados
     addAuthorizedEmail(normalizedEmail);
