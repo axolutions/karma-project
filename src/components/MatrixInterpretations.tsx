@@ -26,7 +26,7 @@ const MatrixInterpretations: React.FC<MatrixInterpretationsProps> = ({ karmicDat
   useEffect(() => {
     console.log("MatrixInterpretations: Carregando interpretações...");
     try {
-      // Primeiro, vamos forçar o carregamento das amostras
+      // Primeiro, vamos forçar o carregamento das amostras para garantir que temos um fallback
       forceLoadSampleInterpretations();
       
       // Load interpretations from localStorage or use samples
@@ -47,6 +47,7 @@ const MatrixInterpretations: React.FC<MatrixInterpretationsProps> = ({ karmicDat
         ensureSampleInterpretationsLoaded();
         setInterpretationsLoaded(true);
         setLoadError(null);
+        console.log("MatrixInterpretations: Fallback para interpretações de amostra carregado com sucesso");
       } catch (e) {
         console.error("Não foi possível carregar interpretações de amostra:", e);
       }
@@ -116,18 +117,21 @@ const MatrixInterpretations: React.FC<MatrixInterpretationsProps> = ({ karmicDat
     { key: 'manifestationEnigma', value: karmicData.manifestationEnigma }
   ];
 
-  // Função melhorada para processar o HTML e preservar emojis
+  // Função aprimorada para processar o HTML e preservar emojis
   const processContent = (htmlContent: string) => {
     // Se estiver vazio, retorna vazio
     if (!htmlContent || htmlContent.trim() === '') return '';
     
+    console.log(`Processando conteúdo HTML original:`, htmlContent.substring(0, 100) + '...');
+    
     // Preservar emojis e formatação original
     let processedHTML = htmlContent;
     
-    // Verifica se é um conteúdo sem formatação HTML e adiciona tags <p>
+    // Verifica se é um conteúdo sem formatação HTML e adiciona tags <p> se necessário
     if (!htmlContent.includes('<') && !htmlContent.includes('>')) {
       const paragraphs = htmlContent.split('\n\n');
-      processedHTML = paragraphs.map(p => `<p>${p}</p>`).join('\n');
+      processedHTML = paragraphs.map(p => `<p>${p.trim()}</p>`).join('\n');
+      console.log('Conteúdo sem HTML formatado com parágrafos');
     }
     
     // Verificar se há listas não estruturadas corretamente
@@ -136,19 +140,31 @@ const MatrixInterpretations: React.FC<MatrixInterpretationsProps> = ({ karmicDat
         /(<li>.*?<\/li>\s*)+/g,
         '<ul class="my-4 space-y-2">$&</ul>'
       );
+      console.log('Listas formatadas corretamente');
     }
     
     // Formatar afirmações de forma mais robusta para capturar variações
-    processedHTML = processedHTML.replace(
-      /<h3[^>]*>Afirmação[^<]*<\/h3>([\s\S]*?)(?=<h3|$)/g,
-      '<div class="affirmation-box"><h3 class="affirmation-title">Afirmação Kármica</h3>$1</div>'
-    );
+    const hasAffirmation = processedHTML.includes('Afirmação');
+    if (hasAffirmation) {
+      processedHTML = processedHTML.replace(
+        /<h[1-6][^>]*>(\s*Afirmação[^<]*)<\/h[1-6]>([\s\S]*?)(?=<h[1-6]|$)/gi,
+        '<div class="affirmation-box"><h3 class="affirmation-title">Afirmação Kármica</h3>$2</div>'
+      );
+      console.log('Afirmações formatadas');
+    }
     
     // Adicionar espaçamento em tags p que não tenham classe ou estilo
     processedHTML = processedHTML.replace(
       /<p(?![^>]*class=)([^>]*)>/g, 
       '<p class="my-4 leading-relaxed"$1>'
     );
+    
+    // Garantir que caracteres especiais e emojis são renderizados corretamente
+    processedHTML = processedHTML
+      .replace(/&(?!(amp|lt|gt|quot|apos);)/g, '&amp;')
+      .replace(/©/g, '&copy;');
+    
+    console.log(`Conteúdo HTML processado:`, processedHTML.substring(0, 100) + '...');
     
     return processedHTML;
   };
@@ -162,8 +178,11 @@ const MatrixInterpretations: React.FC<MatrixInterpretationsProps> = ({ karmicDat
       <div className="space-y-4">
         {interpretationItems.map((item, index) => {
           const interpretation = getInterpretation(item.key, item.value);
+          console.log(`Obtida interpretação para ${item.key}:${item.value}`, 
+            interpretation ? `Conteúdo: ${interpretation.content?.substring(0, 50)}...` : 'Interpretação vazia');
+          
           const isExpanded = expandedSections.has(item.key);
-          const processedContent = processContent(interpretation.content);
+          const processedContent = processContent(interpretation.content || '');
           
           return (
             <motion.div
@@ -200,10 +219,16 @@ const MatrixInterpretations: React.FC<MatrixInterpretationsProps> = ({ karmicDat
                     className="overflow-hidden"
                   >
                     <div className="karmic-content mt-4 pt-4 border-t border-karmic-200">
-                      <div 
-                        className="prose prose-karmic max-w-none"
-                        dangerouslySetInnerHTML={{ __html: processedContent }} 
-                      />
+                      {processedContent ? (
+                        <div 
+                          className="prose prose-karmic max-w-none"
+                          dangerouslySetInnerHTML={{ __html: processedContent }} 
+                        />
+                      ) : (
+                        <p className="text-karmic-500 italic">
+                          Interpretação não disponível para {getCategoryDisplayName(item.key)} com valor {item.value}.
+                        </p>
+                      )}
                     </div>
                   </motion.div>
                 )}
