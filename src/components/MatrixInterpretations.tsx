@@ -26,13 +26,14 @@ const MatrixInterpretations: React.FC<MatrixInterpretationsProps> = ({ karmicDat
   useEffect(() => {
     console.log("MatrixInterpretations: Carregando interpretações...");
     try {
-      // Primeiro, vamos forçar o carregamento das amostras para garantir que temos um fallback
+      // Forçar carregamento das interpretações de amostra primeiro para garantir
+      // que temos um fallback disponível
       forceLoadSampleInterpretations();
       
-      // Load interpretations from localStorage or use samples
+      // Carregar interpretações do localStorage
       loadInterpretations();
       
-      // Make sure sample interpretations are available as fallback
+      // Garantir que as interpretações de amostra estão disponíveis como backup
       ensureSampleInterpretationsLoaded();
       
       setInterpretationsLoaded(true);
@@ -41,7 +42,7 @@ const MatrixInterpretations: React.FC<MatrixInterpretationsProps> = ({ karmicDat
       console.error("Erro ao carregar interpretações no componente:", err);
       setLoadError("Carregando interpretações alternativas...");
       
-      // Try to load sample interpretations as fallback
+      // Tentar carregar interpretações de amostra como fallback
       try {
         forceLoadSampleInterpretations();
         ensureSampleInterpretationsLoaded();
@@ -117,80 +118,6 @@ const MatrixInterpretations: React.FC<MatrixInterpretationsProps> = ({ karmicDat
     { key: 'manifestationEnigma', value: karmicData.manifestationEnigma }
   ];
 
-  // Função aprimorada para processar o HTML e preservar emojis
-  const processContent = (htmlContent: string) => {
-    // Se estiver vazio, retorna vazio
-    if (!htmlContent || htmlContent.trim() === '') return '';
-    
-    console.log(`Processando conteúdo HTML original:`, htmlContent.substring(0, 100) + '...');
-    
-    // Preservar emojis e formatação original
-    let processedHTML = htmlContent;
-    
-    // Verifica se é um conteúdo sem formatação HTML e adiciona tags <p> se necessário
-    if (!htmlContent.includes('<') && !htmlContent.includes('>')) {
-      const paragraphs = htmlContent.split('\n\n');
-      processedHTML = paragraphs.map(p => `<p>${p.trim()}</p>`).join('\n');
-      console.log('Conteúdo sem HTML formatado com parágrafos');
-    }
-    
-    // Verificar se há listas não estruturadas corretamente
-    if (processedHTML.includes('<li>') && !processedHTML.includes('<ul>')) {
-      processedHTML = processedHTML.replace(
-        /(<li>.*?<\/li>\s*)+/g,
-        '<ul class="my-4 space-y-2">$&</ul>'
-      );
-      console.log('Listas formatadas corretamente');
-    }
-    
-    // Formatar afirmações de forma mais robusta para capturar variações
-    const hasAffirmation = processedHTML.includes('Afirmação');
-    if (hasAffirmation) {
-      // Primeiro, tenta capturar a estrutura com h3
-      processedHTML = processedHTML.replace(
-        /<h[1-6][^>]*>(\s*Afirmação[^<]*)<\/h[1-6]>([\s\S]*?)(?=<h[1-6]|$)/gi,
-        '<div class="affirmation-box"><h3 class="affirmation-title">$1</h3>$2</div>'
-      );
-      
-      // Depois, tenta capturar afirmações que estão apenas em parágrafos com negrito ou strong
-      processedHTML = processedHTML.replace(
-        /(<p[^>]*>)(\s*<strong>Afirmação[^<]*<\/strong>)([\s\S]*?)(<\/p>)/gi,
-        '<div class="affirmation-box"><h3 class="affirmation-title">$2</h3><p>$3</p></div>'
-      );
-      
-      console.log('Afirmações formatadas');
-    }
-    
-    // Adicionar espaçamento em tags p que não tenham classe ou estilo
-    processedHTML = processedHTML.replace(
-      /<p(?![^>]*class=)([^>]*)>/g, 
-      '<p class="my-4 leading-relaxed"$1>'
-    );
-    
-    // Melhorar exibição de emojis garantindo que são renderizados como texto e não como entidades HTML
-    processedHTML = decodeURIComponent(encodeURIComponent(processedHTML)
-      .replace(/%F0%9F/g, '🏆')  // Exemplo de substituição de emoji codificado (troféu)
-      .replace(/%E2%9C%A8/g, '✨') // Exemplo para estrelas
-      .replace(/%F0%9F%94%AE/g, '🔮') // Para o emoji de bola de cristal
-      .replace(/%E2%9A%A1/g, '⚡') // Para raio
-      .replace(/%F0%9F%92%AB/g, '💫') // Para estrelas girando
-      .replace(/%F0%9F%8C%9F/g, '🌟') // Para estrela brilhante
-    );
-    
-    // Garantir que caracteres especiais e emojis são mantidos
-    processedHTML = processedHTML
-      .replace(/&amp;/g, '&')
-      .replace(/&lt;/g, '<')
-      .replace(/&gt;/g, '>')
-      .replace(/&quot;/g, '"')
-      .replace(/&#x27;/g, "'")
-      .replace(/&#x2F;/g, "/");
-    
-    console.log(`Conteúdo HTML processado:`, processedHTML.substring(0, 100) + '...');
-    
-    return processedHTML;
-  };
-
   return (
     <div className="max-w-4xl mx-auto mt-8">
       <h2 className="text-2xl md:text-3xl font-serif font-medium text-karmic-800 mb-6 text-center">
@@ -204,7 +131,6 @@ const MatrixInterpretations: React.FC<MatrixInterpretationsProps> = ({ karmicDat
             interpretation ? `Conteúdo: ${interpretation.content?.substring(0, 50)}...` : 'Interpretação vazia');
           
           const isExpanded = expandedSections.has(item.key);
-          const processedContent = processContent(interpretation.content || '');
           
           return (
             <motion.div
@@ -241,10 +167,10 @@ const MatrixInterpretations: React.FC<MatrixInterpretationsProps> = ({ karmicDat
                     className="overflow-hidden"
                   >
                     <div className="karmic-content mt-4 pt-4 border-t border-karmic-200">
-                      {processedContent ? (
+                      {interpretation && interpretation.content ? (
                         <div 
                           className="prose prose-karmic max-w-none"
-                          dangerouslySetInnerHTML={{ __html: processedContent }} 
+                          dangerouslySetInnerHTML={{ __html: interpretation.content }} 
                         />
                       ) : (
                         <p className="text-karmic-500 italic">
