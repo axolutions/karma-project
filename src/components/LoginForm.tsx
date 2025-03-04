@@ -14,7 +14,7 @@ const LoginForm: React.FC = () => {
   const navigate = useNavigate();
   const { toast } = useToast();
 
-  // Load authorized emails for debugging
+  // Load authorized emails for debugging but don't display them
   useEffect(() => {
     const emails = getAllAuthorizedEmails();
     setAuthorizedEmails(emails);
@@ -192,16 +192,6 @@ const LoginForm: React.FC = () => {
         {isSubmitting ? 'Verificando...' : 'Acessar Minha Matriz Kármica'}
         <MoveRight className="ml-2 h-4 w-4 transition-transform group-hover:translate-x-1" />
       </Button>
-      
-      {/* Debug section - show in all environments for troubleshooting */}
-      <div className="mt-4 p-3 bg-gray-100 rounded-md">
-        <p className="text-xs font-semibold">Emails autorizados (debug):</p>
-        <ul className="text-xs">
-          {authorizedEmails.map((authEmail, index) => (
-            <li key={index}>{authEmail}</li>
-          ))}
-        </ul>
-      </div>
     </form>
   );
 };

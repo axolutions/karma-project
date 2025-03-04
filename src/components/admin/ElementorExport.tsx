@@ -3,8 +3,12 @@ import React from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { getAllAuthorizedEmails } from '@/lib/auth';
 
 const ElementorExport = () => {
+  // Get the authorized emails to include in the JavaScript
+  const authorizedEmails = getAllAuthorizedEmails();
+
   const generateLoginHTML = () => {
     const html = `
 <!-- Coloque este HTML em um widget HTML do Elementor -->
@@ -38,6 +42,7 @@ const ElementorExport = () => {
   </div>
 </div>`;
 
+    // Create the JavaScript with the current authorized emails from the system
     const js = `
 <!-- Coloque este código em um widget HTML separado, logo após o widget do formulário -->
 <script>
@@ -46,14 +51,8 @@ document.addEventListener('DOMContentLoaded', function() {
   const loginButton = document.getElementById('matriz-login-button');
   const emailInput = document.getElementById('matriz-email-input');
   
-  // Emails autorizados
-  const authorizedEmails = [
-    'projetovmtd@gmail.com',
-    'teste@teste.com',
-    'carlamaiaprojetos@gmail.com',
-    'mariaal020804@gmail.com',
-    'tesete@testelcom.br'
-  ];
+  // Emails autorizados - NÃO VISÍVEIS PUBLICAMENTE
+  const authorizedEmails = ${JSON.stringify(authorizedEmails)};
   
   if (loginButton && emailInput) {
     loginButton.addEventListener('click', function() {
@@ -65,7 +64,6 @@ document.addEventListener('DOMContentLoaded', function() {
       }
       
       console.log('Tentando login com:', email);
-      console.log('Emails autorizados:', authorizedEmails);
       
       if (authorizedEmails.includes(email)) {
         console.log('Email autorizado, salvando...');
