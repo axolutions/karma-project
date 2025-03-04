@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { getInterpretation, getCategoryDisplayName, loadInterpretations } from '@/lib/interpretations';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -18,10 +19,18 @@ interface MatrixInterpretationsProps {
 
 const MatrixInterpretations: React.FC<MatrixInterpretationsProps> = ({ karmicData }) => {
   const [expandedSections, setExpandedSections] = useState<Set<string>>(new Set(['karmicSeal']));
+  const [interpretationsLoaded, setInterpretationsLoaded] = useState(false);
 
   // Load interpretations on component mount
   useEffect(() => {
-    loadInterpretations();
+    console.log("MatrixInterpretations: Carregando interpretações...");
+    try {
+      loadInterpretations();
+      setInterpretationsLoaded(true);
+      console.log("MatrixInterpretations: Interpretações carregadas com sucesso");
+    } catch (err) {
+      console.error("Erro ao carregar interpretações no componente:", err);
+    }
   }, []);
 
   const toggleSection = (category: string) => {
@@ -50,6 +59,16 @@ const MatrixInterpretations: React.FC<MatrixInterpretationsProps> = ({ karmicDat
         <h2 className="text-xl font-medium text-red-600 mb-2">Erro ao carregar interpretações</h2>
         <p className="text-red-500">Não foi possível carregar os dados das interpretações kármicas.</p>
         <p className="text-sm text-red-400 mt-2">Tente atualizar a página ou entre em contato com o suporte.</p>
+      </div>
+    );
+  }
+
+  // Se as interpretações ainda não foram carregadas, mostrar um estado de carregamento
+  if (!interpretationsLoaded) {
+    return (
+      <div className="max-w-4xl mx-auto mt-8 p-8 bg-gray-50 border border-gray-200 rounded-md text-center">
+        <h2 className="text-xl font-medium text-gray-600 mb-2">Carregando interpretações...</h2>
+        <p className="text-gray-500">Aguarde enquanto carregamos suas interpretações kármicas.</p>
       </div>
     );
   }

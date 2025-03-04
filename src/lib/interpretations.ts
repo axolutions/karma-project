@@ -13,6 +13,25 @@ const DEFAULT_INTERPRETATION = "Interpretação não disponível para este núme
 // Store all interpretations in a map
 let interpretations: Record<string, Interpretation> = {};
 
+// Sample interpretations for common numbers - will be used if no user data exists
+const SAMPLE_INTERPRETATIONS: Record<string, Interpretation> = {
+  'karmicSeal-1': {
+    id: 'karmicSeal-1',
+    title: 'Selo Kármico 1: O Pioneiro',
+    content: '<p>O Selo Kármico 1 representa a energia do pioneirismo, independência e liderança. Pessoas com este número têm uma forte conexão com a força de vontade e a capacidade de iniciar novos projetos.</p><h3>Lições Principais</h3><p>Seu desafio é encontrar equilíbrio entre liderar e colaborar, aprendendo a valorizar os outros e compartilhar suas conquistas.</p><h3>Afirmação Kármica</h3><p>Eu confio em minha capacidade de liderar e inovar, enquanto honro a contribuição dos outros em minha jornada.</p>'
+  },
+  'karmicSeal-6': {
+    id: 'karmicSeal-6',
+    title: 'Selo Kármico 6: O Harmonizador',
+    content: '<p>O Selo Kármico 6 representa a energia da harmonia, responsabilidade e serviço. Pessoas com este número têm uma forte conexão com o cuidado familiar e comunitário.</p><h3>Lições Principais</h3><p>Seu desafio é encontrar equilíbrio entre cuidar dos outros e cuidar de si mesmo, aprendendo a estabelecer limites saudáveis.</p><h3>Afirmação Kármica</h3><p>Eu nutro os outros com amor e compaixão, enquanto honro minhas próprias necessidades e limites.</p>'
+  },
+  'destinyCall-3': {
+    id: 'destinyCall-3',
+    title: 'Chamado do Destino 3: O Comunicador',
+    content: '<p>O Chamado do Destino 3 representa a energia da expressão, criatividade e comunicação. Pessoas com este número têm uma forte conexão com a arte e a capacidade de inspirar os outros.</p><h3>Missão de Vida</h3><p>Sua missão é usar seus dons criativos para elevar e inspirar as pessoas ao seu redor, trazendo alegria e beleza ao mundo.</p><h3>Afirmação Kármica</h3><p>Eu expresso minha verdade com alegria e criatividade, inspirando outros a encontrarem sua própria voz autêntica.</p>'
+  }
+};
+
 // Helper to generate interpretation ID
 export function generateInterpretationId(category: string, number: number): string {
   return `${category}-${number}`;
@@ -41,8 +60,18 @@ export function setInterpretation(category: string, number: number, title: strin
 export function getInterpretation(category: string, number: number): Interpretation {
   const id = generateInterpretationId(category, number);
   
-  // If not found, return a default interpretation
+  console.log(`Buscando interpretação para: ${id}`);
+  
+  // If not found in loaded interpretations, check sample interpretations
   if (!interpretations[id]) {
+    console.log(`Interpretação não encontrada em interpretations, verificando em SAMPLE_INTERPRETATIONS`);
+    
+    if (SAMPLE_INTERPRETATIONS[id]) {
+      console.log(`Interpretação encontrada em SAMPLE_INTERPRETATIONS para ${id}`);
+      return SAMPLE_INTERPRETATIONS[id];
+    }
+    
+    console.log(`Interpretação não encontrada para ${id}, retornando interpretação padrão`);
     return {
       id,
       title: `${getCategoryDisplayName(category)} ${number}`,
@@ -50,6 +79,7 @@ export function getInterpretation(category: string, number: number): Interpretat
     };
   }
   
+  console.log(`Interpretação encontrada para ${id}`);
   return interpretations[id];
 }
 
@@ -75,23 +105,51 @@ export function deleteInterpretation(category: string, number: number): void {
 
 // Save interpretations to localStorage
 function saveInterpretations(): void {
-  localStorage.setItem('karmicInterpretations', JSON.stringify(interpretations));
+  try {
+    localStorage.setItem('karmicInterpretations', JSON.stringify(interpretations));
+    console.log("Interpretações salvas com sucesso no localStorage");
+  } catch (error) {
+    console.error("Erro ao salvar interpretações no localStorage:", error);
+  }
 }
 
 // Load interpretations from localStorage
 export function loadInterpretations(): void {
-  const saved = localStorage.getItem('karmicInterpretations');
-  
-  if (saved) {
-    try {
+  console.log("Tentando carregar interpretações do localStorage...");
+  try {
+    const saved = localStorage.getItem('karmicInterpretations');
+    
+    if (saved) {
+      console.log("Dados de interpretações encontrados no localStorage");
       interpretations = JSON.parse(saved);
-    } catch (error) {
-      console.error("Error parsing saved interpretations:", error);
+      
+      // Verificar se as interpretações foram carregadas corretamente
+      const count = Object.keys(interpretations).length;
+      console.log(`Número de interpretações carregadas: ${count}`);
+      
+      if (count === 0) {
+        console.log("Nenhuma interpretação encontrada no localStorage, carregando amostras");
+        // Se não houver interpretações salvas, preencher com as amostras
+        Object.assign(interpretations, SAMPLE_INTERPRETATIONS);
+        // Salvar essas amostras no localStorage para uso futuro
+        saveInterpretations();
+      }
+    } else {
+      console.log("Nenhum dado de interpretações encontrado no localStorage, carregando amostras");
+      // Carregar interpretações de amostra
+      Object.assign(interpretations, SAMPLE_INTERPRETATIONS);
+      // Salvar essas amostras no localStorage para uso futuro
+      saveInterpretations();
     }
+  } catch (error) {
+    console.error("Erro ao carregar interpretações:", error);
+    // Em caso de erro, carregar as interpretações de amostra
+    Object.assign(interpretations, SAMPLE_INTERPRETATIONS);
   }
 }
 
-// Initialize interpretations from localStorage
+// Initialize interpretations from localStorage on module load
+console.log("Inicializando módulo de interpretações");
 loadInterpretations();
 
 // Get display name for a category

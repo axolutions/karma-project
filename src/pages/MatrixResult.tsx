@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { getUserData, isLoggedIn, getCurrentUser } from '../lib/auth';
 import { getAllUserDataByEmail } from '../lib/auth';
@@ -17,13 +16,28 @@ const MatrixResult: React.FC = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [refreshing, setRefreshing] = useState(false);
+  const [interpretationsLoaded, setInterpretationsLoaded] = useState(false);
   const { toast } = useToast();
   const navigate = useNavigate();
   
+  // Load interpretations immediately when component mounts
   useEffect(() => {
-    // Ensure interpretations are loaded
-    loadInterpretations();
-    
+    console.log("MatrixResult: Carregando interpretações...");
+    try {
+      loadInterpretations();
+      setInterpretationsLoaded(true);
+      console.log("MatrixResult: Interpretações carregadas com sucesso");
+    } catch (err) {
+      console.error("Erro ao carregar interpretações:", err);
+      toast({
+        title: "Erro",
+        description: "Não foi possível carregar as interpretações. Por favor, recarregue a página.",
+        variant: "destructive"
+      });
+    }
+  }, []);
+  
+  useEffect(() => {
     const loadUserData = async () => {
       try {
         // Verificar se o usuário está logado
@@ -99,8 +113,11 @@ const MatrixResult: React.FC = () => {
       }
     };
     
-    loadUserData();
-  }, [navigate]);
+    // Garantir que as interpretações sejam carregadas primeiro
+    if (interpretationsLoaded) {
+      loadUserData();
+    }
+  }, [navigate, interpretationsLoaded]);
 
   // Funções para o UserHeader
   const handleRefresh = () => {
