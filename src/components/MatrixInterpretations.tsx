@@ -1,6 +1,6 @@
 
 import React, { useState, useEffect } from 'react';
-import { getInterpretation, getCategoryDisplayName, loadInterpretations } from '@/lib/interpretations';
+import { getInterpretation, getCategoryDisplayName, loadInterpretations, ensureSampleInterpretationsLoaded } from '@/lib/interpretations';
 import { motion, AnimatePresence } from 'framer-motion';
 import { ChevronDown, ChevronUp, AlertTriangle } from 'lucide-react';
 
@@ -20,16 +20,32 @@ interface MatrixInterpretationsProps {
 const MatrixInterpretations: React.FC<MatrixInterpretationsProps> = ({ karmicData }) => {
   const [expandedSections, setExpandedSections] = useState<Set<string>>(new Set(['karmicSeal']));
   const [interpretationsLoaded, setInterpretationsLoaded] = useState(false);
+  const [loadError, setLoadError] = useState<string | null>(null);
 
   // Load interpretations on component mount
   useEffect(() => {
     console.log("MatrixInterpretations: Carregando interpretações...");
     try {
+      // Load interpretations from localStorage or use samples
       loadInterpretations();
+      
+      // Make sure sample interpretations are available as fallback
+      ensureSampleInterpretationsLoaded();
+      
       setInterpretationsLoaded(true);
       console.log("MatrixInterpretations: Interpretações carregadas com sucesso");
     } catch (err) {
       console.error("Erro ao carregar interpretações no componente:", err);
+      setLoadError("Falha ao carregar interpretações. Tente recarregar a página.");
+      
+      // Try to load sample interpretations as fallback
+      try {
+        ensureSampleInterpretationsLoaded();
+        setInterpretationsLoaded(true);
+        setLoadError(null);
+      } catch (e) {
+        console.error("Não foi possível carregar interpretações de amostra:", e);
+      }
     }
   }, []);
 
@@ -59,6 +75,18 @@ const MatrixInterpretations: React.FC<MatrixInterpretationsProps> = ({ karmicDat
         <h2 className="text-xl font-medium text-red-600 mb-2">Erro ao carregar interpretações</h2>
         <p className="text-red-500">Não foi possível carregar os dados das interpretações kármicas.</p>
         <p className="text-sm text-red-400 mt-2">Tente atualizar a página ou entre em contato com o suporte.</p>
+      </div>
+    );
+  }
+
+  // Se houver erro ao carregar interpretações
+  if (loadError) {
+    return (
+      <div className="max-w-4xl mx-auto mt-8 p-8 bg-yellow-50 border border-yellow-200 rounded-md text-center">
+        <AlertTriangle className="h-8 w-8 mx-auto text-yellow-500 mb-4" />
+        <h2 className="text-xl font-medium text-yellow-600 mb-2">Aviso</h2>
+        <p className="text-yellow-600">{loadError}</p>
+        <p className="text-sm text-yellow-500 mt-2">Algumas interpretações podem não estar disponíveis.</p>
       </div>
     );
   }

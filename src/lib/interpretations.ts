@@ -1,3 +1,4 @@
+
 import { toast } from "@/components/ui/use-toast";
 
 // Define types for interpretations
@@ -29,6 +30,36 @@ const SAMPLE_INTERPRETATIONS: Record<string, Interpretation> = {
     id: 'destinyCall-3',
     title: 'Chamado do Destino 3: O Comunicador',
     content: '<p>O Chamado do Destino 3 representa a energia da expressão, criatividade e comunicação. Pessoas com este número têm uma forte conexão com a arte e a capacidade de inspirar os outros.</p><h3>Missão de Vida</h3><p>Sua missão é usar seus dons criativos para elevar e inspirar as pessoas ao seu redor, trazendo alegria e beleza ao mundo.</p><h3>Afirmação Kármica</h3><p>Eu expresso minha verdade com alegria e criatividade, inspirando outros a encontrarem sua própria voz autêntica.</p>'
+  },
+  'karmaPortal-9': {
+    id: 'karmaPortal-9',
+    title: 'Portal do Karma 9: O Humanitário',
+    content: '<p>O Portal do Karma 9 representa a energia da compaixão, sabedoria e serviço à humanidade. Pessoas com este número têm uma forte conexão com o altruísmo e a visão global.</p><h3>Lições Principais</h3><p>Seu desafio é aprender a equilibrar o cuidado com os outros e o desapego, reconhecendo quando ajudar e quando permitir que os outros sigam seu próprio caminho.</p><h3>Afirmação Kármica</h3><p>Eu sirvo à humanidade com compaixão e sabedoria, reconhecendo a interconexão de todos os seres.</p>'
+  },
+  'karmicInheritance-4': {
+    id: 'karmicInheritance-4',
+    title: 'Herança Kármica 4: O Construtor',
+    content: '<p>A Herança Kármica 4 representa a energia da estabilidade, disciplina e construção de bases sólidas. Pessoas com este número herdam a capacidade de criar estruturas duradouras em suas vidas.</p><h3>Legado Ancestral</h3><p>Você herdou de seus ancestrais a capacidade de trabalhar com determinação e perseverança, construindo passo a passo realizações duradouras.</p><h3>Afirmação Kármica</h3><p>Eu honro minha herança construindo bases sólidas para meu futuro, com paciência e determinação.</p>'
+  },
+  'karmicReprogramming-3': {
+    id: 'karmicReprogramming-3',
+    title: 'Códex da Reprogramação 3: Expressão Criativa',
+    content: '<p>O Códex da Reprogramação 3 representa a necessidade de transformar padrões relacionados à autoexpressão, comunicação e criatividade. Este número indica que você está reprogramando como você se expressa no mundo.</p><h3>Padrões a Transformar</h3><p>Bloqueios na expressão pessoal, medo de julgamento ao se comunicar, e dificuldade em reconhecer seus talentos criativos são os principais desafios a serem superados.</p><h3>Afirmação Kármica</h3><p>Eu me liberto dos bloqueios de expressão e permito que minha criatividade flua livremente em todas as áreas da minha vida.</p>'
+  },
+  'cycleProphecy-9': {
+    id: 'cycleProphecy-9',
+    title: 'Profecia dos Ciclos 9: Completude',
+    content: '<p>A Profecia dos Ciclos 9 representa um período de conclusões e finalizações importantes em sua vida. Este número indica que você está no final de um grande ciclo, preparando-se para um novo começo.</p><h3>Ciclo Atual</h3><p>Você está em um momento de integração de lições aprendidas, liberação do que não serve mais, e preparação para uma nova fase de crescimento e expansão.</p><h3>Afirmação Kármica</h3><p>Eu concluo com gratidão este ciclo da minha vida, integrando suas lições e me abrindo para novos começos.</p>'
+  },
+  'spiritualMark-1': {
+    id: 'spiritualMark-1',
+    title: 'Marca Espiritual 1: Liderança Espiritual',
+    content: '<p>A Marca Espiritual 1 representa seu dom inato para liderança e pioneirismo no caminho espiritual. Este número indica que você tem uma conexão especial com a energia da iniciativa divina.</p><h3>Dom Espiritual</h3><p>Você possui a capacidade de abrir novos caminhos, iniciar projetos inspiradores e liderar outros através do exemplo e da coragem espiritual.</p><h3>Afirmação Kármica</h3><p>Eu aceito meu papel como pioneiro espiritual, usando minha coragem e iniciativa para inspirar a transformação no mundo.</p>'
+  },
+  'manifestationEnigma-11': {
+    id: 'manifestationEnigma-11',
+    title: 'Enigma da Manifestação 11: O Mestre Intuitivo',
+    content: '<p>O Enigma da Manifestação 11 representa seu potencial para manifestar através da intuição elevada e inspiração espiritual. Este número de mestre indica que você tem acesso a canais intuitivos poderosos para criar sua realidade.</p><h3>Potencial de Manifestação</h3><p>Você pode manifestar com maior facilidade quando confia em sua intuição, segue inspirações súbitas e mantém-se alinhado com propósitos que beneficiam a coletividade.</p><h3>Afirmação Kármica</h3><p>Eu confio em minha intuição superior como ferramenta divina para manifestar inspiração e iluminação em minha vida e no mundo.</p>'
   }
 };
 
@@ -148,9 +179,32 @@ export function loadInterpretations(): void {
   }
 }
 
+// Ensure we have all sample interpretations available as a fallback
+export function ensureSampleInterpretationsLoaded(): void {
+  console.log("Verificando se as interpretações de amostra estão disponíveis...");
+  
+  let needToSave = false;
+  
+  // Check if we have all sample interpretations and add any missing ones
+  Object.entries(SAMPLE_INTERPRETATIONS).forEach(([id, interpretation]) => {
+    if (!interpretations[id]) {
+      console.log(`Adicionando interpretação de amostra faltante: ${id}`);
+      interpretations[id] = interpretation;
+      needToSave = true;
+    }
+  });
+  
+  // If we added any missing sample interpretations, save to localStorage
+  if (needToSave) {
+    console.log("Salvando interpretações de amostra adicionadas");
+    saveInterpretations();
+  }
+}
+
 // Initialize interpretations from localStorage on module load
 console.log("Inicializando módulo de interpretações");
 loadInterpretations();
+ensureSampleInterpretationsLoaded(); // Make sure we at least have sample interpretations
 
 // Get display name for a category
 export function getCategoryDisplayName(category: string): string {

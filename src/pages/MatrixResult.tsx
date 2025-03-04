@@ -7,7 +7,7 @@ import MatrixInterpretations from '../components/MatrixInterpretations';
 import { useToast } from "@/components/ui/use-toast";
 import LoadingState from '../components/matrix/LoadingState';
 import ErrorState from '../components/matrix/ErrorState';
-import { generateInterpretationsHTML, loadInterpretations } from '@/lib/interpretations';
+import { generateInterpretationsHTML, loadInterpretations, ensureSampleInterpretationsLoaded } from '@/lib/interpretations';
 import { useNavigate } from 'react-router-dom';
 
 const MatrixResult: React.FC = () => {
@@ -24,7 +24,12 @@ const MatrixResult: React.FC = () => {
   useEffect(() => {
     console.log("MatrixResult: Carregando interpretações...");
     try {
+      // Load interpretations from localStorage or use samples
       loadInterpretations();
+      
+      // Ensure we have sample interpretations available as fallback
+      ensureSampleInterpretationsLoaded();
+      
       setInterpretationsLoaded(true);
       console.log("MatrixResult: Interpretações carregadas com sucesso");
     } catch (err) {
@@ -34,6 +39,14 @@ const MatrixResult: React.FC = () => {
         description: "Não foi possível carregar as interpretações. Por favor, recarregue a página.",
         variant: "destructive"
       });
+      
+      // Try to use sample interpretations as fallback even if there's an error
+      try {
+        ensureSampleInterpretationsLoaded();
+        setInterpretationsLoaded(true);
+      } catch (e) {
+        console.error("Não foi possível carregar interpretações de amostra:", e);
+      }
     }
   }, []);
   
@@ -146,20 +159,20 @@ const MatrixResult: React.FC = () => {
     setRefreshing(false);
   };
 
-  const handleSwitchMap = (mapId: string) => {
+  function handleSwitchMap(mapId: string) {
     console.log("Alterando para o mapa:", mapId);
     // Encontrar o mapa com o ID especificado
     const selectedMap = userMaps.find(map => map.id === mapId);
     if (selectedMap) {
       setUserData(selectedMap);
     }
-  };
+  }
 
-  const handleCreateNewMap = () => {
+  function handleCreateNewMap() {
     navigate('/');
-  };
+  }
 
-  const handleDownloadPDF = () => {
+  function handleDownloadPDF() {
     if (!userData?.karmicNumbers) {
       toast({
         title: "Erro ao gerar PDF",
@@ -206,7 +219,7 @@ const MatrixResult: React.FC = () => {
         variant: "destructive"
       });
     }
-  };
+  }
   
   if (loading) return <LoadingState />;
   if (error) return <ErrorState />;
