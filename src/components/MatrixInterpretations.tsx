@@ -116,15 +116,15 @@ const MatrixInterpretations: React.FC<MatrixInterpretationsProps> = ({ karmicDat
     { key: 'manifestationEnigma', value: karmicData.manifestationEnigma }
   ];
 
-  // Função para processar o HTML
+  // Função melhorada para processar o HTML e preservar emojis
   const processContent = (htmlContent: string) => {
     // Se estiver vazio, retorna vazio
     if (!htmlContent || htmlContent.trim() === '') return '';
     
-    // Preservar emojis diretamente
+    // Preservar emojis e formatação original
     let processedHTML = htmlContent;
     
-    // Verifica se é um conteúdo sem formatação HTML
+    // Verifica se é um conteúdo sem formatação HTML e adiciona tags <p>
     if (!htmlContent.includes('<') && !htmlContent.includes('>')) {
       const paragraphs = htmlContent.split('\n\n');
       processedHTML = paragraphs.map(p => `<p>${p}</p>`).join('\n');
@@ -138,7 +138,7 @@ const MatrixInterpretations: React.FC<MatrixInterpretationsProps> = ({ karmicDat
       );
     }
     
-    // Formatar afirmações
+    // Formatar afirmações de forma mais robusta para capturar variações
     processedHTML = processedHTML.replace(
       /<h3[^>]*>Afirmação[^<]*<\/h3>([\s\S]*?)(?=<h3|$)/g,
       '<div class="affirmation-box"><h3 class="affirmation-title">Afirmação Kármica</h3>$1</div>'
