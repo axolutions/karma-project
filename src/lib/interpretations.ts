@@ -33,8 +33,8 @@ const SAMPLE_INTERPRETATIONS: Record<string, Interpretation> = {
   },
   'karmaPortal-9': {
     id: 'karmaPortal-9',
-    title: 'Portal do Karma 9: O Humanitário',
-    content: '<p>O Portal do Karma 9 representa a energia da compaixão, sabedoria e serviço à humanidade. Pessoas com este número têm uma forte conexão com o altruísmo e a visão global.</p><h3>Lições Principais</h3><p>Seu desafio é aprender a equilibrar o cuidado com os outros e o desapego, reconhecendo quando ajudar e quando permitir que os outros sigam seu próprio caminho.</p><h3>Afirmação Kármica</h3><p>Eu sirvo à humanidade com compaixão e sabedoria, reconhecendo a interconexão de todos os seres.</p>'
+    title: '🔮 O Portal do Karma 2025 - Os Desafios a Serem Superados 🔮',
+    content: '<p>9️⃣ O Portal do Karma do Curador - O Teste do Desapego e da Transformação</p><p>Se o seu Portal do Karma em 2025 é 9, você está vivendo um encerramento de ciclo dentro de um ano universal de fechamento de ciclo. Isso significa que 2025 será um ano de grande transformação e desapego.</p><h3>Como esse Portal se manifesta?</h3><ul><li>Situações que você evitava enfrentar podem vir à tona para serem resolvidas de uma vez por todas.</li><li>O Universo pode exigir que você solte tudo o que não serve mais – relacionamentos, crenças, padrões emocionais.</li><li>Você pode sentir um chamado para servir à humanidade de forma mais ampla.</li><li>Sincronicidades e encontros significativos podem ocorrer para guiar sua transformação.</li></ul><h3>Seu Desafio Essencial</h3><p>Você está sendo convidado a praticar o desapego com sabedoria. A lição central do Portal 9 é entender que para receber o novo, é necessário criar espaço liberando o velho. Quanto mais resistência ao processo de soltar, mais intensas podem ser as experiências de transformação.</p><h3>Afirmação Kármica</h3><p>Eu confio no processo de transformação e solto com gratidão tudo o que já cumpriu seu propósito em minha vida, abrindo espaço para novas bênçãos.</p>'
   },
   'karmicInheritance-4': {
     id: 'karmicInheritance-4',
@@ -199,6 +199,19 @@ export function ensureSampleInterpretationsLoaded(): void {
     console.log("Salvando interpretações de amostra adicionadas");
     saveInterpretations();
   }
+}
+
+// Força a adição das interpretações de amostra como fallback em produção
+export function forceLoadSampleInterpretations(): void {
+  console.log("Forçando carregamento de interpretações de amostra para ambiente de produção");
+  // Carregar interpretações de amostra diretamente
+  Object.entries(SAMPLE_INTERPRETATIONS).forEach(([id, interpretation]) => {
+    interpretations[id] = interpretation;
+  });
+  
+  // Salvar no localStorage
+  saveInterpretations();
+  console.log("Interpretações de amostra forçadas carregadas e salvas");
 }
 
 // Initialize interpretations from localStorage on module load

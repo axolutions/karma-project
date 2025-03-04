@@ -1,6 +1,6 @@
 
 import React, { useState, useEffect } from 'react';
-import { getInterpretation, getCategoryDisplayName, loadInterpretations, ensureSampleInterpretationsLoaded } from '@/lib/interpretations';
+import { getInterpretation, getCategoryDisplayName, loadInterpretations, ensureSampleInterpretationsLoaded, forceLoadSampleInterpretations } from '@/lib/interpretations';
 import { motion, AnimatePresence } from 'framer-motion';
 import { ChevronDown, ChevronUp, AlertTriangle } from 'lucide-react';
 
@@ -26,6 +26,9 @@ const MatrixInterpretations: React.FC<MatrixInterpretationsProps> = ({ karmicDat
   useEffect(() => {
     console.log("MatrixInterpretations: Carregando interpretações...");
     try {
+      // Primeiro, vamos forçar o carregamento das amostras
+      forceLoadSampleInterpretations();
+      
       // Load interpretations from localStorage or use samples
       loadInterpretations();
       
@@ -36,10 +39,11 @@ const MatrixInterpretations: React.FC<MatrixInterpretationsProps> = ({ karmicDat
       console.log("MatrixInterpretations: Interpretações carregadas com sucesso");
     } catch (err) {
       console.error("Erro ao carregar interpretações no componente:", err);
-      setLoadError("Falha ao carregar interpretações. Tente recarregar a página.");
+      setLoadError("Carregando interpretações alternativas...");
       
       // Try to load sample interpretations as fallback
       try {
+        forceLoadSampleInterpretations();
         ensureSampleInterpretationsLoaded();
         setInterpretationsLoaded(true);
         setLoadError(null);
@@ -112,82 +116,33 @@ const MatrixInterpretations: React.FC<MatrixInterpretationsProps> = ({ karmicDat
     { key: 'manifestationEnigma', value: karmicData.manifestationEnigma }
   ];
 
-  // Função para formatar explicitamente o conteúdo de texto bruto
-  const formatRawContent = (text: string) => {
-    if (!text) return "";
-    
-    // Dividir em parágrafos
-    const paragraphs = text.split('\n\n');
-    return paragraphs.map(p => `<p>${p}</p>`).join('\n');
-  };
-
-  // Função mais robusta para processar o HTML
+  // Função para processar o HTML
   const processContent = (htmlContent: string) => {
     // Se estiver vazio, retorna vazio
     if (!htmlContent || htmlContent.trim() === '') return '';
     
-    // Verifica se é um conteúdo sem formatação HTML
-    if (!htmlContent.includes('<') && !htmlContent.includes('>')) {
-      return formatRawContent(htmlContent);
-    }
-    
-    // Para conteúdos que já têm HTML
+    // Preservar emojis diretamente
     let processedHTML = htmlContent;
     
-    // Garantir que todos os parágrafos tenham tag <p>
-    if (!processedHTML.includes('<p>')) {
-      processedHTML = formatRawContent(processedHTML);
+    // Verifica se é um conteúdo sem formatação HTML
+    if (!htmlContent.includes('<') && !htmlContent.includes('>')) {
+      const paragraphs = htmlContent.split('\n\n');
+      processedHTML = paragraphs.map(p => `<p>${p}</p>`).join('\n');
     }
     
-    // Aplicar formatação de negrito a frases-chave
-    const commonKeyPhrases = [
-      "desenvolvido em 2025", "Selo Kármico", "Portal do Karma", 
-      "lições principais", "propósito de vida", "missão cármica",
-      "desafio essencial", "consciência espiritual", "potencial interior",
-      "auto-confiança", "autoconfiança", "sabedoria", "coragem", "crescimento",
-      "transformação"
-    ];
-    
-    // Aplicar negrito a frases-chave que não estão dentro de tags
-    commonKeyPhrases.forEach(phrase => {
-      // Regex que encontra a frase mas não se estiver dentro de tags HTML
-      const regex = new RegExp(`(?<![<>\\w])${phrase}(?![<>\\w])`, 'gi');
-      processedHTML = processedHTML.replace(regex, `<strong>${phrase}</strong>`);
-    });
-    
-    // Formatar subtítulos
-    processedHTML = processedHTML.replace(
-      /<h3>(.*?)<\/h3>/g,
-      '<h3 class="karmic-subtitle">$1</h3>'
-    );
+    // Verificar se há listas não estruturadas corretamente
+    if (processedHTML.includes('<li>') && !processedHTML.includes('<ul>')) {
+      processedHTML = processedHTML.replace(
+        /(<li>.*?<\/li>\s*)+/g,
+        '<ul class="my-4 space-y-2">$&</ul>'
+      );
+    }
     
     // Formatar afirmações
     processedHTML = processedHTML.replace(
       /<h3[^>]*>Afirmação[^<]*<\/h3>([\s\S]*?)(?=<h3|$)/g,
       '<div class="affirmation-box"><h3 class="affirmation-title">Afirmação Kármica</h3>$1</div>'
     );
-    
-    // Destacar palavras específicas de reforço
-    const emphasisWords = ["deve", "precisará", "essencial", "importante", "fundamental", "vital"];
-    emphasisWords.forEach(word => {
-      const regex = new RegExp(`\\b${word}\\b`, 'gi');
-      processedHTML = processedHTML.replace(regex, `<strong>${word}</strong>`);
-    });
-    
-    // Converter marcadores simples que não estejam em listas
-    processedHTML = processedHTML.replace(
-      /(?<!<li>)- (.*?)(?=<br|<\/p>|$)/g,
-      '<li>$1</li>'
-    );
-    
-    // Agrupar itens de lista soltos
-    let hasUngroupedItems = processedHTML.includes('<li>') && !processedHTML.includes('<ul>');
-    if (hasUngroupedItems) {
-      processedHTML = processedHTML.replace(
-        /(<li>.*?<\/li>\s*)+/g,
-        '<ul class="my-4 space-y-2">$&</ul>'
-      );
-    }
     
     // Adicionar espaçamento em tags p que não tenham classe ou estilo
     processedHTML = processedHTML.replace(

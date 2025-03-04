@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { getUserData, isLoggedIn, getCurrentUser } from '../lib/auth';
 import { getAllUserDataByEmail } from '../lib/auth';
@@ -7,7 +8,12 @@ import MatrixInterpretations from '../components/MatrixInterpretations';
 import { useToast } from "@/components/ui/use-toast";
 import LoadingState from '../components/matrix/LoadingState';
 import ErrorState from '../components/matrix/ErrorState';
-import { generateInterpretationsHTML, loadInterpretations, ensureSampleInterpretationsLoaded } from '@/lib/interpretations';
+import { 
+  generateInterpretationsHTML, 
+  loadInterpretations, 
+  ensureSampleInterpretationsLoaded, 
+  forceLoadSampleInterpretations 
+} from '@/lib/interpretations';
 import { useNavigate } from 'react-router-dom';
 
 const MatrixResult: React.FC = () => {
@@ -24,6 +30,9 @@ const MatrixResult: React.FC = () => {
   useEffect(() => {
     console.log("MatrixResult: Carregando interpretações...");
     try {
+      // Força o carregamento de amostra para ambiente de produção
+      forceLoadSampleInterpretations();
+      
       // Load interpretations from localStorage or use samples
       loadInterpretations();
       
@@ -35,13 +44,14 @@ const MatrixResult: React.FC = () => {
     } catch (err) {
       console.error("Erro ao carregar interpretações:", err);
       toast({
-        title: "Erro",
-        description: "Não foi possível carregar as interpretações. Por favor, recarregue a página.",
-        variant: "destructive"
+        title: "Aviso",
+        description: "Carregando interpretações de fallback.",
+        variant: "default"
       });
       
       // Try to use sample interpretations as fallback even if there's an error
       try {
+        forceLoadSampleInterpretations();
         ensureSampleInterpretationsLoaded();
         setInterpretationsLoaded(true);
       } catch (e) {
@@ -135,6 +145,16 @@ const MatrixResult: React.FC = () => {
   // Funções para o UserHeader
   const handleRefresh = () => {
     setRefreshing(true);
+    
+    // Forçar o recarregamento das interpretações
+    try {
+      forceLoadSampleInterpretations();
+      loadInterpretations();
+      ensureSampleInterpretationsLoaded();
+    } catch (e) {
+      console.error("Erro ao recarregar interpretações:", e);
+    }
+    
     // Recarregar os dados do usuário
     const email = getCurrentUser();
     if (email) {
