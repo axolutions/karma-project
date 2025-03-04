@@ -51,6 +51,13 @@ const MatrixResult: React.FC = () => {
           return;
         }
         
+        // Se o usuário não tem nome ou dados kármicos, redirecionar para completar o perfil
+        if (!data.name) {
+          console.log("Usuário sem nome, redirecionando para completar perfil");
+          navigate('/');
+          return;
+        }
+        
         // Verificar se o usuário tem dados kármicos
         if (!data.karmicNumbers) {
           console.error("Dados kármicos não encontrados para o usuário:", email);

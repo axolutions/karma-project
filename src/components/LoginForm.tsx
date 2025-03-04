@@ -18,7 +18,7 @@ const LoginForm: React.FC = () => {
   useEffect(() => {
     const emails = getAllAuthorizedEmails();
     setAuthorizedEmails(emails);
-    console.log("Emails autorizados:", emails);
+    console.log("Emails autorizados carregados:", emails.length);
   }, []);
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -39,12 +39,10 @@ const LoginForm: React.FC = () => {
     const normalizedEmail = email.toLowerCase().trim();
     console.log("Tentativa de login com email:", normalizedEmail);
     
-    // Debug: verificar se o email está na lista de autorizados
+    // Check if email is authorized
     const isAuthorized = isAuthorizedEmail(normalizedEmail);
     console.log("Email está autorizado?", isAuthorized);
-    console.log("Lista de emails autorizados:", authorizedEmails);
     
-    // Check if email is authorized
     if (!isAuthorized) {
       toast({
         title: "Acesso negado",
@@ -65,11 +63,12 @@ const LoginForm: React.FC = () => {
       if (!userData) {
         console.log("Usuário não encontrado, criando registro inicial");
         // Cria um registro básico para o usuário
-        saveUserData({
+        userData = {
           email: normalizedEmail,
           name: "",
           id: crypto.randomUUID()
-        });
+        };
+        saveUserData(userData);
       }
       
       const success = login(normalizedEmail);
@@ -80,18 +79,13 @@ const LoginForm: React.FC = () => {
           description: "Bem-vindo ao Sistema de Matriz Kármica Pessoal 2025.",
         });
         
-        // Depois do login, verificamos novamente os dados do usuário
-        userData = getUserData(normalizedEmail);
-        console.log("Dados do usuário após login:", userData);
-        
-        // Agora redirecionamos com base no perfil do usuário
+        // Após login, redirecionar com base no perfil
         setTimeout(() => {
           setIsSubmitting(false);
           
-          // Verifica se estamos no app React ou no Elementor do WordPress
+          // Se estamos no ambiente WordPress/Elementor
           if (window.location.hostname === 'matrizkarmica.com' || 
               window.location.hostname.includes('wordpress')) {
-            console.log("Detectado site WordPress/Elementor, usando JS local");
             
             // Verifica se existem elementos específicos do Elementor
             const loginPage = document.getElementById('login-page');
@@ -99,19 +93,17 @@ const LoginForm: React.FC = () => {
             const matrixPage = document.getElementById('matrix-page');
             
             if (loginPage && profilePage && matrixPage) {
-              console.log("Encontrou elementos do Elementor, alternando visibilidade");
-              // Estamos no Elementor, vamos usar a lógica dele
+              console.log("Elementos do Elementor encontrados");
+              // Estamos no Elementor, usar sua lógica
               if (userData && userData.name) {
                 // Usuário tem perfil, mostrar matriz
                 loginPage.style.display = 'none';
                 profilePage.style.display = 'none';
                 matrixPage.style.display = 'block';
                 
-                // Forçar recarregamento da matriz
+                // Atualizar iframe
                 const matrixIframe = document.getElementById('matrix-iframe');
                 if (matrixIframe && matrixIframe instanceof HTMLIFrameElement) {
-                  console.log("Atualizando iframe da matriz");
-                  // Atualizar iframe com timestamp para evitar cache
                   const timestamp = new Date().getTime();
                   const currentSrc = matrixIframe.src;
                   const newSrc = currentSrc.includes('?') 
@@ -121,13 +113,13 @@ const LoginForm: React.FC = () => {
                   matrixIframe.src = newSrc;
                 }
               } else {
-                // Usuário não tem perfil, mostrar formulário de perfil
+                // Usuário não tem perfil, mostrar formulário
                 loginPage.style.display = 'none';
                 profilePage.style.display = 'block';
                 matrixPage.style.display = 'none';
               }
             } else {
-              console.log("Não encontrou os elementos do Elementor, navegando via React Router");
+              // Elementos Elementor não encontrados, usar React Router
               if (userData && userData.name) {
                 navigate('/matrix');
               } else {
@@ -135,13 +127,12 @@ const LoginForm: React.FC = () => {
               }
             }
           } else {
-            // Estamos no app React
-            console.log("Estamos no app React, navegando com router");
+            // Estamos no app React standalone
+            console.log("Navegando via React Router");
             if (userData && userData.name) {
               navigate('/matrix');
             } else {
-              // Se o usuário não tem perfil, navegamos para a página inicial
-              // que mostrará o formulário de perfil
+              // Redirecionar para página inicial para completar perfil
               navigate('/');
             }
           }
