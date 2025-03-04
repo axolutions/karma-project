@@ -146,10 +146,18 @@ const MatrixInterpretations: React.FC<MatrixInterpretationsProps> = ({ karmicDat
     // Formatar afirmações de forma mais robusta para capturar variações
     const hasAffirmation = processedHTML.includes('Afirmação');
     if (hasAffirmation) {
+      // Primeiro, tenta capturar a estrutura com h3
       processedHTML = processedHTML.replace(
         /<h[1-6][^>]*>(\s*Afirmação[^<]*)<\/h[1-6]>([\s\S]*?)(?=<h[1-6]|$)/gi,
-        '<div class="affirmation-box"><h3 class="affirmation-title">Afirmação Kármica</h3>$2</div>'
+        '<div class="affirmation-box"><h3 class="affirmation-title">$1</h3>$2</div>'
       );
+      
+      // Depois, tenta capturar afirmações que estão apenas em parágrafos com negrito ou strong
+      processedHTML = processedHTML.replace(
+        /(<p[^>]*>)(\s*<strong>Afirmação[^<]*<\/strong>)([\s\S]*?)(<\/p>)/gi,
+        '<div class="affirmation-box"><h3 class="affirmation-title">$2</h3><p>$3</p></div>'
+      );
+      
       console.log('Afirmações formatadas');
     }
     
@@ -159,10 +167,24 @@ const MatrixInterpretations: React.FC<MatrixInterpretationsProps> = ({ karmicDat
       '<p class="my-4 leading-relaxed"$1>'
     );
     
-    // Garantir que caracteres especiais e emojis são renderizados corretamente
+    // Melhorar exibição de emojis garantindo que são renderizados como texto e não como entidades HTML
+    processedHTML = decodeURIComponent(encodeURIComponent(processedHTML)
+      .replace(/%F0%9F/g, '🏆')  // Exemplo de substituição de emoji codificado (troféu)
+      .replace(/%E2%9C%A8/g, '✨') // Exemplo para estrelas
+      .replace(/%F0%9F%94%AE/g, '🔮') // Para o emoji de bola de cristal
+      .replace(/%E2%9A%A1/g, '⚡') // Para raio
+      .replace(/%F0%9F%92%AB/g, '💫') // Para estrelas girando
+      .replace(/%F0%9F%8C%9F/g, '🌟') // Para estrela brilhante
+    );
+    
+    // Garantir que caracteres especiais e emojis são mantidos
     processedHTML = processedHTML
-      .replace(/&(?!(amp|lt|gt|quot|apos);)/g, '&amp;')
-      .replace(/©/g, '&copy;');
+      .replace(/&amp;/g, '&')
+      .replace(/&lt;/g, '<')
+      .replace(/&gt;/g, '>')
+      .replace(/&quot;/g, '"')
+      .replace(/&#x27;/g, "'")
+      .replace(/&#x2F;/g, "/");
     
     console.log(`Conteúdo HTML processado:`, processedHTML.substring(0, 100) + '...');
     
@@ -197,7 +219,7 @@ const MatrixInterpretations: React.FC<MatrixInterpretationsProps> = ({ karmicDat
                 onClick={() => toggleSection(item.key)}
               >
                 <h3 className="text-xl font-serif font-medium text-karmic-800">
-                  {getCategoryDisplayName(item.key)}
+                  {getCategoryDisplayName(item.key)} {item.value}
                 </h3>
                 <div className="flex items-center space-x-3">
                   <span className="karmic-number">{item.value}</span>
