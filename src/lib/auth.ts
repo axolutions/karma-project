@@ -1,3 +1,4 @@
+
 // Função para obter todos os dados do usuário por email
 export const getAllUserDataByEmail = (email?: string) => {
   try {

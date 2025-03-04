@@ -14,7 +14,7 @@ const LoginForm: React.FC = () => {
   const navigate = useNavigate();
   const { toast } = useToast();
 
-  // Load authorized emails for debugging but don't display them
+  // Load authorized emails for authentication but don't display them
   useEffect(() => {
     const emails = getAllAuthorizedEmails();
     setAuthorizedEmails(emails);
@@ -84,7 +84,7 @@ const LoginForm: React.FC = () => {
         userData = getUserData(normalizedEmail);
         console.log("Dados do usuário após login:", userData);
         
-        // Agora redirecionamos explicitamente para a página inicial
+        // Agora redirecionamos com base no perfil do usuário
         setTimeout(() => {
           setIsSubmitting(false);
           
@@ -127,9 +127,12 @@ const LoginForm: React.FC = () => {
                 matrixPage.style.display = 'none';
               }
             } else {
-              console.log("Não encontrou os elementos do Elementor, tentando recarregar a página");
-              // Não encontrou os elementos do Elementor, tenta recarregar
-              window.location.reload();
+              console.log("Não encontrou os elementos do Elementor, navegando via React Router");
+              if (userData && userData.name) {
+                navigate('/matrix');
+              } else {
+                navigate('/');
+              }
             }
           } else {
             // Estamos no app React

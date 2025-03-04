@@ -34,7 +34,7 @@ export default function Admin() {
     setIsLoading(true);
     setError(null);
     
-    // Simplified password for testing
+    // Senha correta para o acesso administrativo
     const correctPassword = "admin123";
     
     if (adminPassword === correctPassword) {
@@ -95,9 +95,6 @@ export default function Admin() {
             >
               {isLoading ? "Verificando..." : "Entrar"}
             </Button>
-            <p className="text-xs text-center text-gray-500 mt-2">
-              A senha de administrador é: <strong>admin123</strong>
-            </p>
             <Button 
               variant="outline" 
               onClick={handleGoToHome} 

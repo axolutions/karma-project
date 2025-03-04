@@ -1,15 +1,15 @@
+
 import React, { useState, useEffect } from 'react';
-import { getUserData, isLoggedIn } from '../lib/auth';
-import { getCurrentMatrixId } from '../lib/db';
+import { getUserData, isLoggedIn, getCurrentUser } from '../lib/auth';
+import { getAllUserDataByEmail } from '../lib/auth';
 import UserHeader from '../components/matrix/UserHeader';
 import KarmicMatrix from '../components/KarmicMatrix';
 import MatrixInterpretations from '../components/MatrixInterpretations';
-import { Button } from "@/components/ui/button";
 import { useToast } from "@/components/ui/use-toast";
 import LoadingState from '../components/matrix/LoadingState';
 import ErrorState from '../components/matrix/ErrorState';
 import { generateInterpretationsHTML } from '@/lib/interpretations';
-import { Download } from "lucide-react";
+import { useNavigate } from 'react-router-dom';
 
 const MatrixResult: React.FC = () => {
   const [userData, setUserData] = useState<any>(null);
@@ -18,6 +18,7 @@ const MatrixResult: React.FC = () => {
   const [error, setError] = useState<string | null>(null);
   const [refreshing, setRefreshing] = useState(false);
   const { toast } = useToast();
+  const navigate = useNavigate();
   
   useEffect(() => {
     const loadUserData = async () => {
@@ -31,7 +32,7 @@ const MatrixResult: React.FC = () => {
         }
         
         // Obter o email do usuário atual
-        const email = localStorage.getItem('currentUser');
+        const email = getCurrentUser();
         if (!email) {
           console.error("Email do usuário não encontrado no localStorage");
           setError('Dados de usuário não encontrados.');
@@ -50,18 +51,17 @@ const MatrixResult: React.FC = () => {
           return;
         }
         
-        // Verificar se o usuário tem uma matriz ativa
-        const matrixId = data.currentMatrixId || getCurrentMatrixId(email);
-        if (!matrixId) {
-          console.error("ID da matriz não encontrado para o usuário:", email);
-          setError('Matriz Kármica não encontrada para este usuário.');
-          setLoading(false);
-          return;
-        }
-        
         // Verificar se o usuário tem dados kármicos
         if (!data.karmicNumbers) {
           console.error("Dados kármicos não encontrados para o usuário:", email);
+          
+          // Se o usuário tem nome mas não tem dados kármicos, provavelmente precisa completar o perfil
+          if (data.name) {
+            console.log("Usuário tem nome mas não tem dados kármicos, redirecionando para completar perfil");
+            navigate('/');
+            return;
+          }
+          
           setError('Dados kármicos não encontrados para este usuário.');
           setLoading(false);
           return;
@@ -70,8 +70,16 @@ const MatrixResult: React.FC = () => {
         console.log("Dados kármicos encontrados:", data.karmicNumbers);
         setUserData(data);
         
-        // Simulação de múltiplos mapas para o usuário (apenas o atual neste momento)
-        setUserMaps([data]);
+        // Obter todos os mapas do usuário
+        const allUserMaps = getAllUserDataByEmail(email);
+        if (allUserMaps && allUserMaps.length > 0) {
+          console.log("Todos os mapas do usuário:", allUserMaps);
+          setUserMaps(allUserMaps);
+        } else {
+          // Se não encontrar mapas adicionais, usar apenas o mapa atual
+          setUserMaps([data]);
+        }
+        
         setLoading(false);
       } catch (err) {
         console.error('Erro ao carregar dados do usuário:', err);
@@ -81,29 +89,46 @@ const MatrixResult: React.FC = () => {
     };
     
     loadUserData();
-  }, []);
+  }, [navigate]);
 
   // Funções para o UserHeader
   const handleRefresh = () => {
     setRefreshing(true);
-    // Simular atualização
-    setTimeout(() => {
-      setRefreshing(false);
-      toast({
-        title: "Atualizado",
-        description: "Dados da matriz atualizados com sucesso!"
-      });
-    }, 1000);
+    // Recarregar os dados do usuário
+    const email = getCurrentUser();
+    if (email) {
+      const userData = getUserData(email);
+      if (userData) {
+        setUserData(userData);
+        
+        // Atualizar a lista de mapas do usuário
+        const allUserMaps = getAllUserDataByEmail(email);
+        if (allUserMaps && allUserMaps.length > 0) {
+          setUserMaps(allUserMaps);
+        } else {
+          setUserMaps([userData]);
+        }
+        
+        toast({
+          title: "Atualizado",
+          description: "Dados da matriz atualizados com sucesso!"
+        });
+      }
+    }
+    setRefreshing(false);
   };
 
   const handleSwitchMap = (mapId: string) => {
     console.log("Alterando para o mapa:", mapId);
-    // Implementação real seria necessária aqui
+    // Encontrar o mapa com o ID especificado
+    const selectedMap = userMaps.find(map => map.id === mapId);
+    if (selectedMap) {
+      setUserData(selectedMap);
+    }
   };
 
   const handleCreateNewMap = () => {
-    console.log("Criando novo mapa...");
-    // Implementação real seria necessária aqui
+    navigate('/');
   };
 
   const handleDownloadPDF = () => {
@@ -176,7 +201,7 @@ const MatrixResult: React.FC = () => {
         userData={userData} 
         userMaps={userMaps}
         refreshing={refreshing}
-        canCreateNewMap={false}
+        canCreateNewMap={true}
         handleRefresh={handleRefresh}
         handleSwitchMap={handleSwitchMap}
         handleCreateNewMap={handleCreateNewMap}
