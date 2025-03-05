@@ -1,223 +1,187 @@
-
-import { toast } from "@/components/ui/use-toast";
+import { toast } from "@/components/ui/use-toast"
+import { SAMPLE_INTERPRETATIONS } from "./sample-interpretations"
 
 // Define types for interpretations
 export interface Interpretation {
-  id: string; // e.g., "karmicSeal-1"
-  title: string;
-  content: string;
+  id: string // e.g., "karmicSeal-1"
+  title: string
+  content: string
 }
 
 // Default interpretation text used when none is found
-const DEFAULT_INTERPRETATION = "Interpretação não disponível para este número. Por favor, contate o administrador para adicionar este conteúdo.";
+const DEFAULT_INTERPRETATION =
+  "Interpretação não disponível para este número. Por favor, contate o administrador para adicionar este conteúdo."
 
 // Store all interpretations in a map
-let interpretations: Record<string, Interpretation> = {};
+let interpretations: Record<string, Interpretation> = {}
 
-// Sample interpretations for common numbers - will be used if no user data exists
-const SAMPLE_INTERPRETATIONS: Record<string, Interpretation> = {
-  'karmicSeal-1': {
-    id: 'karmicSeal-1',
-    title: 'Selo Kármico 1: O Pioneiro',
-    content: '<p>O Selo Kármico 1 representa a energia do pioneirismo, independência e liderança. Pessoas com este número têm uma forte conexão com a força de vontade e a capacidade de iniciar novos projetos.</p><h3>Lições Principais</h3><p>Seu desafio é encontrar equilíbrio entre liderar e colaborar, aprendendo a valorizar os outros e compartilhar suas conquistas.</p><h3>Afirmação Kármica</h3><p>Eu confio em minha capacidade de liderar e inovar, enquanto honro a contribuição dos outros em minha jornada.</p>'
-  },
-  'karmicSeal-6': {
-    id: 'karmicSeal-6',
-    title: 'Selo Kármico 6: O Harmonizador',
-    content: '<p>O Selo Kármico 6 representa a energia da harmonia, responsabilidade e serviço. Pessoas com este número têm uma forte conexão com o cuidado familiar e comunitário.</p><h3>Lições Principais</h3><p>Seu desafio é encontrar equilíbrio entre cuidar dos outros e cuidar de si mesmo, aprendendo a estabelecer limites saudáveis.</p><h3>Afirmação Kármica</h3><p>Eu nutro os outros com amor e compaixão, enquanto honro minhas próprias necessidades e limites.</p>'
-  },
-  'destinyCall-3': {
-    id: 'destinyCall-3',
-    title: 'Chamado do Destino 3: O Comunicador',
-    content: '<p>O Chamado do Destino 3 representa a energia da expressão, criatividade e comunicação. Pessoas com este número têm uma forte conexão com a arte e a capacidade de inspirar os outros.</p><h3>Missão de Vida</h3><p>Sua missão é usar seus dons criativos para elevar e inspirar as pessoas ao seu redor, trazendo alegria e beleza ao mundo.</p><h3>Afirmação Kármica</h3><p>Eu expresso minha verdade com alegria e criatividade, inspirando outros a encontrarem sua própria voz autêntica.</p>'
-  },
-  'karmaPortal-9': {
-    id: 'karmaPortal-9',
-    title: '🔮 O Portal do Karma 2025 - Os Desafios a Serem Superados 🔮',
-    content: '<p>9️⃣ O Portal do Karma do Curador - O Teste do Desapego e da Transformação</p><p>Se o seu Portal do Karma em 2025 é 9, você está vivendo um encerramento de ciclo dentro de um ano universal de fechamento de ciclo. Isso significa que 2025 será um ano de grande transformação e desapego.</p><h3>Como esse Portal se manifesta?</h3><ul><li>Situações que você evitava enfrentar podem vir à tona para serem resolvidas de uma vez por todas.</li><li>O Universo pode exigir que você solte tudo o que não serve mais – relacionamentos, crenças, padrões emocionais.</li><li>Você pode sentir um chamado para servir à humanidade de forma mais ampla.</li><li>Sincronicidades e encontros significativos podem ocorrer para guiar sua transformação.</li></ul><h3>Seu Desafio Essencial</h3><p>Você está sendo convidado a praticar o desapego com sabedoria. A lição central do Portal 9 é entender que para receber o novo, é necessário criar espaço liberando o velho. Quanto mais resistência ao processo de soltar, mais intensas podem ser as experiências de transformação.</p><h3>Afirmação Kármica</h3><p>Eu confio no processo de transformação e solto com gratidão tudo o que já cumpriu seu propósito em minha vida, abrindo espaço para novas bênçãos.</p>'
-  },
-  'karmicInheritance-4': {
-    id: 'karmicInheritance-4',
-    title: 'Herança Kármica 4: O Construtor',
-    content: '<p>A Herança Kármica 4 representa a energia da estabilidade, disciplina e construção de bases sólidas. Pessoas com este número herdam a capacidade de criar estruturas duradouras em suas vidas.</p><h3>Legado Ancestral</h3><p>Você herdou de seus ancestrais a capacidade de trabalhar com determinação e perseverança, construindo passo a passo realizações duradouras.</p><h3>Afirmação Kármica</h3><p>Eu honro minha herança construindo bases sólidas para meu futuro, com paciência e determinação.</p>'
-  },
-  'karmicReprogramming-3': {
-    id: 'karmicReprogramming-3',
-    title: 'Códex da Reprogramação 3: Expressão Criativa',
-    content: '<p>O Códex da Reprogramação 3 representa a necessidade de transformar padrões relacionados à autoexpressão, comunicação e criatividade. Este número indica que você está reprogramando como você se expressa no mundo.</p><h3>Padrões a Transformar</h3><p>Bloqueios na expressão pessoal, medo de julgamento ao se comunicar, e dificuldade em reconhecer seus talentos criativos são os principais desafios a serem superados.</p><h3>Afirmação Kármica</h3><p>Eu me liberto dos bloqueios de expressão e permito que minha criatividade flua livremente em todas as áreas da minha vida.</p>'
-  },
-  'cycleProphecy-9': {
-    id: 'cycleProphecy-9',
-    title: 'Profecia dos Ciclos 9: Completude',
-    content: '<p>A Profecia dos Ciclos 9 representa um período de conclusões e finalizações importantes em sua vida. Este número indica que você está no final de um grande ciclo, preparando-se para um novo começo.</p><h3>Ciclo Atual</h3><p>Você está em um momento de integração de lições aprendidas, liberação do que não serve mais, e preparação para uma nova fase de crescimento e expansão.</p><h3>Afirmação Kármica</h3><p>Eu concluo com gratidão este ciclo da minha vida, integrando suas lições e me abrindo para novos começos.</p>'
-  },
-  'spiritualMark-1': {
-    id: 'spiritualMark-1',
-    title: 'Marca Espiritual 1: Liderança Espiritual',
-    content: '<p>A Marca Espiritual 1 representa seu dom inato para liderança e pioneirismo no caminho espiritual. Este número indica que você tem uma conexão especial com a energia da iniciativa divina.</p><h3>Dom Espiritual</h3><p>Você possui a capacidade de abrir novos caminhos, iniciar projetos inspiradores e liderar outros através do exemplo e da coragem espiritual.</p><h3>Afirmação Kármica</h3><p>Eu aceito meu papel como pioneiro espiritual, usando minha coragem e iniciativa para inspirar a transformação no mundo.</p>'
-  },
-  'manifestationEnigma-11': {
-    id: 'manifestationEnigma-11',
-    title: 'Enigma da Manifestação 11: O Mestre Intuitivo',
-    content: '<p>O Enigma da Manifestação 11 representa seu potencial para manifestar através da intuição elevada e inspiração espiritual. Este número de mestre indica que você tem acesso a canais intuitivos poderosos para criar sua realidade.</p><h3>Potencial de Manifestação</h3><p>Você pode manifestar com maior facilidade quando confia em sua intuição, segue inspirações súbitas e mantém-se alinhado com propósitos que beneficiam a coletividade.</p><h3>Afirmação Kármica</h3><p>Eu confio em minha intuição superior como ferramenta divina para manifestar inspiração e iluminação em minha vida e no mundo.</p>'
-  }
-};
 
 // Helper to generate interpretation ID
 export function generateInterpretationId(category: string, number: number): string {
-  return `${category}-${number}`;
+  return `${category}-${number}`
 }
 
 // Add or update an interpretation
 export function setInterpretation(category: string, number: number, title: string, content: string): void {
-  const id = generateInterpretationId(category, number);
-  
+  const id = generateInterpretationId(category, number)
+
+  // Check if we're overriding a sample interpretation
+  const isOverridingSample = SAMPLE_INTERPRETATIONS[id] !== undefined
+
+  console.log("SETTING INTERPRETAITON", id, title)
+  console.log(content)
+
   interpretations[id] = {
     id,
     title,
-    content
-  };
-  
+    content,
+  }
+
   // Save to localStorage
-  saveInterpretations();
-  
+  saveInterpretations()
+
+  console.log(`Interpretação ${id} ${isOverridingSample ? "(sobrescrevendo amostra)" : ""} salva com sucesso`)
+
   toast({
     title: "Interpretação Salva",
-    description: `A interpretação para ${category} número ${number} foi salva com sucesso.`
-  });
+    description: `A interpretação para ${getCategoryDisplayName(category)} número ${number} foi salva com sucesso.${isOverridingSample ? " (Sobrescrevendo amostra)" : ""}`,
+  })
 }
 
 // Get an interpretation
 export function getInterpretation(category: string, number: number): Interpretation {
-  const id = generateInterpretationId(category, number);
-  
-  console.log(`Buscando interpretação para: ${id}`);
-  
-  // If not found in loaded interpretations, check sample interpretations
-  if (!interpretations[id]) {
-    console.log(`Interpretação não encontrada em interpretations, verificando em SAMPLE_INTERPRETATIONS`);
-    
-    if (SAMPLE_INTERPRETATIONS[id]) {
-      console.log(`Interpretação encontrada em SAMPLE_INTERPRETATIONS para ${id}`);
-      return SAMPLE_INTERPRETATIONS[id];
-    }
-    
-    console.log(`Interpretação não encontrada para ${id}, retornando interpretação padrão`);
-    return {
-      id,
-      title: `${getCategoryDisplayName(category)} ${number}`,
-      content: DEFAULT_INTERPRETATION
-    };
+  const id = generateInterpretationId(category, number)
+
+  console.log(`Buscando interpretação para: ${id}`)
+
+  // First check if it exists in the user's saved interpretations
+  if (interpretations[id]) {
+    console.log(`Interpretação encontrada em interpretations para ${id}`)
+    return interpretations[id]
   }
-  
-  console.log(`Interpretação encontrada para ${id}`);
-  return interpretations[id];
+
+  // If not found in loaded interpretations, check sample interpretations
+  if (SAMPLE_INTERPRETATIONS[id]) {
+    console.log(`Interpretação encontrada em SAMPLE_INTERPRETATIONS para ${id}`)
+    return SAMPLE_INTERPRETATIONS[id]
+  }
+
+  console.log(`Interpretação não encontrada para ${id}, retornando interpretação padrão`)
+  return {
+    id,
+    title: `${getCategoryDisplayName(category)} ${number}`,
+    content: DEFAULT_INTERPRETATION,
+  }
 }
 
 // Get all interpretations
 export function getAllInterpretations(): Interpretation[] {
-  return Object.values(interpretations);
+  return Object.values(interpretations)
 }
 
 // Delete an interpretation
 export function deleteInterpretation(category: string, number: number): void {
-  const id = generateInterpretationId(category, number);
-  
+  const id = generateInterpretationId(category, number)
+
   if (interpretations[id]) {
-    delete interpretations[id];
-    saveInterpretations();
-    
+    delete interpretations[id]
+    saveInterpretations()
+
     toast({
       title: "Interpretação Removida",
-      description: `A interpretação para ${category} número ${number} foi removida.`
-    });
+      description: `A interpretação para ${category} número ${number} foi removida.`,
+    })
   }
 }
 
 // Save interpretations to localStorage
 function saveInterpretations(): void {
   try {
-    localStorage.setItem('karmicInterpretations', JSON.stringify(interpretations));
-    console.log("Interpretações salvas com sucesso no localStorage");
+    localStorage.setItem("karmicInterpretations", JSON.stringify(interpretations))
+    console.log("Interpretações salvas com sucesso no localStorage")
   } catch (error) {
-    console.error("Erro ao salvar interpretações no localStorage:", error);
+    console.error("Erro ao salvar interpretações no localStorage:", error)
   }
 }
 
 // Load interpretations from localStorage
 export function loadInterpretations(): void {
-  console.log("Tentando carregar interpretações do localStorage...");
+  console.log("Tentando carregar interpretações do localStorage...")
   try {
-    const saved = localStorage.getItem('karmicInterpretations');
-    
+    const saved = localStorage.getItem("karmicInterpretations")
+
     if (saved) {
-      console.log("Dados de interpretações encontrados no localStorage");
-      interpretations = JSON.parse(saved);
-      
+      console.log("Dados de interpretações encontrados no localStorage")
+      const loadedInterpretations = JSON.parse(saved)
+
       // Verificar se as interpretações foram carregadas corretamente
-      const count = Object.keys(interpretations).length;
-      console.log(`Número de interpretações carregadas: ${count}`);
-      
+      const count = Object.keys(loadedInterpretations).length
+      console.log(`Número de interpretações carregadas: ${count}`)
+
+      // Inicializar com as interpretações carregadas
+      interpretations = loadedInterpretations
+
       if (count === 0) {
-        console.log("Nenhuma interpretação encontrada no localStorage, carregando amostras");
+        console.log("Nenhuma interpretação encontrada no localStorage, carregando amostras")
         // Se não houver interpretações salvas, preencher com as amostras
-        Object.assign(interpretations, SAMPLE_INTERPRETATIONS);
+        Object.assign(interpretations, SAMPLE_INTERPRETATIONS)
         // Salvar essas amostras no localStorage para uso futuro
-        saveInterpretations();
+        saveInterpretations()
       }
     } else {
-      console.log("Nenhum dado de interpretações encontrado no localStorage, carregando amostras");
+      console.log("Nenhum dado de interpretações encontrado no localStorage, carregando amostras")
       // Carregar interpretações de amostra
-      Object.assign(interpretations, SAMPLE_INTERPRETATIONS);
+      interpretations = { ...SAMPLE_INTERPRETATIONS }
       // Salvar essas amostras no localStorage para uso futuro
-      saveInterpretations();
+      saveInterpretations()
     }
   } catch (error) {
-    console.error("Erro ao carregar interpretações:", error);
+    console.error("Erro ao carregar interpretações:", error)
     // Em caso de erro, carregar as interpretações de amostra
-    Object.assign(interpretations, SAMPLE_INTERPRETATIONS);
+    interpretations = { ...SAMPLE_INTERPRETATIONS }
   }
 }
 
 // Ensure we have all sample interpretations available as a fallback
 export function ensureSampleInterpretationsLoaded(): void {
-  console.log("Verificando se as interpretações de amostra estão disponíveis...");
-  
-  let needToSave = false;
-  
+  console.log("Verificando se as interpretações de amostra estão disponíveis...")
+
+  let needToSave = false
+
   // Check if we have all sample interpretations and add any missing ones
   Object.entries(SAMPLE_INTERPRETATIONS).forEach(([id, interpretation]) => {
     if (!interpretations[id]) {
-      console.log(`Adicionando interpretação de amostra faltante: ${id}`);
-      interpretations[id] = interpretation;
-      needToSave = true;
+      console.log(`Adicionando interpretação de amostra faltante: ${id}`)
+      interpretations[id] = interpretation
+      needToSave = true
     }
-  });
-  
+  })
+
   // If we added any missing sample interpretations, save to localStorage
   if (needToSave) {
-    console.log("Salvando interpretações de amostra adicionadas");
-    saveInterpretations();
+    console.log("Salvando interpretações de amostra adicionadas")
+    saveInterpretations()
   }
 }
 
 // Força a adição das interpretações de amostra como fallback em produção
 export function forceLoadSampleInterpretations(): void {
-  console.log("Forçando carregamento de interpretações de amostra para ambiente de produção");
+  if (true) return;
+  console.log("Forçando carregamento de interpretações de amostra para ambiente de produção")
   // Carregar interpretações de amostra diretamente
   Object.entries(SAMPLE_INTERPRETATIONS).forEach(([id, interpretation]) => {
-    interpretations[id] = interpretation;
-  });
-  
+    interpretations[id] = interpretation
+  })
+
   // Salvar no localStorage
-  saveInterpretations();
-  console.log("Interpretações de amostra forçadas carregadas e salvas");
+  saveInterpretations()
+  console.log("Interpretações de amostra forçadas carregadas e salvas")
 }
 
 // Initialize interpretations from localStorage on module load
-console.log("Inicializando módulo de interpretações");
-loadInterpretations();
-ensureSampleInterpretationsLoaded(); // Make sure we at least have sample interpretations
+console.log("Inicializando módulo de interpretações")
+loadInterpretations()
+ensureSampleInterpretationsLoaded() // Make sure we at least have sample interpretations
 
 // Get display name for a category
 export function getCategoryDisplayName(category: string): string {
@@ -229,10 +193,10 @@ export function getCategoryDisplayName(category: string): string {
     karmicReprogramming: "Códex da Reprogramação",
     cycleProphecy: "Profecia dos Ciclos",
     spiritualMark: "Marca Espiritual",
-    manifestationEnigma: "Enigma da Manifestação"
-  };
-  
-  return displayNames[category] || category;
+    manifestationEnigma: "Enigma da Manifestação",
+  }
+
+  return displayNames[category] || category
 }
 
 // Get all category keys
@@ -245,21 +209,21 @@ export function getAllCategories(): string[] {
     "karmicReprogramming",
     "cycleProphecy",
     "spiritualMark",
-    "manifestationEnigma"
-  ];
+    "manifestationEnigma",
+  ]
 }
 
 // Helper function to render HTML content safely
 export function renderHTML(html: string) {
   // Processar o HTML para adicionar classes e formatação automática
-  return { __html: html };
+  return { __html: html }
 }
 
 // Generate HTML for download
 export function generateInterpretationsHTML(karmicData: any): string {
-  if (!karmicData) return '<p>Nenhum dado kármico disponível.</p>';
-  
-  const categories = getAllCategories();
+  if (!karmicData) return "<p>Nenhum dado kármico disponível.</p>"
+
+  const categories = getAllCategories()
   let htmlContent = `
     <!DOCTYPE html>
     <html lang="pt-BR">
@@ -335,35 +299,33 @@ export function generateInterpretationsHTML(karmicData: any): string {
     <body>
       <div class="header">
         <h1>Suas Interpretações Kármicas</h1>
-        <div class="date">Gerado em: ${new Date().toLocaleDateString('pt-BR')}</div>
+        <div class="date">Gerado em: ${new Date().toLocaleDateString("pt-BR")}</div>
       </div>
-  `;
-  
+  `
+
   // Verificar se temos números kármicos válidos
-  let hasValidData = false;
-  
+  let hasValidData = false
+
   // Adicionar cada categoria de interpretação
-  categories.forEach(category => {
+  categories.forEach((category) => {
     if (karmicData[category] || karmicData[category] === 0) {
-      const number = karmicData[category];
-      const interpretation = getInterpretation(category, number);
-      
+      const number = karmicData[category]
+      const interpretation = getInterpretation(category, number)
+
       // Verifica se temos conteúdo real para adicionar
-      if (interpretation && interpretation.content && 
-          interpretation.content !== DEFAULT_INTERPRETATION) {
-        
-        hasValidData = true;
-        
+      if (interpretation && interpretation.content && interpretation.content !== DEFAULT_INTERPRETATION) {
+        hasValidData = true
+
         htmlContent += `
           <div class="interpretation">
             <h2>${interpretation.title}</h2>
             ${interpretation.content}
           </div>
-        `;
+        `
       }
     }
-  });
-  
+  })
+
   // Se não houver dados válidos
   if (!hasValidData) {
     htmlContent += `
@@ -375,13 +337,14 @@ export function generateInterpretationsHTML(karmicData: any): string {
           Por favor, contate o administrador para adicionar interpretações.
         </p>
       </div>
-    `;
+    `
   }
-  
+
   htmlContent += `
     </body>
     </html>
-  `;
-  
-  return htmlContent;
+  `
+
+  return htmlContent
 }
+
