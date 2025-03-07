@@ -1,170 +1,234 @@
+"use client";
 
-import React, { useState, useEffect } from 'react';
-import { motion } from 'framer-motion';
-import { useNavigate } from 'react-router-dom';
-import LoginForm from '@/components/LoginForm';
-import ProfileForm from '@/components/ProfileForm';
-import IntroSection from '@/components/IntroSection';
-import { getCurrentUser, isLoggedIn, getUserData, logout } from '@/lib/auth';
-import { Link } from 'react-router-dom';
-import { Button } from '@/components/ui/button';
-import { LogOut } from 'lucide-react';
-import { useToast } from '@/components/ui/use-toast';
+import { useState, useEffect } from "react";
+import { motion } from "framer-motion";
+import { useNavigate } from "react-router-dom";
+import LoginForm from "@/components/LoginForm";
+import ProfileForm from "@/components/ProfileForm";
+import { getCurrentUser, isLoggedIn, getUserData, logout } from "@/lib/auth";
+import { Link } from "react-router-dom";
+import { Button } from "@/components/ui/button";
+import { LogOut } from "lucide-react";
+import { useToast } from "@/components/ui/use-toast";
+import { Input } from "@/components/ui/input";
 
 const Index = () => {
-  const [userLoggedIn, setUserLoggedIn] = useState(false);
-  const [hasProfile, setHasProfile] = useState(false);
-  const [isLoading, setIsLoading] = useState(true);
-  const navigate = useNavigate();
-  const { toast } = useToast();
-  
-  useEffect(() => {
-    // Check if user is logged in
-    try {
-      const loggedIn = isLoggedIn();
-      setUserLoggedIn(loggedIn);
-      console.log("Index: Usuário logado?", loggedIn);
-      
-      if (loggedIn) {
-        // Check if user has created profile
-        const email = getCurrentUser();
-        if (email) {
-          const userData = getUserData(email);
-          console.log("Index: Dados do usuário:", userData);
-          if (userData && userData.name) {
-            console.log("Usuário já tem perfil completo");
-            setHasProfile(true);
-          } else {
-            console.log("Usuário logado, mas sem perfil");
-            setHasProfile(false);
-          }
-        }
-      } else {
-        // Make sure hasProfile is false when not logged in
-        setHasProfile(false);
-      }
-    } catch (error) {
-      console.error("Erro ao verificar login:", error);
-    } finally {
-      setIsLoading(false);
-    }
-  }, [navigate]);
+	const [userLoggedIn, setUserLoggedIn] = useState(false);
+	const [hasProfile, setHasProfile] = useState(false);
+	const [isLoading, setIsLoading] = useState(true);
+	const [name, setName] = useState("");
+	const [day, setDay] = useState("");
+	const [month, setMonth] = useState("");
+	const [year, setYear] = useState("");
 
-  // Watch for storage changes (logout events)
-  useEffect(() => {
-    const handleStorageChange = () => {
-      const isUserLoggedIn = isLoggedIn();
-      if (userLoggedIn && !isUserLoggedIn) {
-        // User has logged out, reset state
-        setUserLoggedIn(false);
-        setHasProfile(false);
-        // Force reload to clear any cached state
-        window.location.reload();
-      }
-    };
+	const navigate = useNavigate();
+	const { toast } = useToast();
 
-    window.addEventListener('storage', handleStorageChange);
-    return () => {
-      window.removeEventListener('storage', handleStorageChange);
-    };
-  }, [userLoggedIn]);
+	useEffect(() => {
+		try {
+			const loggedIn = isLoggedIn();
+			setUserLoggedIn(loggedIn);
+			console.log("Index: Usuário logado?", loggedIn);
 
-  const handleLogout = () => {
-    logout();
-    toast({
-      title: "Logout realizado",
-      description: "Você saiu do sistema com sucesso."
-    });
-    setUserLoggedIn(false);
-    setHasProfile(false);
-    // Force reload to clear any cached state
-    window.location.reload();
-  };
+			if (loggedIn) {
+				const email = getCurrentUser();
+				if (email) {
+					const userData = getUserData(email);
+					console.log("Index: Dados do usuário:", userData);
+					if (userData && userData.name) {
+						console.log("Usuário já tem perfil completo");
+						setHasProfile(true);
+					} else {
+						console.log("Usuário logado, mas sem perfil");
+						setHasProfile(false);
+					}
+				}
+			} else {
+				setHasProfile(false);
+			}
+		} catch (error) {
+			console.error("Erro ao verificar login:", error);
+		} finally {
+			setIsLoading(false);
+		}
+	}, [navigate]);
 
-  if (isLoading) {
-    return (
-      <div className="min-h-screen bg-gradient-to-b from-karmic-100 to-white py-12 flex items-center justify-center">
-        <div className="text-center">
-          <div className="inline-block h-8 w-8 animate-spin rounded-full border-4 border-solid border-karmic-700 border-r-transparent"></div>
-          <p className="mt-4 text-karmic-700">Carregando...</p>
-        </div>
-      </div>
-    );
-  }
+	useEffect(() => {
+		const handleStorageChange = () => {
+			const isUserLoggedIn = isLoggedIn();
+			if (userLoggedIn && !isUserLoggedIn) {
+				setUserLoggedIn(false);
+				setHasProfile(false);
+				window.location.reload();
+			}
+		};
 
-  // Função para navegar para a matriz quando o usuário tiver feito login e tiver perfil
-  const handleAccessMatrix = () => {
-    console.log("Acessando matriz...");
-    navigate('/matrix');
-  };
+		window.addEventListener("storage", handleStorageChange);
+		return () => {
+			window.removeEventListener("storage", handleStorageChange);
+		};
+	}, [userLoggedIn]);
 
-  return (
-    <div className="min-h-screen bg-gradient-to-b from-karmic-100 to-white py-12">
-      <div className="container max-w-5xl mx-auto px-4">
-        {userLoggedIn && (
-          <div className="flex justify-end mb-4">
-            <Button 
-              onClick={handleLogout}
-              variant="outline"
-              className="karmic-button-outline flex items-center"
-            >
-              <LogOut className="mr-2 h-4 w-4" />
-              Sair
-            </Button>
-          </div>
-        )}
-        
-        <IntroSection />
-        
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.2, duration: 0.5 }}
-          className="max-w-md mx-auto bg-white rounded-xl p-8 shadow-sm border border-karmic-200"
-        >
-          <h2 className="text-2xl font-serif text-center text-karmic-800 mb-6">
-            {userLoggedIn && !hasProfile 
-              ? 'Complete seu Perfil'
-              : userLoggedIn && hasProfile
-                ? 'Acesse sua Matriz Kármica'
-                : 'Faça Login para Acessar'}
-          </h2>
-          
-          {userLoggedIn && !hasProfile ? (
-            <ProfileForm />
-          ) : userLoggedIn && hasProfile ? (
-            <div className="text-center">
-              <p className="mb-4 text-karmic-600">Você já está logado e seu perfil está completo.</p>
-              <button 
-                onClick={handleAccessMatrix}
-                className="karmic-button w-full group"
-              >
-                Acessar Minha Matriz Kármica
-              </button>
-            </div>
-          ) : (
-            <LoginForm />
-          )}
-          
-          <div className="mt-6 pt-6 border-t border-karmic-200 text-center">
-            <p className="text-sm text-karmic-600">
-              Adquira sua Matriz Kármica Pessoal 2025 e transforme sua jornada espiritual.
-            </p>
-          </div>
-        </motion.div>
-        
-        {/* Admin Access Link */}
-        <div className="mt-8 text-center">
-          <Link 
-            to="/admin" 
-            className="text-sm text-karmic-500 hover:text-karmic-700 underline"
-          >
-            Acesso Administrativo
-          </Link>
-        </div>
-      </div>
-    </div>
-  );
+	const handleLogout = () => {
+		logout();
+		toast({
+			title: "Logout realizado",
+			description: "Você saiu do sistema com sucesso.",
+		});
+		setUserLoggedIn(false);
+		setHasProfile(false);
+		window.location.reload();
+	};
+
+	const handleAccessMatrix = () => {
+		console.log("Acessando matriz...");
+		navigate("/matrix");
+	};
+
+	const handleCalculate = (e) => {
+		e.preventDefault();
+		// Normally would validate inputs here
+
+		// If not logged in, prompt to login first
+		if (!userLoggedIn) {
+			toast({
+				title: "Login necessário",
+				description: "Por favor, faça login para calcular sua matriz kármica.",
+			});
+			return;
+		}
+
+		navigate("/matrix");
+	};
+
+	if (isLoading) {
+		return (
+			<div className="min-h-screen bg-gradient-to-b from-[#f5e6d3] to-white py-12 flex items-center justify-center">
+				<div className="text-center">
+					<div className="inline-block h-8 w-8 animate-spin rounded-full border-4 border-solid border-[#8B4513] border-r-transparent"></div>
+					<p className="mt-4 text-[#8B4513]">Carregando...</p>
+				</div>
+			</div>
+		);
+	}
+
+	return (
+		<div className="min-h-screen bg-gradient-to-b from-[#f5e6d3] to-white py-12">
+			<div className="container max-w-5xl mx-auto px-4">
+				{userLoggedIn && (
+					<div className="flex justify-end mb-4">
+						<Button
+							onClick={handleLogout}
+							variant="outline"
+							className="bg-[#8B4513] text-white hover:bg-[#704214] border-none flex items-center"
+						>
+							<LogOut className="mr-2 h-4 w-4" />
+							Sair
+						</Button>
+					</div>
+				)}
+
+				<motion.div
+					initial={{ opacity: 0, y: 20 }}
+					animate={{ opacity: 1, y: 0 }}
+					transition={{ delay: 0.2, duration: 0.5 }}
+					className="max-w-2xl mx-auto"
+				>
+					<h1 className="text-4xl md:text-5xl font-serif text-center text-[#8B4513] mb-12">
+						Calculadora Matriz Kármica 2025 🔮
+					</h1>
+
+					<div className="bg-white rounded-2xl p-8 shadow-lg">
+						{userLoggedIn && !hasProfile ? (
+							<ProfileForm />
+						) : userLoggedIn && hasProfile ? (
+							<div className="text-center">
+								<p className="mb-6 text-[#8B4513]">
+									Você já está logado e seu perfil está completo.
+								</p>
+								<button
+									onClick={handleAccessMatrix}
+									className="w-full py-3 px-6 bg-[#8B4513] text-white rounded-lg hover:bg-[#704214] transition-colors"
+								>
+									Acessar Minha Matriz Kármica
+								</button>
+							</div>
+						) : (
+							<div>
+								<form onSubmit={handleCalculate} className="space-y-6">
+									<div>
+										<Input
+											type="text"
+											placeholder="Nome Completo"
+											value={name}
+											onChange={(e) => setName(e.target.value)}
+											className="w-full border-[#d3c0ad] focus:border-[#8B4513] focus:ring-[#8B4513] text-center py-3"
+											required
+										/>
+									</div>
+
+									<div className="grid grid-cols-3 gap-4">
+										<Input
+											type="text"
+											placeholder="Dia"
+											value={day}
+											onChange={(e) => setDay(e.target.value)}
+											className="border-[#d3c0ad] focus:border-[#8B4513] focus:ring-[#8B4513] text-center py-3"
+											maxLength={2}
+											required
+										/>
+										<Input
+											type="text"
+											placeholder="Mês"
+											value={month}
+											onChange={(e) => setMonth(e.target.value)}
+											className="border-[#d3c0ad] focus:border-[#8B4513] focus:ring-[#8B4513] text-center py-3"
+											maxLength={2}
+											required
+										/>
+										<Input
+											type="text"
+											placeholder="Ano"
+											value={year}
+											onChange={(e) => setYear(e.target.value)}
+											className="border-[#d3c0ad] focus:border-[#8B4513] focus:ring-[#8B4513] text-center py-3"
+											maxLength={4}
+											required
+										/>
+									</div>
+
+									<div className="flex justify-center">
+										<Button
+											type="submit"
+											className="bg-[#8B4513] hover:bg-[#704214] text-white py-3 px-8 rounded-lg text-lg"
+										>
+											Calcular
+										</Button>
+									</div>
+								</form>
+
+								<div className="mt-6 pt-6 border-t border-[#e2d1c3] text-center">
+									<p className="text-sm text-[#8B4513] mb-4">
+										Já possui uma conta?
+									</p>
+									<LoginForm />
+								</div>
+							</div>
+						)}
+					</div>
+
+					<div className="mt-8 text-center">
+						<Link
+							to="/admin"
+							className="text-sm text-[#8B4513] hover:text-[#704214] underline"
+						>
+							Acesso Administrativo
+						</Link>
+					</div>
+				</motion.div>
+			</div>
+		</div>
+	);
 };
 
 export default Index;
