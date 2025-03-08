@@ -14,6 +14,7 @@ import {
 	forceLoadSampleInterpretations,
 } from "@/lib/interpretations";
 import { useNavigate } from "react-router-dom";
+import { KarmicIntroduction } from "@/components/KarmicIntroduction";
 
 const MatrixResult: React.FC = () => {
 	const [userData, setUserData] = useState<any>(null);
@@ -266,7 +267,7 @@ const MatrixResult: React.FC = () => {
 				handleCreateNewMap={handleCreateNewMap}
 				handleDownloadPDF={handleDownloadPDF}
 			/>
-
+			<KarmicIntroduction />
 			<KarmicMatrix karmicData={karmicData} />
 			<MatrixInterpretations karmicData={karmicData} />
 		</div>
