@@ -267,7 +267,7 @@ const MatrixResult: React.FC = () => {
 				handleCreateNewMap={handleCreateNewMap}
 				handleDownloadPDF={handleDownloadPDF}
 			/>
-			<KarmicIntroduction />
+			{/* <KarmicIntroduction /> */}
 			<KarmicMatrix karmicData={karmicData} />
 			<MatrixInterpretations karmicData={karmicData} />
 		</div>
