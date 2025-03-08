@@ -24,6 +24,7 @@ const MatrixResult: React.FC = () => {
 	const [refreshing, setRefreshing] = useState(false);
 	const [interpretationsLoaded, setInterpretationsLoaded] = useState(false);
 	const { toast } = useToast();
+	const [pdfMode, setPdfMode] = useState(false);
 	const navigate = useNavigate();
 
 	// Load interpretations immediately when component mounts
@@ -62,6 +63,15 @@ const MatrixResult: React.FC = () => {
 			}
 		}
 	}, []);
+
+	useEffect(() => {
+		if (pdfMode) {
+			setTimeout(() => {
+				window.print();
+				setPdfMode(false);
+			}, 1000);
+		}
+	}, [pdfMode])
 
 	useEffect(() => {
 		const loadUserData = async () => {
@@ -227,17 +237,7 @@ const MatrixResult: React.FC = () => {
 			return;
 		}
 
-		try {
-			window.print();
-		} catch (err) {
-			console.error("Erro ao gerar PDF:", err);
-			toast({
-				title: "Erro ao gerar PDF",
-				description:
-					"Não foi possível gerar o PDF. Por favor, tente novamente.",
-				variant: "destructive",
-			});
-		}
+		setPdfMode(true);
 	}
 
 	if (loading) return <LoadingState />;
@@ -269,7 +269,7 @@ const MatrixResult: React.FC = () => {
 			/>
 			{/* <KarmicIntroduction /> */}
 			<KarmicMatrix karmicData={karmicData} />
-			<MatrixInterpretations karmicData={karmicData} />
+			<MatrixInterpretations karmicData={karmicData} pdfMode={pdfMode} />
 		</div>
 	);
 };

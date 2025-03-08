@@ -22,10 +22,11 @@ interface MatrixInterpretationsProps {
     cycleProphecy: number
     spiritualMark: number
     manifestationEnigma: number
-  }
+  },
+  pdfMode: boolean
 }
 
-const MatrixInterpretations: React.FC<MatrixInterpretationsProps> = ({ karmicData }) => {
+const MatrixInterpretations: React.FC<MatrixInterpretationsProps> = ({ karmicData, pdfMode }) => {
   const [expandedSections, setExpandedSections] = useState<Set<string>>(new Set(["karmicSeal"]))
   const [interpretationsLoaded, setInterpretationsLoaded] = useState(false)
   const [loadError, setLoadError] = useState<string | null>(null)
@@ -168,7 +169,7 @@ const MatrixInterpretations: React.FC<MatrixInterpretationsProps> = ({ karmicDat
               </div>
 
               <AnimatePresence>
-                {isExpanded && (
+                {(isExpanded || pdfMode) && (
                   <motion.div
                     initial={{ height: 0, opacity: 0 }}
                     animate={{ height: "auto", opacity: 1 }}
