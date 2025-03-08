@@ -44,14 +44,14 @@ const KarmicMatrix: React.FC<KarmicMatrixProps> = ({
   
   // Posições corretas dos números conforme solicitado
   const numberPositions = {
-    karmicSeal: { top: "24%", left: "47%" },        // selo_karmico - Número 6 movido para o centro alto
-    destinyCall: { top: "24%", left: "25%" },       // chamado_destino
-    karmaPortal: { top: "24%", left: "72%" },       // portal_karma
-    karmicInheritance: { top: "48%", left: "25%" }, // heranca_karmica
-    karmicReprogramming: { top: "75%", left: "47%" }, // codex_reprogramacao
-    cycleProphecy: { top: "72%", left: "72%" },     // profecia_ciclos - Número 9 movido para o quadrado em branco da direita
-    spiritualMark: { top: "72%", left: "25%" },     // marca_espiritual
-    manifestationEnigma: { top: "48%", left: "72%" } // enigma_manifestacao - Número 11 subido para o quadrado da direita
+    destinyCall: { top: "27%", left: "27%" },       // chamado_destino
+    karmicSeal: { top: "25%", left: "50%" },        // selo_karmico - Número 6 movido para o centro alto
+    karmaPortal: { top: "27%", left: "73%" },       // portal_karma
+    karmicInheritance: { top: "50%", left: "25%" }, // heranca_karmica
+    manifestationEnigma: { top: "50%", left: "75%" }, // enigma_manifestacao - Número 11 subido para o quadrado da direita
+    spiritualMark: { top: "73%", left: "27%" },     // marca_espiritual
+    karmicReprogramming: { top: "75%", left: "50%" }, // codex_reprogramacao
+    cycleProphecy: { top: "73%", left: "73%" },     // profecia_ciclos - Número 9 movido para o quadrado em branco da direita
   };
 
   // Mapeamento entre nossos nomes de chaves e os do HTML
@@ -87,10 +87,10 @@ const KarmicMatrix: React.FC<KarmicMatrixProps> = ({
           return (
             <div
               key={item.key}
+              data-asd={item.key}
               className="absolute print:!opacity-100"
               style={{ 
-                top: position.top, 
-                left: position.left,
+                ...position,
                 transform: "translate(-50%, -50%)"
               }}
             >
