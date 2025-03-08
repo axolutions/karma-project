@@ -1,5 +1,3 @@
-"use client";
-
 import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
 import { useNavigate } from "react-router-dom";
@@ -10,17 +8,11 @@ import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { LogOut } from "lucide-react";
 import { useToast } from "@/components/ui/use-toast";
-import { Input } from "@/components/ui/input";
 
 const Index = () => {
 	const [userLoggedIn, setUserLoggedIn] = useState(false);
 	const [hasProfile, setHasProfile] = useState(false);
 	const [isLoading, setIsLoading] = useState(true);
-	const [name, setName] = useState("");
-	const [day, setDay] = useState("");
-	const [month, setMonth] = useState("");
-	const [year, setYear] = useState("");
-
 	const navigate = useNavigate();
 	const { toast } = useToast();
 
@@ -85,22 +77,6 @@ const Index = () => {
 		navigate("/matrix");
 	};
 
-	const handleCalculate = (e) => {
-		e.preventDefault();
-		// Normally would validate inputs here
-
-		// If not logged in, prompt to login first
-		if (!userLoggedIn) {
-			toast({
-				title: "Login necessário",
-				description: "Por favor, faça login para calcular sua matriz kármica.",
-			});
-			return;
-		}
-
-		navigate("/matrix");
-	};
-
 	if (isLoading) {
 		return (
 			<div className="min-h-screen bg-gradient-to-b from-[#f5e6d3] to-white py-12 flex items-center justify-center">
@@ -113,7 +89,7 @@ const Index = () => {
 	}
 
 	return (
-		<div className="min-h-screen bg-gradient-to-b from-[#f5e6d3] to-white py-12">
+		<div className="min-h-screen bg-gradient-to-b from-[#f5e6d3] to-white py-12 flex items-center justify-center">
 			<div className="container max-w-5xl mx-auto px-4">
 				{userLoggedIn && (
 					<div className="flex justify-end mb-4">
@@ -135,7 +111,7 @@ const Index = () => {
 					className="max-w-2xl mx-auto"
 				>
 					<h1 className="text-4xl md:text-5xl font-serif text-center text-[#8B4513] mb-12">
-						Calculadora Matriz Kármica 2025 🔮
+						Matriz Kármica 2025 🔮
 					</h1>
 
 					<div className="bg-white rounded-2xl p-8 shadow-lg">
@@ -155,66 +131,25 @@ const Index = () => {
 							</div>
 						) : (
 							<div>
-								<form onSubmit={handleCalculate} className="space-y-6">
-									<div>
-										<Input
-											type="text"
-											placeholder="Nome Completo"
-											value={name}
-											onChange={(e) => setName(e.target.value)}
-											className="w-full border-[#d3c0ad] focus:border-[#8B4513] focus:ring-[#8B4513] text-center py-3"
-											required
-										/>
-									</div>
-
-									<div className="grid grid-cols-3 gap-4">
-										<Input
-											type="text"
-											placeholder="Dia"
-											value={day}
-											onChange={(e) => setDay(e.target.value)}
-											className="border-[#d3c0ad] focus:border-[#8B4513] focus:ring-[#8B4513] text-center py-3"
-											maxLength={2}
-											required
-										/>
-										<Input
-											type="text"
-											placeholder="Mês"
-											value={month}
-											onChange={(e) => setMonth(e.target.value)}
-											className="border-[#d3c0ad] focus:border-[#8B4513] focus:ring-[#8B4513] text-center py-3"
-											maxLength={2}
-											required
-										/>
-										<Input
-											type="text"
-											placeholder="Ano"
-											value={year}
-											onChange={(e) => setYear(e.target.value)}
-											className="border-[#d3c0ad] focus:border-[#8B4513] focus:ring-[#8B4513] text-center py-3"
-											maxLength={4}
-											required
-										/>
-									</div>
-
-									<div className="flex justify-center">
-										<Button
-											type="submit"
-											className="bg-[#8B4513] hover:bg-[#704214] text-white py-3 px-8 rounded-lg text-lg"
-										>
-											Calcular
-										</Button>
-									</div>
-								</form>
-
-								<div className="mt-6 pt-6 border-t border-[#e2d1c3] text-center">
-									<p className="text-sm text-[#8B4513] mb-4">
-										Já possui uma conta?
+								<div className="text-center mb-6">
+									<h2 className="text-2xl font-serif text-[#8B4513] mb-4">
+										Faça Login para Acessar
+									</h2>
+									<p className="text-[#8B4513]">
+										Entre com sua conta para visualizar sua matriz kármica
+										pessoal.
 									</p>
-									<LoginForm />
 								</div>
+								<LoginForm />
 							</div>
 						)}
+
+						<div className="mt-6 pt-6 border-t border-[#e2d1c3] text-center">
+							<p className="text-sm text-[#8B4513]">
+								Adquira sua Matriz Kármica Pessoal 2025 e transforme sua jornada
+								espiritual.
+							</p>
+						</div>
 					</div>
 
 					<div className="mt-8 text-center">
