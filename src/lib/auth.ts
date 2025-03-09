@@ -55,29 +55,35 @@ export const logout = (): void => {
 };
 
 // Função para obter dados de um usuário específico por email
-export const getUserData = (email: string): any => {
+export async function getUserData(email: string) {
   try {
-    const userMaps = getAllUserDataByEmail(email);
+    const { data, error } = await supabase.from("clients").select("*").eq('email', email).single();
 
-    if (!userMaps || userMaps.length === 0) {
+    if (error) {
+      console.error('Erro ao obter dados do usuário:', error);
       return null;
     }
 
-    // Filtrar apenas mapas completos (com nome e data de nascimento)
-    const completeMaps = userMaps.filter((map: any) => map.name && map.birthDate);
-
-    if (completeMaps.length === 0) {
-      // Se não houver mapas completos, retornar o último mapa (mesmo incompleto)
-      return userMaps[userMaps.length - 1];
-    }
-
-    // Retorna o último mapa completo criado para o usuário
-    return completeMaps[completeMaps.length - 1];
+    return data;
   } catch (error) {
     console.error('Erro ao obter dados do usuário:', error);
     return null;
   }
 };
+
+export async function saveKarmicNumbers(email: string, name: string, birthDate: string, karmicNumbers: Record<string, number>) {
+  try {
+    const normalizedEmail = email.toLowerCase().trim();
+
+    await supabase.from("clients").update({
+      name,
+      birth: birthDate,
+      karmic_numbers: [karmicNumbers],
+    }).eq('email', normalizedEmail);
+  } catch (error) {
+    console.error('Erro ao salvar números kármicos:', error);
+  }
+}
 
 // Função para salvar dados do usuário
 export const saveUserData = (userData: any): string => {
@@ -131,38 +137,28 @@ export async function getAllAuthorizedEmails(): Promise<{ email: string, essenti
   }
 }
 
-export const isAuthorizedEmail = (email: string): boolean => {
+export async function isAuthorizedEmail(email: string): Promise<boolean> {
   try {
-    const authorizedEmails = getAllAuthorizedEmails();
     const normalizedEmail = email.toLowerCase().trim();
-
-    // Imprime para debug
     console.log("Verificando autorização para:", normalizedEmail);
-    console.log("Lista de emails autorizados:", authorizedEmails);
+
+    const result = await supabase.from("clients").select("email", { head: true }).eq('email', normalizedEmail);
+
+    if (result.error) {
+      console.error(result.error);
+      return false;
+    }
+
+    return true;
 
     // Emails críticos que sempre devem ser autorizados
-    const criticalEmails = [
-      'projetovmtd@gmail.com',
-      'teste@teste.com',
-      'carlamaiaprojetos@gmail.com',
-      'mariaal020804@gmail.com',
-      'tesete@testelcom.br'
-    ];
-
-    // Primeiro verifica emails críticos
-    if (criticalEmails.some(e => e.toLowerCase() === normalizedEmail)) {
-      console.log("Email crítico autorizado:", normalizedEmail);
-      return true;
-    }
-
-    // Compara o email normalizado com cada email autorizado
-    if (authorizedEmails.some(e => e.toLowerCase().trim() === normalizedEmail)) {
-      console.log("Email autorizado encontrado na lista");
-      return true;
-    }
-
-    console.log("Email não autorizado");
-    return false;
+    // const criticalEmails = [
+    //   'projetovmtd@gmail.com',
+    //   'teste@teste.com',
+    //   'carlamaiaprojetos@gmail.com',
+    //   'mariaal020804@gmail.com',
+    //   'tesete@testelcom.br'
+    // ];
   } catch (error) {
     console.error('Erro ao verificar se email é autorizado:', error);
 

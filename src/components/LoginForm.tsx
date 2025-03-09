@@ -40,7 +40,7 @@ const LoginForm: React.FC = () => {
     console.log("Tentativa de login com email:", normalizedEmail);
     
     // Check if email is authorized
-    const isAuthorized = isAuthorizedEmail(normalizedEmail);
+    const isAuthorized = await isAuthorizedEmail(normalizedEmail);
     console.log("Email está autorizado?", isAuthorized);
     
     if (!isAuthorized) {
@@ -58,7 +58,7 @@ const LoginForm: React.FC = () => {
     
     try {
       // Verificar se o usuário já existe, se não, criar um registro básico
-      let userData = getUserData(normalizedEmail);
+      let userData = await getUserData(normalizedEmail);
       
       if (!userData) {
         console.log("Usuário não encontrado, criando registro inicial");
@@ -69,6 +69,7 @@ const LoginForm: React.FC = () => {
           id: crypto.randomUUID()
         };
         saveUserData(userData);
+        throw new Error("TODO: Redirecionar para página de perfil");
       }
       
       const success = login(normalizedEmail);

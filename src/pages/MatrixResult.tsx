@@ -27,8 +27,6 @@ const MatrixResult: React.FC = () => {
 	useEffect(() => {
 		console.log("MatrixResult: Carregando interpretações...");
 		try {
-			// Força o carregamento de amostra para ambiente de produção
-			forceLoadSampleInterpretations();
 
 			// Load interpretations from localStorage or use samples
 			loadInterpretations();
@@ -92,7 +90,7 @@ const MatrixResult: React.FC = () => {
 				console.log("MatrixResult: Carregando dados para o email:", email);
 
 				// Obter os dados do usuário pelo email
-				const data = getUserData(email);
+				const data = await getUserData(email);
 				console.log("MatrixResult: Dados obtidos:", data);
 
 				if (!data) {
@@ -120,7 +118,7 @@ const MatrixResult: React.FC = () => {
 				}
 
 				// Verificar se o usuário tem dados kármicos
-				if (!data.karmicNumbers) {
+				if (!data.karmic_numbers.length) {
 					console.error(
 						"Dados kármicos não encontrados para o usuário:",
 						email,
@@ -134,9 +132,9 @@ const MatrixResult: React.FC = () => {
 
 				console.log(
 					"MatrixResult: Dados kármicos encontrados:",
-					data.karmicNumbers,
+					data.karmic_numbers,
 				);
-				setUserData(data);
+				setUserData({  ...data, karmicNumbers: data.karmic_numbers[0] });
 				setLoading(false);
 			} catch (err) {
 				console.error("Erro ao carregar dados do usuário:", err);

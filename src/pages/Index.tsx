@@ -17,32 +17,36 @@ const Index = () => {
 	const { toast } = useToast();
 
 	useEffect(() => {
-		try {
-			const loggedIn = isLoggedIn();
-			setUserLoggedIn(loggedIn);
-			console.log("Index: Usuário logado?", loggedIn);
-
-			if (loggedIn) {
-				const email = getCurrentUser();
-				if (email) {
-					const userData = getUserData(email);
-					console.log("Index: Dados do usuário:", userData);
-					if (userData && userData.name) {
-						console.log("Usuário já tem perfil completo");
-						setHasProfile(true);
-					} else {
-						console.log("Usuário logado, mas sem perfil");
-						setHasProfile(false);
+		const attemptUserLogin = async () => {
+			try {
+				const loggedIn = isLoggedIn();
+				setUserLoggedIn(loggedIn);
+				console.log("Index: Usuário logado?", loggedIn);
+	
+				if (loggedIn) {
+					const email = getCurrentUser();
+					if (email) {
+						const userData = await getUserData(email);
+						console.log("Index: Dados do usuário:", userData);
+						if (userData && userData.name) {
+							console.log("Usuário já tem perfil completo");
+							setHasProfile(true);
+						} else {
+							console.log("Usuário logado, mas sem perfil");
+							setHasProfile(false);
+						}
 					}
+				} else {
+					setHasProfile(false);
 				}
-			} else {
-				setHasProfile(false);
+			} catch (error) {
+				console.error("Erro ao verificar login:", error);
+			} finally {
+				setIsLoading(false);
 			}
-		} catch (error) {
-			console.error("Erro ao verificar login:", error);
-		} finally {
-			setIsLoading(false);
 		}
+
+		attemptUserLogin();
 	}, [navigate]);
 
 	useEffect(() => {
