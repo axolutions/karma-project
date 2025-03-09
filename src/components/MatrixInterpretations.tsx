@@ -27,6 +27,31 @@ const MatrixInterpretations: React.FC<MatrixInterpretationsProps> = ({ karmicDat
   const [expandedSections, setExpandedSections] = useState<Set<string>>(new Set(["karmicSeal"]))
   const [interpretationsLoaded, setInterpretationsLoaded] = useState(false)
   const [loadError, setLoadError] = useState<string | null>(null)
+  const [interpretations, setInterpretations] = useState<{interpretation: Record<string, string>, item: typeof interpretationItems[number]}[]>([])
+
+  const interpretationItems = [
+    { key: "karmicSeal", value: karmicData.karmicSeal },
+    { key: "destinyCall", value: karmicData.destinyCall },
+    { key: "karmaPortal", value: karmicData.karmaPortal },
+    { key: "karmicInheritance", value: karmicData.karmicInheritance },
+    { key: "karmicReprogramming", value: karmicData.karmicReprogramming },
+    { key: "cycleProphecy", value: karmicData.cycleProphecy },
+    { key: "spiritualMark", value: karmicData.spiritualMark },
+    { key: "manifestationEnigma", value: karmicData.manifestationEnigma },
+  ];
+  
+
+  const toggleSection = (category: string) => {
+    setExpandedSections((prev) => {
+      const newSet = new Set(prev)
+      if (newSet.has(category)) {
+        newSet.delete(category)
+      } else {
+        newSet.add(category)
+      }
+      return newSet
+    })
+  }
 
   // Load interpretations on component mount
   useEffect(() => {
@@ -49,20 +74,27 @@ const MatrixInterpretations: React.FC<MatrixInterpretationsProps> = ({ karmicDat
     }
   }, [])
 
-  const toggleSection = (category: string) => {
-    setExpandedSections((prev) => {
-      const newSet = new Set(prev)
-      if (newSet.has(category)) {
-        newSet.delete(category)
-      } else {
-        newSet.add(category)
-      }
-      return newSet
-    })
-  }
-
   // Verificar se temos dados kármicos válidos
   const hasValidData = karmicData && typeof karmicData === "object" && Object.keys(karmicData).length > 0
+
+  useEffect(() => {
+    if (!interpretationsLoaded || loadError || !hasValidData) return;
+
+    const fetchInterpretations = async () => {
+      for (const item of interpretationItems) {
+        try {
+          const interpretation = await getInterpretation(item.key, item.value)
+          setInterpretations((prev) => [...prev, {interpretation, item}])
+        } catch (err) {
+          console.error(`Erro ao carregar interpretação para ${item.key}:${item.value}`, err)
+          setLoadError("Alguns dados de interpretação não puderam ser carregados.")
+        }
+      }
+    }
+
+    fetchInterpretations()
+  }, [interpretationsLoaded, loadError, hasValidData]);
+
 
   // Se não tivermos dados válidos, exibir uma mensagem de erro
   if (!hasValidData) {
@@ -99,17 +131,6 @@ const MatrixInterpretations: React.FC<MatrixInterpretationsProps> = ({ karmicDat
     )
   }
 
-  const interpretationItems = [
-    { key: "karmicSeal", value: karmicData.karmicSeal },
-    { key: "destinyCall", value: karmicData.destinyCall },
-    { key: "karmaPortal", value: karmicData.karmaPortal },
-    { key: "karmicInheritance", value: karmicData.karmicInheritance },
-    { key: "karmicReprogramming", value: karmicData.karmicReprogramming },
-    { key: "cycleProphecy", value: karmicData.cycleProphecy },
-    { key: "spiritualMark", value: karmicData.spiritualMark },
-    { key: "manifestationEnigma", value: karmicData.manifestationEnigma },
-  ]
-
   return (
     <div className="max-w-4xl mx-auto mt-8">
       <h2 className="text-2xl md:text-3xl font-serif font-medium text-[#8B4513] mb-6 text-center">
@@ -117,8 +138,7 @@ const MatrixInterpretations: React.FC<MatrixInterpretationsProps> = ({ karmicDat
       </h2>
 
       <div className="space-y-2">
-        {interpretationItems.map((item, index) => {
-          const interpretation = getInterpretation(item.key, item.value)
+        {interpretations.map(({interpretation, item}, index) => {
           console.log(
             `Obtida interpretação para ${item.key}:${item.value}`,
             interpretation ? `Conteúdo: ${interpretation.content?.substring(0, 50)}...` : "Interpretação vazia",
