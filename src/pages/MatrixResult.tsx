@@ -8,6 +8,8 @@ import { useToast } from "@/components/ui/use-toast";
 import LoadingState from "../components/matrix/LoadingState";
 import ErrorState from "../components/matrix/ErrorState";
 import { useNavigate } from "react-router-dom";
+import KarmicIntroduction from "@/components/KarmicIntroduction";
+import KarmicEnding from "@/components/KarmicEnding";
 
 const MatrixResult: React.FC = () => {
 	const [userData, setUserData] = useState<any>(null);
@@ -169,9 +171,10 @@ const MatrixResult: React.FC = () => {
 				userData={userData}
 				handleDownloadPDF={handleDownloadPDF}
 			/>
-			{/* <KarmicIntroduction /> */}
 			<KarmicMatrix karmicData={karmicData} />
+			<KarmicIntroduction />
 			<MatrixInterpretations karmicData={karmicData} pdfMode={pdfMode} />
+			<KarmicEnding/>
 		</div>
 	);
 };

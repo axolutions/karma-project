@@ -1,6 +1,6 @@
 import { toast } from "@/components/ui/use-toast"
-import { SAMPLE_INTERPRETATIONS } from "./sample-interpretations"
 import { supabase } from "@/integrations/supabase/client"
+import { DEFAULT_INTERPRETATION } from "@/lib/default-interpretations"
 
 // Define types for interpretations
 export interface Interpretation {
@@ -8,10 +8,6 @@ export interface Interpretation {
   title: string
   content: string
 }
-
-// Default interpretation text used when none is found
-const DEFAULT_INTERPRETATION =
-  "Interpretação não disponível para este número. Por favor, contate o administrador para adicionar este conteúdo."
 
 // Store all interpretations in a map
 let interpretations: Record<string, Interpretation> = {}
@@ -62,7 +58,7 @@ export async function getInterpretation(category: string, number: number) {
 
   const { data } = await supabase.from("karmic_interpretations").select("*").eq("id", id).single();
 
-  return data;
+  return data ?? { title: "", content: DEFAULT_INTERPRETATION }
 }
 
 // Delete an interpretation
