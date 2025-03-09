@@ -11,40 +11,22 @@ import {
 import { X, Plus, Map, Zap, RefreshCw } from 'lucide-react';
 
 const EmailManager: React.FC = () => {
-  const [emails, setEmails] = useState<string[]>([]);
+  const [emails, setEmails] = useState<{ email: string, essential: boolean }[]>([]);
   const [newEmail, setNewEmail] = useState('');
   const [emailStats, setEmailStats] = useState<Record<string, number>>({});
   const [isRefreshing, setIsRefreshing] = useState(false);
   
   useEffect(() => {
     refreshEmails();
-    
-    // Verificar se existe algum email cadastrado
-    // Se não existir, podemos inicializar com um email padrão para testes
-    const authorizedEmails = getAllAuthorizedEmails();
-    if (authorizedEmails.length === 0) {
-      console.log("Nenhum email autorizado encontrado. Inicializando sistema...");
-    }
   }, []);
   
-  const refreshEmails = () => {
+  const refreshEmails = async () => {
     setIsRefreshing(true);
     
     try {
-      const authorizedEmails = getAllAuthorizedEmails();
+      const authorizedEmails = await getAllAuthorizedEmails();
       console.log("Emails autorizados obtidos:", authorizedEmails);
       setEmails(authorizedEmails);
-      
-      // Calcular estatísticas - quantos mapas cada email possui
-      const stats: Record<string, number> = {};
-      authorizedEmails.forEach(email => {
-        const userMaps = getAllUserDataByEmail(email) || [];
-        const normalizedEmail = email.toLowerCase();
-        stats[email] = userMaps.filter(map => map.email && map.email.toLowerCase() === normalizedEmail).length;
-      });
-      
-      setEmailStats(stats);
-      console.log("Estatísticas de mapas por email:", stats);
     } catch (error) {
       console.error("Erro ao atualizar emails:", error);
       toast.error("Erro ao carregar emails autorizados");
@@ -196,17 +178,15 @@ const EmailManager: React.FC = () => {
           <p className="text-karmic-500 italic">Nenhum email autorizado cadastrado.</p>
         ) : (
           <ul className="space-y-2">
-            {emails.map(email => {
-              const isSpecialEmail = ['projetovmtd@gmail.com', 'teste@teste.com', 'carlamaiaprojetos@gmail.com'].includes(email.toLowerCase());
-              
+            {emails.map(({email, essential}) => {
               return (
                 <li 
                   key={email} 
-                  className={`flex justify-between items-center p-3 rounded-md ${isSpecialEmail ? 'bg-blue-50' : 'bg-karmic-100'}`}
+                  className={`flex justify-between items-center p-3 rounded-md ${essential ? 'bg-blue-50' : 'bg-karmic-100'}`}
                 >
                   <div className="flex items-center">
-                    <span className={isSpecialEmail ? 'font-medium text-blue-700' : ''}>{email}</span>
-                    {isSpecialEmail && (
+                    <span className={essential ? 'font-medium text-blue-700' : ''}>{email}</span>
+                    {essential && (
                       <span className="ml-2 text-xs bg-blue-200 text-blue-800 px-2 py-1 rounded-full">
                         Essencial
                       </span>
@@ -221,10 +201,10 @@ const EmailManager: React.FC = () => {
                   <Button 
                     size="sm" 
                     variant="ghost" 
-                    className={`hover:bg-transparent ${isSpecialEmail ? 'text-blue-400 hover:text-blue-600' : 'text-karmic-600 hover:text-red-500'}`}
+                    className={`hover:bg-transparent ${essential ? 'text-blue-400 hover:text-blue-600' : 'text-karmic-600 hover:text-red-500'}`}
                     onClick={() => handleRemoveEmail(email)}
-                    disabled={isSpecialEmail}
-                    title={isSpecialEmail ? "Este email não pode ser removido" : "Remover email"}
+                    disabled={essential}
+                    title={essential ? "Este email não pode ser removido" : "Remover email"}
                   >
                     <X className="h-4 w-4" />
                   </Button>

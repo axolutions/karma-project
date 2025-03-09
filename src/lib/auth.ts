@@ -1,3 +1,4 @@
+import { supabase } from "@/integrations/supabase/client";
 
 // Função para obter todos os dados do usuário por email
 export const getAllUserDataByEmail = (email?: string) => {
@@ -5,19 +6,19 @@ export const getAllUserDataByEmail = (email?: string) => {
     // Obter dados dos usuários do localStorage
     const userMapsString = localStorage.getItem('userMaps');
     const userMaps = userMapsString ? JSON.parse(userMapsString) : [];
-    
+
     // Filtrar mapas inválidos/incompletos
-    const validMaps = userMaps.filter((map: any) => 
+    const validMaps = userMaps.filter((map: any) =>
       map && map.id && map.email
     );
-    
+
     // Se não foi fornecido email, retorna todos os mapas válidos
     if (!email) {
       return validMaps;
     }
-    
+
     // Filtrar mapas pelo email fornecido
-    return validMaps.filter((map: any) => 
+    return validMaps.filter((map: any) =>
       map.email && map.email.toLowerCase() === email.toLowerCase()
     );
   } catch (error) {
@@ -57,19 +58,19 @@ export const logout = (): void => {
 export const getUserData = (email: string): any => {
   try {
     const userMaps = getAllUserDataByEmail(email);
-    
+
     if (!userMaps || userMaps.length === 0) {
       return null;
     }
-    
+
     // Filtrar apenas mapas completos (com nome e data de nascimento)
     const completeMaps = userMaps.filter((map: any) => map.name && map.birthDate);
-    
+
     if (completeMaps.length === 0) {
       // Se não houver mapas completos, retornar o último mapa (mesmo incompleto)
       return userMaps[userMaps.length - 1];
     }
-    
+
     // Retorna o último mapa completo criado para o usuário
     return completeMaps[completeMaps.length - 1];
   } catch (error) {
@@ -85,23 +86,23 @@ export const saveUserData = (userData: any): string => {
     if (!userData.id) {
       userData.id = crypto.randomUUID();
     }
-    
+
     // Adicionar timestamp de criação
     userData.createdAt = userData.createdAt || new Date().toISOString();
-    
+
     // Obter mapas existentes
     const userMapsString = localStorage.getItem('userMaps');
     const userMaps = userMapsString ? JSON.parse(userMapsString) : [];
-    
+
     // Adicionar novo mapa
     userMaps.push(userData);
-    
+
     // Salvar no localStorage
     localStorage.setItem('userMaps', JSON.stringify(userMaps));
-    
+
     // Definir este como o mapa atual
     setCurrentMatrixId(userData.id);
-    
+
     return userData.id;
   } catch (error) {
     console.error('Erro ao salvar dados do usuário:', error);
@@ -119,77 +120,86 @@ export const setCurrentMatrixId = (matrixId: string): void => {
 };
 
 // Funções para gerenciar emails autorizados
-export const getAllAuthorizedEmails = (): string[] => {
+export async function getAllAuthorizedEmails(): Promise<{ email: string, essential: boolean }[]> {
   try {
-    const emailsString = localStorage.getItem('authorizedEmails');
-    
-    // Se não houver emails armazenados, inicializa com valores padrão
-    if (!emailsString) {
-      // Inclui o email do exemplo e o email projetovmtd@gmail.com
-      const defaultEmails = [
-        'example1@example.com', 
-        'example2@example.com', 
-        'teste@teste.com', 
-        'projetovmtd@gmail.com', 
-        'carlamaiaprojetos@gmail.com',
-        'mariaal020804@gmail.com',
-        'tesete@testelcom.br'
-      ];
-      localStorage.setItem('authorizedEmails', JSON.stringify(defaultEmails));
-      return defaultEmails;
-    }
-    
-    // Caso contrário, retorna os emails armazenados
-    const storedEmails = JSON.parse(emailsString);
-    
-    // Garante que todos os emails importantes estejam na lista
-    const criticalEmails = [
-      'projetovmtd@gmail.com',
-      'teste@teste.com',
-      'carlamaiaprojetos@gmail.com',
-      'mariaal020804@gmail.com',
-      'tesete@testelcom.br'
-    ];
-    
-    let updated = false;
-    for (const email of criticalEmails) {
-      if (!storedEmails.some((e: string) => e.toLowerCase().trim() === email.toLowerCase())) {
-        storedEmails.push(email);
-        updated = true;
-        console.log(`Email crítico adicionado: ${email}`);
-      }
-    }
-    
-    if (updated) {
-      localStorage.setItem('authorizedEmails', JSON.stringify(storedEmails));
-      console.log('Lista de emails atualizada com emails críticos');
-    }
-    
-    return storedEmails;
+    const { data } = await supabase.from("clients").select("email,essential");
+
+    return data;
   } catch (error) {
     console.error('Erro ao obter emails autorizados:', error);
-    // Em caso de erro, retorna uma lista padrão
-    return [
-      'example1@example.com', 
-      'example2@example.com', 
-      'teste@teste.com', 
-      'projetovmtd@gmail.com', 
-      'carlamaiaprojetos@gmail.com',
-      'mariaal020804@gmail.com',
-      'tesete@testelcom.br'
-    ];
+    return [];
   }
-};
+}
+
+// try {
+//   const emailsString = localStorage.getItem('authorizedEmails');
+
+//   // Se não houver emails armazenados, inicializa com valores padrão
+//   if (!emailsString) {
+//     // Inclui o email do exemplo e o email projetovmtd@gmail.com
+//     const defaultEmails = [
+//       'example1@example.com', 
+//       'example2@example.com', 
+//       'teste@teste.com', 
+//       'projetovmtd@gmail.com', 
+//       'carlamaiaprojetos@gmail.com',
+//       'mariaal020804@gmail.com',
+//       'tesete@testelcom.br'
+//     ];
+//     localStorage.setItem('authorizedEmails', JSON.stringify(defaultEmails));
+//     return defaultEmails;
+//   }
+
+//   // Caso contrário, retorna os emails armazenados
+//   const storedEmails = JSON.parse(emailsString);
+
+//   // Garante que todos os emails importantes estejam na lista
+//   const criticalEmails = [
+//     'projetovmtd@gmail.com',
+//     'teste@teste.com',
+//     'carlamaiaprojetos@gmail.com',
+//     'mariaal020804@gmail.com',
+//     'tesete@testelcom.br'
+//   ];
+
+//   let updated = false;
+//   for (const email of criticalEmails) {
+//     if (!storedEmails.some((e: string) => e.toLowerCase().trim() === email.toLowerCase())) {
+//       storedEmails.push(email);
+//       updated = true;
+//       console.log(`Email crítico adicionado: ${email}`);
+//     }
+//   }
+
+//   if (updated) {
+//     localStorage.setItem('authorizedEmails', JSON.stringify(storedEmails));
+//     console.log('Lista de emails atualizada com emails críticos');
+//   }
+
+//   return storedEmails;
+// } catch (error) {
+//   console.error('Erro ao obter emails autorizados:', error);
+//   // Em caso de erro, retorna uma lista padrão
+//   return [
+//     'example1@example.com', 
+//     'example2@example.com', 
+//     'teste@teste.com', 
+//     'projetovmtd@gmail.com', 
+//     'carlamaiaprojetos@gmail.com',
+//     'mariaal020804@gmail.com',
+//     'tesete@testelcom.br'
+//   ];
+// }
 
 export const isAuthorizedEmail = (email: string): boolean => {
   try {
     const authorizedEmails = getAllAuthorizedEmails();
     const normalizedEmail = email.toLowerCase().trim();
-    
+
     // Imprime para debug
     console.log("Verificando autorização para:", normalizedEmail);
     console.log("Lista de emails autorizados:", authorizedEmails);
-    
+
     // Emails críticos que sempre devem ser autorizados
     const criticalEmails = [
       'projetovmtd@gmail.com',
@@ -198,24 +208,24 @@ export const isAuthorizedEmail = (email: string): boolean => {
       'mariaal020804@gmail.com',
       'tesete@testelcom.br'
     ];
-    
+
     // Primeiro verifica emails críticos
     if (criticalEmails.some(e => e.toLowerCase() === normalizedEmail)) {
       console.log("Email crítico autorizado:", normalizedEmail);
       return true;
     }
-    
+
     // Compara o email normalizado com cada email autorizado
     if (authorizedEmails.some(e => e.toLowerCase().trim() === normalizedEmail)) {
       console.log("Email autorizado encontrado na lista");
       return true;
     }
-    
+
     console.log("Email não autorizado");
     return false;
   } catch (error) {
     console.error('Erro ao verificar se email é autorizado:', error);
-    
+
     // Em caso de erro, verifica se é um dos emails críticos
     const normalizedEmail = email.toLowerCase().trim();
     const criticalEmails = [
@@ -225,12 +235,12 @@ export const isAuthorizedEmail = (email: string): boolean => {
       'mariaal020804@gmail.com',
       'tesete@testelcom.br'
     ];
-    
+
     if (criticalEmails.some(e => e.toLowerCase() === normalizedEmail)) {
       console.log("Email crítico autorizado (fallback):", normalizedEmail);
       return true;
     }
-    
+
     return false;
   }
 };
@@ -239,7 +249,7 @@ export const addAuthorizedEmail = (email: string): void => {
   try {
     const authorizedEmails = getAllAuthorizedEmails();
     const normalizedEmail = email.toLowerCase().trim();
-    
+
     // Verificar se o email já está na lista
     if (!authorizedEmails.some(e => e.toLowerCase().trim() === normalizedEmail)) {
       authorizedEmails.push(normalizedEmail);
@@ -257,12 +267,12 @@ export const removeAuthorizedEmail = (email: string): void => {
   try {
     const authorizedEmails = getAllAuthorizedEmails();
     const normalizedEmail = email.toLowerCase().trim();
-    
+
     // Filtrar o email a ser removido
     const updatedEmails = authorizedEmails.filter(
       authorizedEmail => authorizedEmail.toLowerCase().trim() !== normalizedEmail
     );
-    
+
     localStorage.setItem('authorizedEmails', JSON.stringify(updatedEmails));
     console.log("Email removido da lista de autorizados:", normalizedEmail);
   } catch (error) {
