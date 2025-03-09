@@ -10,6 +10,7 @@ import ErrorState from "../components/matrix/ErrorState";
 import { useNavigate } from "react-router-dom";
 import KarmicIntroduction from "@/components/KarmicIntroduction";
 import KarmicEnding from "@/components/KarmicEnding";
+import { dispatch } from "@/hooks/use-toast";
 
 const MatrixResult: React.FC = () => {
 	const [userData, setUserData] = useState<any>(null);
@@ -48,6 +49,7 @@ const MatrixResult: React.FC = () => {
 
 	useEffect(() => {
 		if (pdfMode) {
+			dispatch({ type: "REMOVE_TOAST" });
 			setTimeout(() => {
 				window.print();
 				setPdfMode(false);
