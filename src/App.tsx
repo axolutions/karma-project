@@ -10,6 +10,7 @@ import Admin from "./pages/Admin";
 import NotFound from "./pages/NotFound";
 import { isLoggedIn } from "./lib/auth";
 import { useEffect } from "react";
+import { AuthProvider } from "@/hooks/use-auth";
 
 const queryClient = new QueryClient();
 
@@ -51,28 +52,30 @@ const App = () => {
   useDomainConfig();
   
   return (
-    <QueryClientProvider client={queryClient}>
-      <TooltipProvider>
-        <Toaster />
-        <Sonner />
-        <BrowserRouter>
-          <Routes>
-            <Route path="/" element={<Index />} />
-            <Route 
-              path="/matrix" 
-              element={
-                <ProtectedUserRoute>
-                  <MatrixResult />
-                </ProtectedUserRoute>
-              } 
-            />
-            {/* Admin route without protection for easier access */}
-            <Route path="/admin" element={<Admin />} />
-            <Route path="*" element={<NotFound />} />
-          </Routes>
-        </BrowserRouter>
-      </TooltipProvider>
-    </QueryClientProvider>
+    <AuthProvider>
+      <QueryClientProvider client={queryClient}>
+        <TooltipProvider>
+          <Toaster />
+          <Sonner />
+          <BrowserRouter>
+            <Routes>
+              <Route path="/" element={<Index />} />
+              <Route 
+                path="/matrix" 
+                element={
+                  <ProtectedUserRoute>
+                    <MatrixResult />
+                  </ProtectedUserRoute>
+                } 
+                />
+              {/* Admin route without protection for easier access */}
+              <Route path="/admin" element={<Admin />} />
+              <Route path="*" element={<NotFound />} />
+            </Routes>
+          </BrowserRouter>
+        </TooltipProvider>
+      </QueryClientProvider>
+    </AuthProvider>
   );
 };
 

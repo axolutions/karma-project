@@ -11,23 +11,19 @@ import { Separator } from '../components/ui/separator';
 import { Button } from '../components/ui/button';
 import { LogOut, Home } from 'lucide-react';
 import { Input } from '../components/ui/input';
+import { Auth } from '@supabase/auth-ui-react'
+import {  ThemeSupa } from '@supabase/auth-ui-shared';
+import { supabase } from '@/integrations/supabase/client';
+import { useAuth } from '@/hooks/use-auth';
+import { i18n_ptbr } from '../i18n/pt-br';
 
 export default function Admin() {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [adminPassword, setAdminPassword] = useState("");
   const navigate = useNavigate();
 
-  useEffect(() => {
-    // Verificar se já está autenticado pelo localStorage
-    const savedAuth = localStorage.getItem('adminAuthenticated');
-    if (savedAuth === 'true') {
-      setIsAuthenticated(true);
-    }
-    
-    console.log("Admin page loaded. Auth status:", savedAuth === 'true');
-  }, []);
+  const session = useAuth();
 
   const handleLogin = () => {
     setIsLoading(true);
@@ -38,7 +34,7 @@ export default function Admin() {
     
     if (adminPassword === correctPassword) {
       localStorage.setItem('adminAuthenticated', 'true');
-      setIsAuthenticated(true);
+      // setIsAuthenticated(true);
       toast.success("Login administrativo realizado com sucesso");
     } else {
       setError("Senha incorreta! Tente novamente.");
@@ -48,64 +44,130 @@ export default function Admin() {
     setIsLoading(false);
   };
 
-  const handleLogout = () => {
+  const handleLogout = async () => {
     localStorage.removeItem('adminAuthenticated');
-    setIsAuthenticated(false);
-    toast.success("Sessão administrativa encerrada");
-    navigate('/');
+    try {
+      await supabase.auth.signOut();
+      navigate('/');
+    } catch (error) {
+      console.error("Erro ao encerrar sessão administrativa:", error);
+      toast.error("Erro ao encerrar sessão administrativa");
+    }
   };
 
   const handleGoToHome = () => {
     navigate('/');
   };
 
-  // Se não estiver autenticado, mostrar tela de login
-  if (!isAuthenticated) {
+  // * Supabase Auth Error Message Translation
+  useEffect(() => {
+    if (session) return;
+
+    const observer = new MutationObserver((mutations) => {
+      mutations.forEach((mutation) => {
+        if (mutation.type !== "childList" || mutation.addedNodes.length === 0)
+          return;
+
+        for (const node of mutation.addedNodes) {
+          if (
+            node instanceof HTMLElement &&
+            (node.classList.contains("supabase-account-ui_ui-message") ||
+              node.classList.contains("supabase-auth-ui_ui-message"))
+          ) {
+            const originErrorMessage = node.innerHTML.trim();
+
+            const translatedErrorMessage = i18n_ptbr.error_messages[originErrorMessage] ?? i18n_ptbr.error_messages.generic;
+
+            if (!document.querySelector("#auth-forgot-password")) {
+              node.innerHTML = translatedErrorMessage;
+            }
+          }
+        }
+      });
+    });
+
+    observer.observe(document.body, {
+      childList: true,
+      subtree: true,
+    });
+
+    return () => observer.disconnect();
+  }, [session]);
+
+  if (!session) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-gray-50">
         <div className="bg-white p-8 rounded-lg shadow-md max-w-md w-full">
-          <h1 className="text-2xl font-bold text-center mb-6 text-primary">Acesso Administrativo</h1>
-          <div className="space-y-4">
-            <div>
-              <label htmlFor="password" className="block text-sm font-medium text-gray-700 mb-1">
-                Senha de Administrador
-              </label>
-              <Input
-                type="password"
-                id="password"
-                value={adminPassword}
-                onChange={(e) => setAdminPassword(e.target.value)}
-                className="w-full"
-                placeholder="Digite a senha de administrador"
-                onKeyDown={(e) => {
-                  if (e.key === 'Enter') {
-                    handleLogin();
-                  }
-                }}
-              />
-            </div>
-            {error && (
-              <p className="text-sm text-red-500">{error}</p>
-            )}
-            <Button
-              onClick={handleLogin}
-              className="w-full"
-              disabled={isLoading}
-            >
-              {isLoading ? "Verificando..." : "Entrar"}
-            </Button>
-            <Button 
-              variant="outline" 
-              onClick={handleGoToHome} 
-              className="w-full mt-4"
-            >
-              <Home className="h-4 w-4 mr-2" /> Voltar para a Página Inicial
-            </Button>
-          </div>
+          <h1 className="text-2xl font-bold text-center mb-6 text-primary">
+            Acesso Administrativo
+          </h1>
+          
+          <Auth
+            supabaseClient={supabase} 
+            localization={{ variables: i18n_ptbr }}
+            showLinks={false} 
+            appearance={{ theme: ThemeSupa, style: { button: { background: "#898078" } }}}
+            providers={[]} 
+          />
+        <Button 
+          variant="outline" 
+          onClick={handleGoToHome} 
+          className="w-full mt-4"
+        >
+          <Home className="h-4 w-4 mr-2" /> Voltar para a Página Inicial
+        </Button>
         </div>
       </div>
-    );
+    )
   }
+
+  // Se não estiver autenticado, mostrar tela de login
+  // if (!isAuthenticated) {
+  //   return (
+  //     <div className="min-h-screen flex items-center justify-center bg-gray-50">
+  //       <div className="bg-white p-8 rounded-lg shadow-md max-w-md w-full">
+  //         <h1 className="text-2xl font-bold text-center mb-6 text-primary">Acesso Administrativo</h1>
+  //         <div className="space-y-4">
+  //           <div>
+  //             <label htmlFor="password" className="block text-sm font-medium text-gray-700 mb-1">
+  //               Senha de Administrador
+  //             </label>
+  //             <Input
+  //               type="password"
+  //               id="password"
+  //               value={adminPassword}
+  //               onChange={(e) => setAdminPassword(e.target.value)}
+  //               className="w-full"
+  //               placeholder="Digite a senha de administrador"
+  //               onKeyDown={(e) => {
+  //                 if (e.key === 'Enter') {
+  //                   handleLogin();
+  //                 }
+  //               }}
+  //             />
+  //           </div>
+  //           {error && (
+  //             <p className="text-sm text-red-500">{error}</p>
+  //           )}
+  //           <Button
+  //             onClick={handleLogin}
+  //             className="w-full"
+  //             disabled={isLoading}
+  //           >
+  //             {isLoading ? "Verificando..." : "Entrar"}
+  //           </Button>
+  //           <Button 
+  //             variant="outline" 
+  //             onClick={handleGoToHome} 
+  //             className="w-full mt-4"
+  //           >
+  //             <Home className="h-4 w-4 mr-2" /> Voltar para a Página Inicial
+  //           </Button>
+  //         </div>
+  //       </div>
+  //     </div>
+  //   );
+  // }
 
   // Se estiver autenticado, mostrar o painel administrativo
   return (
