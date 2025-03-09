@@ -13,53 +13,8 @@ const ProfileForm: React.FC = () => {
   const [birthDate, setBirthDate] = useState('');
   const [isValid, setIsValid] = useState(true);
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [existingMaps, setExistingMaps] = useState<any[]>([]);
-  const [canCreateNewMap, setCanCreateNewMap] = useState(true);
   const navigate = useNavigate();
   const { toast } = useToast();
-  
-  useEffect(() => {
-    // Verificar se o usuário já tem um perfil gerado
-    const currentUser = getCurrentUser();
-    if (currentUser) {
-      console.log("ProfileForm: Usuário atual:", currentUser);
-      const allUserMaps = getAllUserDataByEmail();
-      
-      // Filtrar apenas mapas do usuário atual
-      const userMaps = allUserMaps.filter(map => 
-        map && map.email === currentUser && map.name && map.birthDate
-      );
-      console.log("ProfileForm: Mapas válidos encontrados para este usuário:", userMaps);
-      
-      setExistingMaps(userMaps || []);
-      
-      // Se houver mapas existentes, preencher o nome com o do último mapa
-      if (userMaps && userMaps.length > 0) {
-        setName(userMaps[userMaps.length - 1].name || '');
-        
-        // Verificar se o usuário pode criar um novo mapa
-        checkIfCanCreateNewMap(currentUser, userMaps.length);
-      }
-    } else {
-      console.log("ProfileForm: Nenhum usuário logado");
-    }
-  }, []);
-  
-  const checkIfCanCreateNewMap = async (email: string, mapCount: number) => {
-    // Aqui verificamos se o usuário pode criar um novo mapa
-    // Sempre permitir para o email projetovmtd@gmail.com
-    if (email.toLowerCase() === 'projetovmtd@gmail.com') {
-      setCanCreateNewMap(true);
-      return;
-    }
-    
-    if (mapCount > 0 && !(await isAuthorizedEmail(email))) {
-      // Simples verificação: se já tem mapas, não pode criar mais
-      setCanCreateNewMap(false);
-    } else {
-      setCanCreateNewMap(true);
-    }
-  };
   
   const formatDate = (value: string) => {
     // Filter out non-numeric characters except /
@@ -275,55 +230,14 @@ const ProfileForm: React.FC = () => {
         )}
       </div>
       
-      {existingMaps.length > 0 && (
-        <div className="p-3 bg-karmic-100 rounded-md">
-          <p className="text-sm text-karmic-700 mb-2 font-medium">
-            Você já possui {existingMaps.length} {existingMaps.length === 1 ? 'mapa' : 'mapas'} criado{existingMaps.length === 1 ? '' : 's'}:
-          </p>
-          <ul className="text-xs space-y-1 text-karmic-600">
-            {existingMaps.map((map, index) => (
-              <li key={map?.id || index}>
-                • {map?.name || 'Nome indisponível'} - {map?.birthDate || 'Data indisponível'} 
-                {map?.createdAt ? ` (criado em: ${new Date(map.createdAt).toLocaleDateString()})` : ''}
-              </li>
-            ))}
-          </ul>
-          
-          {!canCreateNewMap && (
-            <div className="mt-3 p-2 bg-amber-50 border border-amber-200 rounded-md text-amber-700 text-xs">
-              <p className="font-medium flex items-center">
-                <ShoppingCart className="h-3 w-3 mr-1" />
-                Você atingiu o limite de mapas que pode criar.
-              </p>
-              <p className="mt-1">
-                Para criar um novo mapa, você precisa adquirir um novo acesso ou entrar em contato com o administrador.
-              </p>
-            </div>
-          )}
-        </div>
-      )}
-      
       <Button 
         type="submit" 
         className="karmic-button w-full group"
-        disabled={isSubmitting || (existingMaps.length > 0 && !canCreateNewMap)}
+        disabled={isSubmitting}
       >
         {isSubmitting ? 'Processando...' : 'Gerar Minha Matriz Kármica 2025'}
         <MoveRight className="ml-2 h-4 w-4 transition-transform group-hover:translate-x-1" />
       </Button>
-      
-      {existingMaps.length > 0 && !canCreateNewMap && (
-        <div className="text-center">
-          <Button 
-            type="button" 
-            variant="link" 
-            onClick={() => navigate('/matrix')}
-            className="text-karmic-600 hover:text-karmic-800"
-          >
-            Voltar para meu mapa atual
-          </Button>
-        </div>
-      )}
     </form>
   );
 };
