@@ -1,5 +1,6 @@
 import { toast } from "@/components/ui/use-toast"
 import { SAMPLE_INTERPRETATIONS } from "./sample-interpretations"
+import { supabase } from "@/integrations/supabase/client"
 
 // Define types for interpretations
 export interface Interpretation {
@@ -22,61 +23,46 @@ export function generateInterpretationId(category: string, number: number): stri
 }
 
 // Add or update an interpretation
-export function setInterpretation(category: string, number: number, title: string, content: string): void {
+export async function setInterpretation(category: string, number: number, title: string, content: string) {
   const id = generateInterpretationId(category, number)
-
-  // Check if we're overriding a sample interpretation
-  const isOverridingSample = SAMPLE_INTERPRETATIONS[id] !== undefined
 
   console.log("SETTING INTERPRETAITON", id, title)
   console.log(content)
 
-  interpretations[id] = {
-    id,
-    title,
-    content,
+  try {
+    const { error } = await supabase.from("karmic_interpretations").upsert({
+      id,
+      title,
+      content,
+    })
+
+    if (error) {
+      throw error;
+    }
+
+    toast({
+      title: "Interpretação Salva",
+      description: `A interpretação para ${getCategoryDisplayName(category)} número ${number} foi salva com sucesso.`,
+    })
+  } catch (error) {
+    console.error("Erro ao salvar interpretação:", error)
+    toast({
+      title: "Erro ao Salvar",
+      description: "Ocorreu um erro ao salvar a interpretação. Por favor, tente novamente.",
+      variant: "destructive",
+    })
   }
-
-  // Save to localStorage
-  saveInterpretations()
-
-  console.log(`Interpretação ${id} ${isOverridingSample ? "(sobrescrevendo amostra)" : ""} salva com sucesso`)
-
-  toast({
-    title: "Interpretação Salva",
-    description: `A interpretação para ${getCategoryDisplayName(category)} número ${number} foi salva com sucesso.${isOverridingSample ? " (Sobrescrevendo amostra)" : ""}`,
-  })
 }
 
 // Get an interpretation
-export function getInterpretation(category: string, number: number): Interpretation {
+export async function getInterpretation(category: string, number: number) {
   const id = generateInterpretationId(category, number)
 
   console.log(`Buscando interpretação para: ${id}`)
 
-  // First check if it exists in the user's saved interpretations
-  if (interpretations[id]) {
-    console.log(`Interpretação encontrada em interpretations para ${id}`)
-    return interpretations[id]
-  }
+  const { data } = await supabase.from("karmic_interpretations").select("*").eq("id", id).single();
 
-  // If not found in loaded interpretations, check sample interpretations
-  if (SAMPLE_INTERPRETATIONS[id]) {
-    console.log(`Interpretação encontrada em SAMPLE_INTERPRETATIONS para ${id}`)
-    return SAMPLE_INTERPRETATIONS[id]
-  }
-
-  console.log(`Interpretação não encontrada para ${id}, retornando interpretação padrão`)
-  return {
-    id,
-    title: `${getCategoryDisplayName(category)} ${number}`,
-    content: DEFAULT_INTERPRETATION,
-  }
-}
-
-// Get all interpretations
-export function getAllInterpretations(): Interpretation[] {
-  return Object.values(interpretations)
+  return data;
 }
 
 // Delete an interpretation
@@ -104,84 +90,8 @@ function saveInterpretations(): void {
   }
 }
 
-// Load interpretations from localStorage
-export function loadInterpretations(): void {
-  console.log("Tentando carregar interpretações do localStorage...")
-  try {
-    const saved = localStorage.getItem("karmicInterpretations")
-
-    if (saved) {
-      console.log("Dados de interpretações encontrados no localStorage")
-      const loadedInterpretations = JSON.parse(saved)
-
-      // Verificar se as interpretações foram carregadas corretamente
-      const count = Object.keys(loadedInterpretations).length
-      console.log(`Número de interpretações carregadas: ${count}`)
-
-      // Inicializar com as interpretações carregadas
-      interpretations = loadedInterpretations
-
-      if (count === 0) {
-        console.log("Nenhuma interpretação encontrada no localStorage, carregando amostras")
-        // Se não houver interpretações salvas, preencher com as amostras
-        Object.assign(interpretations, SAMPLE_INTERPRETATIONS)
-        // Salvar essas amostras no localStorage para uso futuro
-        saveInterpretations()
-      }
-    } else {
-      console.log("Nenhum dado de interpretações encontrado no localStorage, carregando amostras")
-      // Carregar interpretações de amostra
-      interpretations = { ...SAMPLE_INTERPRETATIONS }
-      // Salvar essas amostras no localStorage para uso futuro
-      saveInterpretations()
-    }
-  } catch (error) {
-    console.error("Erro ao carregar interpretações:", error)
-    // Em caso de erro, carregar as interpretações de amostra
-    interpretations = { ...SAMPLE_INTERPRETATIONS }
-  }
-}
-
-// Ensure we have all sample interpretations available as a fallback
-export function ensureSampleInterpretationsLoaded(): void {
-  console.log("Verificando se as interpretações de amostra estão disponíveis...")
-
-  let needToSave = false
-
-  // Check if we have all sample interpretations and add any missing ones
-  Object.entries(SAMPLE_INTERPRETATIONS).forEach(([id, interpretation]) => {
-    if (!interpretations[id]) {
-      console.log(`Adicionando interpretação de amostra faltante: ${id}`)
-      interpretations[id] = interpretation
-      needToSave = true
-    }
-  })
-
-  // If we added any missing sample interpretations, save to localStorage
-  if (needToSave) {
-    console.log("Salvando interpretações de amostra adicionadas")
-    saveInterpretations()
-  }
-}
-
-// Força a adição das interpretações de amostra como fallback em produção
-export function forceLoadSampleInterpretations(): void {
-  if (true) return;
-  console.log("Forçando carregamento de interpretações de amostra para ambiente de produção")
-  // Carregar interpretações de amostra diretamente
-  Object.entries(SAMPLE_INTERPRETATIONS).forEach(([id, interpretation]) => {
-    interpretations[id] = interpretation
-  })
-
-  // Salvar no localStorage
-  saveInterpretations()
-  console.log("Interpretações de amostra forçadas carregadas e salvas")
-}
-
 // Initialize interpretations from localStorage on module load
 console.log("Inicializando módulo de interpretações")
-loadInterpretations()
-ensureSampleInterpretationsLoaded() // Make sure we at least have sample interpretations
 
 // Get display name for a category
 export function getCategoryDisplayName(category: string): string {

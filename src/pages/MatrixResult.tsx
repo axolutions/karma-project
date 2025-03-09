@@ -7,11 +7,6 @@ import MatrixInterpretations from "../components/MatrixInterpretations";
 import { useToast } from "@/components/ui/use-toast";
 import LoadingState from "../components/matrix/LoadingState";
 import ErrorState from "../components/matrix/ErrorState";
-import {
-	loadInterpretations,
-	ensureSampleInterpretationsLoaded,
-	forceLoadSampleInterpretations,
-} from "@/lib/interpretations";
 import { useNavigate } from "react-router-dom";
 
 const MatrixResult: React.FC = () => {
@@ -27,13 +22,6 @@ const MatrixResult: React.FC = () => {
 	useEffect(() => {
 		console.log("MatrixResult: Carregando interpretações...");
 		try {
-
-			// Load interpretations from localStorage or use samples
-			loadInterpretations();
-
-			// Ensure we have sample interpretations available as fallback
-			ensureSampleInterpretationsLoaded();
-
 			setInterpretationsLoaded(true);
 			console.log("MatrixResult: Interpretações carregadas com sucesso");
 		} catch (err) {
@@ -46,8 +34,6 @@ const MatrixResult: React.FC = () => {
 
 			// Try to use sample interpretations as fallback even if there's an error
 			try {
-				forceLoadSampleInterpretations();
-				ensureSampleInterpretationsLoaded();
 				setInterpretationsLoaded(true);
 			} catch (e) {
 				console.error(

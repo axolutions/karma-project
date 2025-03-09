@@ -5,9 +5,6 @@ import { useState, useEffect } from "react"
 import {
   getInterpretation,
   getCategoryDisplayName,
-  loadInterpretations,
-  ensureSampleInterpretationsLoaded,
-  forceLoadSampleInterpretations,
 } from "@/lib/interpretations"
 import { motion, AnimatePresence } from "framer-motion"
 import { ChevronDown, ChevronUp, AlertTriangle } from "lucide-react"
@@ -35,16 +32,6 @@ const MatrixInterpretations: React.FC<MatrixInterpretationsProps> = ({ karmicDat
   useEffect(() => {
     console.log("MatrixInterpretations: Carregando interpretações...")
     try {
-      // Forçar carregamento das interpretações de amostra primeiro para garantir
-      // que temos um fallback disponível
-      forceLoadSampleInterpretations()
-
-      // Carregar interpretações do localStorage
-      loadInterpretations()
-
-      // Garantir que as interpretações de amostra estão disponíveis como backup
-      ensureSampleInterpretationsLoaded()
-
       setInterpretationsLoaded(true)
       console.log("MatrixInterpretations: Interpretações carregadas com sucesso")
     } catch (err) {
@@ -53,8 +40,6 @@ const MatrixInterpretations: React.FC<MatrixInterpretationsProps> = ({ karmicDat
 
       // Tentar carregar interpretações de amostra como fallback
       try {
-        forceLoadSampleInterpretations()
-        ensureSampleInterpretationsLoaded()
         setInterpretationsLoaded(true)
         setLoadError(null)
         console.log("MatrixInterpretations: Fallback para interpretações de amostra carregado com sucesso")

@@ -15,26 +15,33 @@ import { Save, Trash, Bold, Italic, List, Type, Quote } from 'lucide-react';
 
 const InterpretationEditor: React.FC = () => {
   const [selectedCategory, setSelectedCategory] = useState("karmicSeal");
-  const [selectedNumber, setSelectedNumber] = useState("1");
+  const [selectedNumber, setSelectedNumber] = useState("0");
   const [title, setTitle] = useState("");
   const [content, setContent] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [previewMode, setPreviewMode] = useState(false);
   
-  const possibleNumbers = ["1", "2", "3", "4", "5", "6", "7", "8", "9", "11", "22", "33", "44"];
+  const possibleNumbers = ["0", "1", "2", "3", "4", "5", "6", "7", "8", "9", "11", "22", "33", "44"];
   const categories = getAllCategories();
   
   useEffect(() => {
     loadInterpretation();
   }, [selectedCategory, selectedNumber]);
   
-  const loadInterpretation = () => {
-    const interpretation = getInterpretation(selectedCategory, parseInt(selectedNumber));
+  const loadInterpretation = async () => {
+    const interpretation = await getInterpretation(selectedCategory, parseInt(selectedNumber));
+
+    if (!interpretation) {
+      setTitle("");
+      setContent("");
+      return;
+    }
+
     setTitle(interpretation.title);
     setContent(interpretation.content);
   };
   
-  const handleSave = () => {
+  const handleSave = async () => {
     setIsLoading(true);
     
     if (!title.trim()) {
@@ -60,7 +67,7 @@ const InterpretationEditor: React.FC = () => {
     // Formata o conteúdo para garantir que esteja corretamente estruturado em HTML
     const formattedContent = formatContentForSaving(content);
     
-    setInterpretation(
+    await setInterpretation(
       selectedCategory, 
       parseInt(selectedNumber), 
       title, 
