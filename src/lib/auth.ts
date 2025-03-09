@@ -143,12 +143,19 @@ export async function isAuthorizedEmail(email: string): Promise<boolean> {
     const normalizedEmail = email.toLowerCase().trim();
     console.log("Verificando autorização para:", normalizedEmail);
 
-    const result = await supabase.from("clients").select("email", { head: true }).eq('email', normalizedEmail);
+    const result = await supabase.from("clients").select("email").eq('email', normalizedEmail);
 
     if (result.error) {
       console.error(result.error);
       return false;
     }
+
+    if (result.data.length === 0) {
+      console.log("Email não autorizado:", normalizedEmail);
+      return false;
+    }
+
+    console.log(result)
 
     return true;
 
@@ -162,22 +169,6 @@ export async function isAuthorizedEmail(email: string): Promise<boolean> {
     // ];
   } catch (error) {
     console.error('Erro ao verificar se email é autorizado:', error);
-
-    // Em caso de erro, verifica se é um dos emails críticos
-    const normalizedEmail = email.toLowerCase().trim();
-    const criticalEmails = [
-      'projetovmtd@gmail.com',
-      'teste@teste.com',
-      'carlamaiaprojetos@gmail.com',
-      'mariaal020804@gmail.com',
-      'tesete@testelcom.br'
-    ];
-
-    if (criticalEmails.some(e => e.toLowerCase() === normalizedEmail)) {
-      console.log("Email crítico autorizado (fallback):", normalizedEmail);
-      return true;
-    }
-
     return false;
   }
 };

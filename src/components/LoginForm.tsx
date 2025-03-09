@@ -61,15 +61,14 @@ const LoginForm: React.FC = () => {
       let userData = await getUserData(normalizedEmail);
       
       if (!userData) {
-        console.log("Usuário não encontrado, criando registro inicial");
-        // Cria um registro básico para o usuário
-        userData = {
-          email: normalizedEmail,
-          name: "",
-          id: crypto.randomUUID()
-        };
-        saveUserData(userData);
-        throw new Error("TODO: Redirecionar para página de perfil");
+        console.log("Usuário não encontrado");
+
+        toast({
+          title: "Perfil não encontrado",
+          description: "Por favor, preencha seu perfil para continuar.",
+          variant: "destructive"
+        });
+        return;
       }
       
       const success = login(normalizedEmail);

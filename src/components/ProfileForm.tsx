@@ -1,11 +1,11 @@
 
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import { MoveRight, ShoppingCart } from "lucide-react";
+import { MoveRight } from "lucide-react";
 import { calculateAllKarmicNumbers } from '@/lib/calculations';
 import { useToast } from "@/components/ui/use-toast";
-import { saveUserData, getCurrentUser, getAllUserDataByEmail, setCurrentMatrixId, isAuthorizedEmail, saveKarmicNumbers } from '@/lib/auth';
+import { getCurrentUser, saveKarmicNumbers } from '@/lib/auth';
 import { useNavigate } from 'react-router-dom';
 
 const ProfileForm: React.FC = () => {
