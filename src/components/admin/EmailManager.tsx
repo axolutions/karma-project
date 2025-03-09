@@ -9,9 +9,10 @@ import {
   getAllUserDataByEmail
 } from '@/lib/auth';
 import { X, Plus, Map, Zap, RefreshCw } from 'lucide-react';
+import { Json } from '@/integrations/supabase/database.types';
 
 const EmailManager: React.FC = () => {
-  const [emails, setEmails] = useState<{ email: string, essential: boolean }[]>([]);
+  const [emails, setEmails] = useState<{ email: string, essential: boolean, karmic_numbers: Json[] }[]>([]);
   const [newEmail, setNewEmail] = useState('');
   const [emailStats, setEmailStats] = useState<Record<string, number>>({});
   const [isRefreshing, setIsRefreshing] = useState(false);
@@ -164,7 +165,7 @@ const EmailManager: React.FC = () => {
           <p className="text-karmic-500 italic">Nenhum email autorizado cadastrado.</p>
         ) : (
           <ul className="space-y-2">
-            {emails.map(({email, essential}) => {
+            {emails.map(({email, essential, karmic_numbers}) => {
               return (
                 <li 
                   key={email} 
@@ -176,6 +177,14 @@ const EmailManager: React.FC = () => {
                       <span className="ml-2 text-xs bg-blue-200 text-blue-800 px-2 py-1 rounded-full">
                         Essencial
                       </span>
+                    )}
+                    {karmic_numbers.length > 0 && (
+                      <div className="ml-3 flex items-center text-xs bg-karmic-200 text-karmic-700 px-2 py-1 rounded-full">
+                        <Map className="h-3 w-3 mr-1" />
+                        <span>
+                          Mapa
+                        </span>
+                      </div>
                     )}
                   </div>
                   <Button 

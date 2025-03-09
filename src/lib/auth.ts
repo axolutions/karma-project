@@ -1,4 +1,5 @@
 import { supabase } from "@/integrations/supabase/client";
+import { Json } from "@/integrations/supabase/database.types";
 
 // Função para obter todos os dados do usuário por email
 export const getAllUserDataByEmail = (email?: string) => {
@@ -126,9 +127,9 @@ export const setCurrentMatrixId = (matrixId: string): void => {
 };
 
 // Funções para gerenciar emails autorizados
-export async function getAllAuthorizedEmails(): Promise<{ email: string, essential: boolean }[]> {
+export async function getAllAuthorizedEmails(): Promise<{ email: string, essential: boolean, karmic_numbers: Json[] }[]> {
   try {
-    const { data } = await supabase.from("clients").select("email,essential");
+    const { data } = await supabase.from("clients").select("email,essential,karmic_numbers");
 
     return data;
   } catch (error) {
