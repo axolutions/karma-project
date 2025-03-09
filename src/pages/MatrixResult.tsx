@@ -8,20 +8,16 @@ import { useToast } from "@/components/ui/use-toast";
 import LoadingState from "../components/matrix/LoadingState";
 import ErrorState from "../components/matrix/ErrorState";
 import {
-	generateInterpretationsHTML,
 	loadInterpretations,
 	ensureSampleInterpretationsLoaded,
 	forceLoadSampleInterpretations,
 } from "@/lib/interpretations";
 import { useNavigate } from "react-router-dom";
-import { KarmicIntroduction } from "@/components/KarmicIntroduction";
 
 const MatrixResult: React.FC = () => {
 	const [userData, setUserData] = useState<any>(null);
-	const [userMaps, setUserMaps] = useState<any[]>([]);
 	const [loading, setLoading] = useState(true);
 	const [error, setError] = useState<string | null>(null);
-	const [refreshing, setRefreshing] = useState(false);
 	const [interpretationsLoaded, setInterpretationsLoaded] = useState(false);
 	const { toast } = useToast();
 	const [pdfMode, setPdfMode] = useState(false);
@@ -141,28 +137,6 @@ const MatrixResult: React.FC = () => {
 					data.karmicNumbers,
 				);
 				setUserData(data);
-
-				// Obter todos os mapas do usuário (apenas os que têm dados completos)
-				const allUserMaps = getAllUserDataByEmail(email);
-				if (allUserMaps && allUserMaps.length > 0) {
-					// Filtrar apenas mapas válidos (com nome e data de nascimento)
-					const validMaps = allUserMaps.filter(
-						(map) => map && map.name && map.birthDate,
-					);
-					console.log(
-						"MatrixResult: Todos os mapas válidos do usuário:",
-						validMaps,
-					);
-					setUserMaps(validMaps);
-				} else {
-					// Se não encontrar mapas adicionais, usar apenas o mapa atual se for válido
-					if (data.name && data.birthDate) {
-						setUserMaps([data]);
-					} else {
-						setUserMaps([]);
-					}
-				}
-
 				setLoading(false);
 			} catch (err) {
 				console.error("Erro ao carregar dados do usuário:", err);
@@ -176,56 +150,6 @@ const MatrixResult: React.FC = () => {
 			loadUserData();
 		}
 	}, [navigate, interpretationsLoaded]);
-
-	// Funções para o UserHeader
-	const handleRefresh = () => {
-		setRefreshing(true);
-
-		// Forçar o recarregamento das interpretações
-		try {
-			forceLoadSampleInterpretations();
-			loadInterpretations();
-			ensureSampleInterpretationsLoaded();
-		} catch (e) {
-			console.error("Erro ao recarregar interpretações:", e);
-		}
-
-		// Recarregar os dados do usuário
-		const email = getCurrentUser();
-		if (email) {
-			const userData = getUserData(email);
-			if (userData) {
-				setUserData(userData);
-
-				// Atualizar a lista de mapas do usuário
-				const allUserMaps = getAllUserDataByEmail(email);
-				if (allUserMaps && allUserMaps.length > 0) {
-					setUserMaps(allUserMaps);
-				} else {
-					setUserMaps([userData]);
-				}
-
-				toast({
-					title: "Atualizado",
-					description: "Dados da matriz atualizados com sucesso!",
-				});
-			}
-		}
-		setRefreshing(false);
-	};
-
-	function handleSwitchMap(mapId: string) {
-		console.log("Alterando para o mapa:", mapId);
-		// Encontrar o mapa com o ID especificado
-		const selectedMap = userMaps.find((map) => map.id === mapId);
-		if (selectedMap) {
-			setUserData(selectedMap);
-		}
-	}
-
-	function handleCreateNewMap() {
-		navigate("/");
-	}
 
 	function handleDownloadPDF() {
 		if (!userData?.karmicNumbers) {
@@ -259,12 +183,6 @@ const MatrixResult: React.FC = () => {
 		<div className="container mx-auto px-4 py-8 max-w-6xl">
 			<UserHeader
 				userData={userData}
-				userMaps={userMaps}
-				refreshing={refreshing}
-				canCreateNewMap={true}
-				handleRefresh={handleRefresh}
-				handleSwitchMap={handleSwitchMap}
-				handleCreateNewMap={handleCreateNewMap}
 				handleDownloadPDF={handleDownloadPDF}
 			/>
 			{/* <KarmicIntroduction /> */}

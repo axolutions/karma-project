@@ -15,23 +15,11 @@ import {
 
 interface UserHeaderProps {
   userData: any;
-  userMaps: any[];
-  refreshing: boolean;
-  canCreateNewMap: boolean;
-  handleRefresh: () => void;
-  handleSwitchMap: (mapId: string) => void;
-  handleCreateNewMap: () => void;
   handleDownloadPDF: () => void;
 }
 
 const UserHeader: React.FC<UserHeaderProps> = ({
   userData,
-  userMaps,
-  refreshing,
-  canCreateNewMap,
-  handleRefresh,
-  handleSwitchMap,
-  handleCreateNewMap,
   handleDownloadPDF
 }) => {
   const navigate = useNavigate();
@@ -53,69 +41,10 @@ const UserHeader: React.FC<UserHeaderProps> = ({
         </h1>
         <p className="text-karmic-600">
           Olá, <span className="font-medium">{userData.name}</span>
-          {userMaps.length > 1 && (
-            <span className="text-xs ml-2 text-karmic-500">
-              (Você possui {userMaps.length} mapas kármicos)
-            </span>
-          )}
         </p>
       </div>
       
       <div className="flex space-x-3">
-        {userMaps.length > 1 && (
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <Button variant="outline" className="karmic-button-outline">
-                Meus Mapas <ChevronDown className="ml-2 h-4 w-4" />
-              </Button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent align="end" className="w-64">
-              <DropdownMenuLabel>Selecione um mapa</DropdownMenuLabel>
-              <DropdownMenuSeparator />
-              {userMaps.map((map, index) => (
-                map && map.id ? (
-                  <DropdownMenuItem 
-                    key={map.id || index} 
-                    onClick={() => handleSwitchMap(map.id)}
-                    className={map.id === userData.id ? "bg-karmic-100 font-medium" : ""}
-                  >
-                    {map.name} - {map.birthDate}
-                    <span className="text-xs ml-2 text-karmic-500">
-                      ({map.createdAt ? new Date(map.createdAt).toLocaleDateString() : 'Data desconhecida'})
-                    </span>
-                  </DropdownMenuItem>
-                ) : null
-              ))}
-              <DropdownMenuSeparator />
-              <DropdownMenuItem 
-                onClick={handleCreateNewMap} 
-                className={canCreateNewMap ? "text-karmic-700" : "text-gray-400 cursor-not-allowed"}
-                disabled={!canCreateNewMap}
-              >
-                {!canCreateNewMap ? (
-                  <>
-                    <ShoppingCart className="mr-2 h-4 w-4" /> Adquira novo acesso
-                  </>
-                ) : (
-                  <>
-                    <Plus className="mr-2 h-4 w-4" /> Criar novo mapa
-                  </>
-                )}
-              </DropdownMenuItem>
-            </DropdownMenuContent>
-          </DropdownMenu>
-        )}
-        
-        <Button 
-          onClick={handleRefresh}
-          variant="outline"
-          className="karmic-button-outline flex items-center"
-          disabled={refreshing}
-        >
-          <RefreshCw className={`mr-2 h-4 w-4 ${refreshing ? 'animate-spin' : ''}`} />
-          Atualizar
-        </Button>
-        
         <Button 
           onClick={handleDownloadPDF}
           className="karmic-button flex items-center"
