@@ -131,66 +131,6 @@ export async function getAllAuthorizedEmails(): Promise<{ email: string, essenti
   }
 }
 
-// try {
-//   const emailsString = localStorage.getItem('authorizedEmails');
-
-//   // Se não houver emails armazenados, inicializa com valores padrão
-//   if (!emailsString) {
-//     // Inclui o email do exemplo e o email projetovmtd@gmail.com
-//     const defaultEmails = [
-//       'example1@example.com', 
-//       'example2@example.com', 
-//       'teste@teste.com', 
-//       'projetovmtd@gmail.com', 
-//       'carlamaiaprojetos@gmail.com',
-//       'mariaal020804@gmail.com',
-//       'tesete@testelcom.br'
-//     ];
-//     localStorage.setItem('authorizedEmails', JSON.stringify(defaultEmails));
-//     return defaultEmails;
-//   }
-
-//   // Caso contrário, retorna os emails armazenados
-//   const storedEmails = JSON.parse(emailsString);
-
-//   // Garante que todos os emails importantes estejam na lista
-//   const criticalEmails = [
-//     'projetovmtd@gmail.com',
-//     'teste@teste.com',
-//     'carlamaiaprojetos@gmail.com',
-//     'mariaal020804@gmail.com',
-//     'tesete@testelcom.br'
-//   ];
-
-//   let updated = false;
-//   for (const email of criticalEmails) {
-//     if (!storedEmails.some((e: string) => e.toLowerCase().trim() === email.toLowerCase())) {
-//       storedEmails.push(email);
-//       updated = true;
-//       console.log(`Email crítico adicionado: ${email}`);
-//     }
-//   }
-
-//   if (updated) {
-//     localStorage.setItem('authorizedEmails', JSON.stringify(storedEmails));
-//     console.log('Lista de emails atualizada com emails críticos');
-//   }
-
-//   return storedEmails;
-// } catch (error) {
-//   console.error('Erro ao obter emails autorizados:', error);
-//   // Em caso de erro, retorna uma lista padrão
-//   return [
-//     'example1@example.com', 
-//     'example2@example.com', 
-//     'teste@teste.com', 
-//     'projetovmtd@gmail.com', 
-//     'carlamaiaprojetos@gmail.com',
-//     'mariaal020804@gmail.com',
-//     'tesete@testelcom.br'
-//   ];
-// }
-
 export const isAuthorizedEmail = (email: string): boolean => {
   try {
     const authorizedEmails = getAllAuthorizedEmails();
@@ -245,36 +185,23 @@ export const isAuthorizedEmail = (email: string): boolean => {
   }
 };
 
-export const addAuthorizedEmail = (email: string): void => {
+export async function addAuthorizedEmail(email: string) {
   try {
-    const authorizedEmails = getAllAuthorizedEmails();
     const normalizedEmail = email.toLowerCase().trim();
 
-    // Verificar se o email já está na lista
-    if (!authorizedEmails.some(e => e.toLowerCase().trim() === normalizedEmail)) {
-      authorizedEmails.push(normalizedEmail);
-      localStorage.setItem('authorizedEmails', JSON.stringify(authorizedEmails));
-      console.log("Email adicionado à lista de autorizados:", normalizedEmail);
-    } else {
-      console.log("Email já está na lista de autorizados:", normalizedEmail);
-    }
+    const result = await supabase.from("clients").upsert([{ email: normalizedEmail }]);
+    result.error ? console.error(result.error) : console.log("Email adicionado à lista de autorizados:", normalizedEmail);
   } catch (error) {
     console.error('Erro ao adicionar email autorizado:', error);
   }
 };
 
-export const removeAuthorizedEmail = (email: string): void => {
+export async function removeAuthorizedEmail(email: string) {
   try {
-    const authorizedEmails = getAllAuthorizedEmails();
     const normalizedEmail = email.toLowerCase().trim();
 
-    // Filtrar o email a ser removido
-    const updatedEmails = authorizedEmails.filter(
-      authorizedEmail => authorizedEmail.toLowerCase().trim() !== normalizedEmail
-    );
-
-    localStorage.setItem('authorizedEmails', JSON.stringify(updatedEmails));
-    console.log("Email removido da lista de autorizados:", normalizedEmail);
+    const result = await supabase.from("clients").delete().eq('email', normalizedEmail);
+    result.error ? console.error(result.error) : console.log("Email removido da lista de autorizados:", normalizedEmail);
   } catch (error) {
     console.error('Erro ao remover email autorizado:', error);
   }

@@ -35,7 +35,7 @@ const EmailManager: React.FC = () => {
     }
   };
   
-  const handleAddEmail = () => {
+  const handleAddEmail = async () => {
     if (!newEmail.trim()) {
       toast.error("Email obrigatório", {
         description: "Por favor, insira um email para adicionar."
@@ -53,46 +53,32 @@ const EmailManager: React.FC = () => {
     // Normaliza o email para minúsculas
     const normalizedEmail = newEmail.toLowerCase().trim();
     
-    // Adicionar o email à lista de autorizados
-    addAuthorizedEmail(normalizedEmail);
-    
-    toast.success("Email adicionado", {
-      description: `O email ${normalizedEmail} foi adicionado com sucesso.`
-    });
-    setNewEmail('');
-    refreshEmails();
+    try {
+      await addAuthorizedEmail(normalizedEmail);
+      
+      toast.success("Email adicionado", {
+        description: `O email ${normalizedEmail} foi adicionado com sucesso.`
+      });
+      setNewEmail('');
+      refreshEmails();
+    } catch (error) {
+      console.error("Erro ao adicionar email:", error);
+      toast.error("Erro ao adicionar email autorizado");
+    }
   };
   
-  const handleRemoveEmail = (email: string) => {
-    // Special emails can't be removed
-    const specialEmails = [
-      'projetovmtd@gmail.com',
-      'teste@teste.com',
-      'carlamaiaprojetos@gmail.com'
-    ];
-    
-    if (specialEmails.includes(email.toLowerCase())) {
-      toast.error("Email protegido", {
-        description: `O email ${email} não pode ser removido pois é um email essencial do sistema.`
+  const handleRemoveEmail = async (email: string) => {  
+    try {
+      await removeAuthorizedEmail(email);
+
+      toast.success("Email removido", {
+        description: `O email ${email} foi removido com sucesso.`
       });
-      return;
+      refreshEmails();
+    } catch (error) {
+      console.error("Erro ao remover email:", error);
+      toast.error("Erro ao remover email autorizado");
     }
-    
-    // Verificar se o email possui mapas criados
-    const mapsCount = emailStats[email] || 0;
-    
-    if (mapsCount > 0) {
-      if (!confirm(`Este email possui ${mapsCount} mapas criados. Remover este email impedirá o acesso a esses mapas. Deseja continuar?`)) {
-        return;
-      }
-    }
-    
-    removeAuthorizedEmail(email);
-    
-    toast.success("Email removido", {
-      description: `O email ${email} foi removido com sucesso.`
-    });
-    refreshEmails();
   };
   
   const handleKeyPress = (e: React.KeyboardEvent) => {
@@ -190,12 +176,6 @@ const EmailManager: React.FC = () => {
                       <span className="ml-2 text-xs bg-blue-200 text-blue-800 px-2 py-1 rounded-full">
                         Essencial
                       </span>
-                    )}
-                    {emailStats[email] > 0 && (
-                      <div className="ml-3 flex items-center text-xs bg-karmic-200 text-karmic-700 px-2 py-1 rounded-full">
-                        <Map className="h-3 w-3 mr-1" />
-                        {emailStats[email]} {emailStats[email] === 1 ? 'mapa' : 'mapas'}
-                      </div>
                     )}
                   </div>
                   <Button 
