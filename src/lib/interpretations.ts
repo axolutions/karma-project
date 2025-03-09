@@ -22,9 +22,6 @@ export function generateInterpretationId(category: string, number: number): stri
 export async function setInterpretation(category: string, number: number, title: string, content: string) {
   const id = generateInterpretationId(category, number)
 
-  console.log("SETTING INTERPRETAITON", id, title)
-  console.log(content)
-
   try {
     const { error } = await supabase.from("karmic_interpretations").upsert({
       id,
@@ -62,27 +59,23 @@ export async function getInterpretation(category: string, number: number) {
 }
 
 // Delete an interpretation
-export function deleteInterpretation(category: string, number: number): void {
+export async function deleteInterpretation(category: string, number: number) {
   const id = generateInterpretationId(category, number)
 
-  if (interpretations[id]) {
-    delete interpretations[id]
-    saveInterpretations()
+  try {
+    await supabase.from("karmic_interpretations").delete().eq("id", id);
 
     toast({
       title: "Interpretação Removida",
       description: `A interpretação para ${category} número ${number} foi removida.`,
     })
-  }
-}
-
-// Save interpretations to localStorage
-function saveInterpretations(): void {
-  try {
-    localStorage.setItem("karmicInterpretations", JSON.stringify(interpretations))
-    console.log("Interpretações salvas com sucesso no localStorage")
   } catch (error) {
-    console.error("Erro ao salvar interpretações no localStorage:", error)
+    console.error("Erro ao deletar interpretação:", error)
+    toast({
+      title: "Erro ao Deletar",
+      description: "Ocorreu um erro ao deletar a interpretação. Por favor, tente novamente.",
+      variant: "destructive",
+    })
   }
 }
 
