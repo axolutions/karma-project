@@ -178,7 +178,7 @@ const EmailManager: React.FC = () => {
                         Essencial
                       </span>
                     )}
-                    {karmic_numbers.length > 0 && (
+                    {karmic_numbers?.length > 0 && (
                       <div className="ml-3 flex items-center text-xs bg-karmic-200 text-karmic-700 px-2 py-1 rounded-full">
                         <Map className="h-3 w-3 mr-1" />
                         <span>
