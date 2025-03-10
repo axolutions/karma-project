@@ -58,9 +58,12 @@ const YampiIntegration = () => {
   const [userData, setUserData] = useState<UserData | null>(null);
   const [allUsersData, setAllUsersData] = useState<UserData[]>([]);
   const [selectedUserEmail, setSelectedUserEmail] = useState<string | null>(null);
-  const [yampiApiKey, setYampiApiKey] = useState<string>('');
-  const [yampiProductId, setYampiProductId] = useState<string>('');
-  const [yampiWebhookUrl, setYampiWebhookUrl] = useState<string>('');
+
+  const [yampiAlias, setYampiAlias] = useState("");
+  const [yampiToken, setYampiToken] = useState("");
+  const [yampiSecretKey, setYampiSecretKey] = useState("");
+  const [yampiWebhookUrl, setYampiWebhookUrl] = useState("");
+
   const [netlifyDeploymentUrl, setNetlifyDeploymentUrl] = useState<string>('');
   const [previewVisible, setPreviewVisible] = useState<boolean>(false);
   const previewRef = useRef<HTMLIFrameElement>(null);
@@ -906,6 +909,110 @@ Edite os seguintes arquivos conforme necessário:
     }
   };
 
+  async function handleYampiWebhookClick() {
+    if (!yampiAlias || !yampiSecretKey || !yampiToken || !yampiWebhookUrl) {
+      toast({
+        title: "Erro",
+        description: "Por favor, preencha todas as configurações do Yampi.",
+        variant: "destructive"
+      });
+      return;
+    }
+
+    const baseUrl = `https://api.dooki.com.br/v2/${yampiAlias}`
+
+    let existingId: string | undefined
+
+    try {
+      const result = await supabase.from("yampi_integrations").select("id").eq("alias", yampiAlias).single();
+
+      if (result.data) {
+        existingId = result.data.id
+      }
+    } catch(error) {
+      // Do nothing
+    }
+
+    try {
+      const id = Math.random().toString(36).substring(7);
+
+      let response: Response;
+
+      if (existingId) {
+        response = await fetch(`${baseUrl}/webhooks/${existingId}`, {
+          method: "PUT",
+          headers: {
+            "Content-Type": "application/json",
+            "User-Token": yampiToken,
+            "User-Secret-Key": yampiSecretKey
+          },
+          body: JSON.stringify({
+            url: yampiWebhookUrl,
+            events: ["order.paid"],
+            name: `Yampi Webhook - ${id}`
+          })
+        });
+      } else {
+        response = await fetch(`${baseUrl}/webhooks`, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            "User-Token": yampiToken,
+            "User-Secret-Key": yampiSecretKey
+          },
+          body: JSON.stringify({
+            url: yampiWebhookUrl,
+            events: ["order.paid"],
+            name: `Yampi Webhook - ${id}`
+          })
+        });
+      }
+
+      if (!response.ok) {
+        throw new Error("Erro ao criar webhook");
+      }
+
+      const { data } = await response.json() ?? {};
+
+      if (!data || data.length === 0) {
+        throw new Error("Erro ao criar webhook");
+      }
+
+      if (data.url !== yampiWebhookUrl || !data.secret_key || !data.id) {
+        throw new Error("Erro ao verificar o webhook");
+      }
+
+      try {
+        await supabase.from("yampi_integrations").upsert({
+          alias: yampiAlias,
+          id: data.id,
+          secret: data.secret_key,
+          webhook_url: yampiWebhookUrl
+        })
+      } catch (error) {
+        console.error("Erro ao salvar configuração Yampi:", error);
+        toast({
+          title: "Erro",
+          description: "Não foi possível salvar a configuração do Yampi.",
+          variant: "destructive"
+        });
+        return;
+      }  
+
+      toast({
+        title: "Webhook criado",
+        description: `O webhook foi ${existingId ? "atualizado" : "criado"} com sucesso.`
+      });
+    } catch (error) {
+      console.error("Erro ao gerar webhook Yampi:", error);
+      toast({
+        title: "Erro",
+        description: `Não foi possível ${existingId ? "atualizar" : "criar"} o webhook do Yampi.`,
+        variant: "destructive"
+      });
+    }
+  }
+
   return (
     <div className="space-y-6">
       <Alert className="bg-amber-50 border-amber-200 mb-6">
@@ -1061,46 +1168,81 @@ Edite os seguintes arquivos conforme necessário:
             </CardHeader>
             <CardContent className="space-y-4">
               <div>
-                <Label htmlFor="apiKey">Chave de API Yampi</Label>
+                <Label htmlFor="name">Nome da Loja Yampi</Label>
                 <Input
-                  id="apiKey"
-                  value={yampiApiKey}
-                  onChange={(e) => setYampiApiKey(e.target.value)}
-                  placeholder="Insira sua chave de API da Yampi"
+                  id="name"
+                  value={yampiAlias}
+                  onChange={(e) => setYampiAlias(e.target.value)}
+                  placeholder="Insira o nome da sua loja na Yampi"
                 />
                 <p className="text-xs text-gray-500 mt-1">
-                  A chave de API pode ser obtida no painel de desenvolvedor da Yampi.
+                  Insira o nome da sua loja na Yampi para integração.
                 </p>
               </div>
-              
+
               <div>
-                <Label htmlFor="productId">ID do Produto</Label>
+                <Label htmlFor="token">Token de Acesso Yampi</Label>
                 <Input
-                  id="productId"
-                  value={yampiProductId}
-                  onChange={(e) => setYampiProductId(e.target.value)}
-                  placeholder="ID do produto na Yampi"
+                  id="token"
+                  value={yampiToken}
+                  onChange={(e) => setYampiToken(e.target.value)}
+                  placeholder="Insira o token de acesso da sua loja na Yampi"
                 />
                 <p className="text-xs text-gray-500 mt-1">
-                  ID do produto que você está vendendo na Yampi.
+                  Insira o token de acesso da sua loja na Yampi para integração.
                 </p>
               </div>
-              
+
               <div>
-                <Label htmlFor="webhookUrl">URL do Webhook</Label>
+                <Label htmlFor="webhookUrl">URL Webhook Yampi</Label>
                 <Input
                   id="webhookUrl"
                   value={yampiWebhookUrl}
                   onChange={(e) => setYampiWebhookUrl(e.target.value)}
-                  placeholder="https://seu-site.com/api/yampi-webhook"
+                  placeholder="https://<id>.supabase.co/functions/v1/yampi-webhook"
                 />
                 <p className="text-xs text-gray-500 mt-1">
-                  URL onde a Yampi vai enviar notificações de pedidos. Por padrão será /api/yampi-webhook.
+                  Insira a URL do webhook para receber notificações da Yampi.
                 </p>
+              </div>
+
+              <div>
+                <Label htmlFor="secretKey">Chave Secreta Yampi</Label>
+                <Input
+                  id="secretKey"
+                  value={yampiSecretKey}
+                  onChange={(e) => setYampiSecretKey(e.target.value)}
+                  placeholder="Insira a chave secreta da sua loja na Yampi"
+                />
+                <p className="text-xs text-gray-500 mt-1">
+                  Insira a chave secreta da sua loja na Yampi para integração.
+                </p>
+              </div>
+
+              <div className="mt-6 p-4 bg-blue-50 border border-blue-200 rounded-md">
+                <h4 className="font-semibold text-blue-800 mb-2 flex items-center gap-2">
+                  Como obter os dados da Yampi
+                </h4>
+                <ul className="text-sm text-blue-700 space-y-2 list-disc pl-5">
+                  <li>Acesse o painel administrativo da sua loja Yampi</li>
+                  <li>Vá para <strong>Configurações → API</strong> para obter seu token de acesso</li>
+                  <li>O nome da loja é o subdomínio usado na sua loja Yampi (exemplo: minhaloja)</li>
+                  <li>A chave secreta é usada para validar os webhooks recebidos da plataforma</li>
+                  <li>Configure a URL do webhook para receber notificações de novos pedidos</li>
+                </ul>
+                <a 
+                  href="https://docs.yampi.com.br/autenticacao" 
+                  target="_blank" 
+                  rel="noopener noreferrer"
+                  className="inline-flex items-center mt-3 text-xs text-blue-600 hover:text-blue-800"
+                >
+                  <ExternalLink className="h-3 w-3 mr-1" />
+                  Ver documentação oficial da Yampi
+                </a>
               </div>
             </CardContent>
             <CardFooter>
-              <Button className="w-full">Salvar Configurações</Button>
+              <Button className="w-full" onClick={handleYampiWebhookClick}>Salvar Configurações</Button>
             </CardFooter>
           </Card>
         </TabsContent>

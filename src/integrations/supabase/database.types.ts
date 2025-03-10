@@ -57,6 +57,30 @@ export type Database = {
         }
         Relationships: []
       }
+      yampi_integrations: {
+        Row: {
+          alias: string
+          created_at: string
+          id: string | null
+          secret: string | null
+          webhook_url: string | null
+        }
+        Insert: {
+          alias: string
+          created_at?: string
+          id?: string | null
+          secret?: string | null
+          webhook_url?: string | null
+        }
+        Update: {
+          alias?: string
+          created_at?: string
+          id?: string | null
+          secret?: string | null
+          webhook_url?: string | null
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
