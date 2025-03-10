@@ -1239,10 +1239,11 @@ Edite os seguintes arquivos conforme necessário:
                   Como obter os dados da Yampi
                 </h4>
                 <ul className="text-sm text-blue-700 space-y-2 list-disc pl-5">
-                  <li>Acesse o painel administrativo da sua loja Yampi</li>
-                  <li>Vá para <strong>Configurações → API</strong> para obter seu token de acesso</li>
-                  <li>O nome da loja é o subdomínio usado na sua loja Yampi (exemplo: minhaloja)</li>
-                  <li>A chave secreta é usada para validar os webhooks recebidos da plataforma</li>
+                  <li>Acesse o <span className="inline-flex items-center"><ExternalLink className='h-3 w-3 mr-1'/><a href="https://app.yampi.com.br/home" target="_blank" rel="noopener noreferrer">painel administrativo da sua loja Yampi</a></span></li>
+                  <li>Clique no ícone do seu perfil</li>
+                  <li>Selecione a opção de Credenciais de API</li>
+                  <li>O Nome da loja é o <i>alias</i> que é usado como nome de projeto (exemplo: minhaloja)</li>
+                  <li>O Token de acesso é usado para criar os webhooks para a loja</li>
                   <li>Configure a URL do webhook para receber notificações de novos pedidos</li>
                 </ul>
                 <a 
