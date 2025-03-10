@@ -35,9 +35,9 @@ import {
   AlertDescription,
   AlertTitle,
 } from "@/components/ui/alert"
+import { supabase } from '@/integrations/supabase/client';
 
 interface UserData {
-  id: string;
   name: string;
   email: string;
   birthDate?: string;
@@ -67,37 +67,23 @@ const YampiIntegration = () => {
   const { toast } = useToast();
 
   useEffect(() => {
-    // Load user data from localStorage
-    const storedUserData = localStorage.getItem('userData');
-    if (storedUserData) {
-      try {
-        const parsedData = JSON.parse(storedUserData);
-        // Convert the object into an array of user data with null check
-        if (parsedData && typeof parsedData === 'object') {
-          const usersArray = Object.keys(parsedData).map(email => {
-            // Add safety check to ensure email is defined
-            if (email) {
-              return {
-                email: email,
-                ...parsedData[email]
-              };
-            }
-            // Return a default object if email is undefined
-            return {
-              id: 'default-id',
-              name: 'Unknown',
-              email: 'unknown@example.com'
-            };
-          }).filter(user => user && user.email); // Filter out any possible undefined or null users
-          
-          setAllUsersData(usersArray);
-        }
-      } catch (error) {
-        console.error("Error parsing user data from localStorage:", error);
-        // Set empty array in case of error
-        setAllUsersData([]);
+    const fetchUsers = async () => {
+      const { data, error } = await supabase.from("clients").select("*").filter("karmic_numbers", "not.is", null);
+
+      if (error) {
+        console.error("Error fetching users:", error);
+        return;
       }
+
+      setAllUsersData(data.map((user) => ({
+        email: user.email,
+        name: user.name,
+        birthDate: user.birth,
+        karmicNumbers: user.karmic_numbers[0] as unknown as UserData['karmicNumbers'],
+      })));
     }
+
+    fetchUsers()
   }, []);
 
   useEffect(() => {
