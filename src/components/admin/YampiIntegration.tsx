@@ -86,7 +86,22 @@ const YampiIntegration = () => {
       })));
     }
 
+    const fetchYampiConfig = async () => {
+      const { data, error } = await supabase.from("yampi_integrations").select("*").single()
+
+      if (error) {
+        console.error("Error fetching Yampi config:", error);
+        return;
+      }
+
+      if (data && !data.alias.includes("test-")) {
+        setYampiAlias(data.alias);
+        setYampiWebhookUrl(data.webhook_url);
+      }
+    }
+
     fetchUsers()
+    fetchYampiConfig()
   }, []);
 
   useEffect(() => {
