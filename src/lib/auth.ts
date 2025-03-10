@@ -158,15 +158,6 @@ export async function isAuthorizedEmail(email: string): Promise<boolean> {
     console.log(result)
 
     return true;
-
-    // Emails críticos que sempre devem ser autorizados
-    // const criticalEmails = [
-    //   'projetovmtd@gmail.com',
-    //   'teste@teste.com',
-    //   'carlamaiaprojetos@gmail.com',
-    //   'mariaal020804@gmail.com',
-    //   'tesete@testelcom.br'
-    // ];
   } catch (error) {
     console.error('Erro ao verificar se email é autorizado:', error);
     return false;
