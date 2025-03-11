@@ -1,5 +1,5 @@
 [phases.setup]
-nixPkgs = ['npm']
+nixPkgs = ['nodejs_23']
 aptPkgs = ['build-essential']
 
 [phases.install]
