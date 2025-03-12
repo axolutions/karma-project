@@ -76,9 +76,13 @@ export async function saveKarmicNumbers(email: string, name: string, birthDate: 
   try {
     const normalizedEmail = email.toLowerCase().trim();
 
+    // convert to iso 8601
+    const date = new Date(birthDate.split("/").reverse().join("-"));
+    const birth = date.toISOString();
+
     await supabase.from("clients").update({
       name,
-      birth: birthDate,
+      birth,
       karmic_numbers: [karmicNumbers],
     }).eq('email', normalizedEmail);
   } catch (error) {
