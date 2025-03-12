@@ -173,15 +173,8 @@ const MatrixInterpretations: React.FC<MatrixInterpretationsProps> = ({ karmicDat
                 </div>
               </div>
 
-              <AnimatePresence>
-                {(isExpanded || pdfMode) && (
-                  <motion.div
-                    initial={{ height: 0, opacity: 0 }}
-                    animate={{ height: "auto", opacity: 1 }}
-                    exit={{ height: 0, opacity: 0 }}
-                    transition={{ duration: 0.3 }}
-                    className="overflow-hidden"
-                  >
+              {pdfMode ? (
+                  <div className="overflow-hidden">
                     <div className="p-4 pt-3 border-t border-[#e2d1c3]">
                       {interpretation && interpretation.content ? (
                         <div
@@ -194,9 +187,34 @@ const MatrixInterpretations: React.FC<MatrixInterpretationsProps> = ({ karmicDat
                         </p>
                       )}
                     </div>
-                  </motion.div>
-                )}
-              </AnimatePresence>
+                  </div>
+              ) : (
+                // In regular mode, use animations
+                <AnimatePresence>
+                  {isExpanded && (
+                    <motion.div
+                      initial={{ height: 0, opacity: 0 }}
+                      animate={{ height: "auto", opacity: 1 }}
+                      exit={{ height: 0, opacity: 0 }}
+                      transition={{ duration: 0.3 }}
+                      className="overflow-hidden"
+                    >
+                      <div className="p-4 pt-3 border-t border-[#e2d1c3]">
+                        {interpretation && interpretation.content ? (
+                          <div
+                            className="prose max-w-none text-[#333333] text-lg"
+                            dangerouslySetInnerHTML={{ __html: interpretation.content }}
+                          />
+                        ) : (
+                          <p className="text-[#8B4513] italic text-lg">
+                            Interpretação não disponível para {getCategoryDisplayName(item.key)} com valor {item.value}.
+                          </p>
+                        )}
+                      </div>
+                    </motion.div>
+                  )}
+                </AnimatePresence>
+              )}
             </motion.div>
           )
         })}
