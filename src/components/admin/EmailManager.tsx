@@ -8,14 +8,23 @@ import {
   removeAuthorizedEmail,
   getAllUserDataByEmail
 } from '@/lib/auth';
-import { X, Plus, Map, Zap, RefreshCw } from 'lucide-react';
+import { X, Plus, Map, Zap, RefreshCw, AlertTriangle } from 'lucide-react';
 import { Json } from '@/integrations/supabase/database.types';
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogDescription,
+  DialogFooter,
+} from "@/components/ui/dialog";
 
 const EmailManager: React.FC = () => {
   const [emails, setEmails] = useState<{ email: string, essential: boolean, karmic_numbers: Json[] }[]>([]);
   const [newEmail, setNewEmail] = useState('');
   const [emailStats, setEmailStats] = useState<Record<string, number>>({});
   const [isRefreshing, setIsRefreshing] = useState(false);
+  const [emailToDelete, setEmailToDelete] = useState<string | null>(null);
   
   useEffect(() => {
     refreshEmails();
@@ -191,7 +200,7 @@ const EmailManager: React.FC = () => {
                     size="sm" 
                     variant="ghost" 
                     className={`hover:bg-transparent ${essential ? 'text-blue-400 hover:text-blue-600' : 'text-karmic-600 hover:text-red-500'}`}
-                    onClick={() => handleRemoveEmail(email)}
+                    onClick={() => !essential && setEmailToDelete(email)}
                     disabled={essential}
                     title={essential ? "Este email não pode ser removido" : "Remover email"}
                   >
@@ -203,6 +212,48 @@ const EmailManager: React.FC = () => {
           </ul>
         )}
       </div>
+      
+      <Dialog open={!!emailToDelete} onOpenChange={(open) => !open && setEmailToDelete(null)}>
+        <DialogContent className="sm:max-w-[425px]">
+          <DialogHeader>
+            <DialogTitle className="text-karmic-800">Confirmar exclusão</DialogTitle>
+            <DialogDescription className="pt-2">
+              Você tem certeza que deseja remover o email:
+              <div className="mt-2 p-2 bg-karmic-50 border border-karmic-100 rounded-md font-medium text-karmic-800">
+                {emailToDelete}
+              </div>
+            </DialogDescription>
+          </DialogHeader>
+          
+          <div className="bg-amber-50 border border-amber-200 rounded-md p-3 mt-2 flex items-start gap-2">
+            <AlertTriangle className="h-5 w-5 text-amber-500 flex-shrink-0 mt-0.5" />
+            <div className="text-sm text-amber-800">
+              O usuário perderá acesso ao seu mapa kármico criado com este email.
+              Esta ação não pode ser desfeita.
+            </div>
+          </div>
+          
+          <DialogFooter className="mt-4 gap-2">
+            <Button 
+              variant="outline" 
+              onClick={() => setEmailToDelete(null)}
+            >
+              Cancelar
+            </Button>
+            <Button 
+              variant="destructive"
+              onClick={() => {
+                if (emailToDelete) {
+                  handleRemoveEmail(emailToDelete);
+                  setEmailToDelete(null);
+                }
+              }}
+            >
+              Remover email
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
       
       <div className="mt-4 p-3 bg-karmic-50 border border-karmic-200 rounded-md">
         <h4 className="text-sm font-medium text-karmic-700 mb-2">Observações sobre emails</h4>
