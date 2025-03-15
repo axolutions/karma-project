@@ -87,7 +87,7 @@ const YampiIntegration = () => {
     }
 
     const fetchYampiConfig = async () => {
-      const { data, error } = await supabase.from("yampi_integrations").select("*").single()
+      const { data, error } = await supabase.from("yampi_integrations").select().limit(1).single()
 
       if (error) {
         console.error("Error fetching Yampi config:", error);

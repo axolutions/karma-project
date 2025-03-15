@@ -16,6 +16,7 @@ export type Database = {
           email: string
           essential: boolean
           karmic_numbers: Json[] | null
+          map_choosen: string | null
           name: string | null
         }
         Insert: {
@@ -24,6 +25,7 @@ export type Database = {
           email: string
           essential?: boolean
           karmic_numbers?: Json[] | null
+          map_choosen?: string | null
           name?: string | null
         }
         Update: {
@@ -32,6 +34,7 @@ export type Database = {
           email?: string
           essential?: boolean
           karmic_numbers?: Json[] | null
+          map_choosen?: string | null
           name?: string | null
         }
         Relationships: []
@@ -57,25 +60,43 @@ export type Database = {
         }
         Relationships: []
       }
+      karmic_professional: {
+        Row: {
+          content: string
+          id: string
+          title: string
+        }
+        Insert: {
+          content: string
+          id: string
+          title: string
+        }
+        Update: {
+          content?: string
+          id?: string
+          title?: string
+        }
+        Relationships: []
+      }
       yampi_integrations: {
         Row: {
           alias: string
           created_at: string
-          id: string | null
+          id: number | null
           secret: string | null
           webhook_url: string | null
         }
         Insert: {
           alias: string
           created_at?: string
-          id?: string | null
+          id?: number | null
           secret?: string | null
           webhook_url?: string | null
         }
         Update: {
           alias?: string
           created_at?: string
-          id?: string | null
+          id?: number | null
           secret?: string | null
           webhook_url?: string | null
         }

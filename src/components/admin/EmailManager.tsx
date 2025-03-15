@@ -6,9 +6,10 @@ import {
   getAllAuthorizedEmails, 
   addAuthorizedEmail, 
   removeAuthorizedEmail,
-  getAllUserDataByEmail
+  getAllUserDataByEmail,
+  updateMapChoosen
 } from '@/lib/auth';
-import { X, Plus, Map, Zap, RefreshCw, AlertTriangle } from 'lucide-react';
+import { X, Plus, Map, Zap, RefreshCw, AlertTriangle, Edit, Check } from 'lucide-react';
 import { Json } from '@/integrations/supabase/database.types';
 import {
   Dialog,
@@ -18,9 +19,17 @@ import {
   DialogDescription,
   DialogFooter,
 } from "@/components/ui/dialog";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 
 const EmailManager: React.FC = () => {
-  const [emails, setEmails] = useState<{ email: string, essential: boolean, karmic_numbers: Json[] }[]>([]);
+  const [emails, setEmails] = useState<{ email: string, essential: boolean, karmic_numbers: Json[], map_choosen: string | null }[]>([]);
   const [newEmail, setNewEmail] = useState('');
   const [emailStats, setEmailStats] = useState<Record<string, number>>({});
   const [isRefreshing, setIsRefreshing] = useState(false);
@@ -111,6 +120,26 @@ const EmailManager: React.FC = () => {
     });
     refreshEmails();
   };
+
+  const handleChangeMapChoosen = async (email: string, mapChoosen: string | null) => {
+    try {
+      const success = await updateMapChoosen(email, mapChoosen);
+      
+      if (success) {
+        toast.success("Mapa atualizado", {
+          description: `O tipo de mapa para ${email} foi atualizado com sucesso.`
+        });
+        refreshEmails();
+      } else {
+        toast.error("Erro na atualização", {
+          description: "Não foi possível atualizar o tipo de mapa."
+        });
+      }
+    } catch (error) {
+      console.error("Erro ao atualizar tipo de mapa:", error);
+      toast.error("Erro ao atualizar o tipo de mapa");
+    }
+  };
   
   return (
     <div className="space-y-6">
@@ -174,7 +203,7 @@ const EmailManager: React.FC = () => {
           <p className="text-karmic-500 italic">Nenhum email autorizado cadastrado.</p>
         ) : (
           <ul className="space-y-2">
-            {emails.map(({email, essential, karmic_numbers}) => {
+            {emails.map(({email, essential, karmic_numbers, map_choosen}) => {
               return (
                 <li 
                   key={email} 
@@ -188,13 +217,45 @@ const EmailManager: React.FC = () => {
                       </span>
                     )}
                     {karmic_numbers?.length > 0 && (
-                      <div className="ml-3 flex items-center text-xs bg-karmic-200 text-karmic-700 px-2 py-1 rounded-full">
-                        <Map className="h-3 w-3 mr-1" />
-                        <span>
-                          Mapa
-                        </span>
+                      <div className="ml-3 flex items-center">
+                        <div className="flex items-center text-xs bg-karmic-200 text-karmic-700 px-2 py-1 rounded-full">
+                          <Map className="h-3 w-3 mr-1" />
+                          <span>Mapa</span>
+                          {map_choosen && (
+                            <span className="ml-1 font-medium">
+                              ({map_choosen})
+                            </span>
+                          )}
+                        </div>
                       </div>
                     )}
+
+                    <DropdownMenu>
+                      <DropdownMenuTrigger asChild>
+                        <Button 
+                          size="sm" 
+                          variant="ghost" 
+                          className="ml-1 p-0 h-auto"
+                        >
+                          <Edit className="h-3 w-3 text-karmic-600" />
+                        </Button>
+                      </DropdownMenuTrigger>
+                      <DropdownMenuContent align="start">
+                        <DropdownMenuLabel>Tipo de Mapa</DropdownMenuLabel>
+                        <DropdownMenuSeparator />
+                        
+                        <DropdownMenuItem onClick={() => handleChangeMapChoosen(email, "professional")}>
+                          {map_choosen === "professional" && <Check className="mr-2 h-4 w-4" />}
+                          Profissional
+                        </DropdownMenuItem>
+
+                        <DropdownMenuSeparator />
+                        <DropdownMenuItem onClick={() => handleChangeMapChoosen(email, null)}>
+                          {!map_choosen && <Check className="mr-2 h-4 w-4" />}
+                          Nenhum
+                        </DropdownMenuItem>
+                      </DropdownMenuContent>
+                    </DropdownMenu>
                   </div>
                   <Button 
                     size="sm" 

@@ -120,6 +120,11 @@ const MatrixResult: React.FC = () => {
 					return;
 				}
 
+				if (data.map_choosen === "professional") {
+					navigate("/matrix-profissional");
+					return;
+				}
+
 				console.log(
 					"MatrixResult: Dados kármicos encontrados:",
 					data.karmic_numbers,

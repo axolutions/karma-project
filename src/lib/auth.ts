@@ -131,9 +131,9 @@ export const setCurrentMatrixId = (matrixId: string): void => {
 };
 
 // Funções para gerenciar emails autorizados
-export async function getAllAuthorizedEmails(): Promise<{ email: string, essential: boolean, karmic_numbers: Json[] }[]> {
+export async function getAllAuthorizedEmails() {
   try {
-    const { data } = await supabase.from("clients").select("email,essential,karmic_numbers");
+    const { data } = await supabase.from("clients").select("email,essential,karmic_numbers,map_choosen");
 
     return data;
   } catch (error) {
@@ -189,3 +189,23 @@ export async function removeAuthorizedEmail(email: string) {
     console.error('Erro ao remover email autorizado:', error);
   }
 };
+
+export async function updateMapChoosen(email: string, mapChoosen: string | null) {
+  try {
+    const normalizedEmail = email.toLowerCase().trim();
+    
+    const result = await supabase.from("clients").update({
+      map_choosen: mapChoosen
+    }).eq('email', normalizedEmail);
+    
+    if (result.error) {
+      console.error('Erro ao atualizar map_choosen:', result.error);
+      return false;
+    }
+    
+    return true;
+  } catch (error) {
+    console.error('Erro ao atualizar map_choosen:', error);
+    return false;
+  }
+}

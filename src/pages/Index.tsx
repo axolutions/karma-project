@@ -15,6 +15,7 @@ const Index = () => {
 	const [isLoading, setIsLoading] = useState(true);
 	const navigate = useNavigate();
 	const { toast } = useToast();
+	const [userData, setUserData] = useState<Awaited<ReturnType<typeof getUserData>> | null>(null);
 
 	useEffect(() => {
 		const attemptUserLogin = async () => {
@@ -31,15 +32,18 @@ const Index = () => {
 						if (userData && userData.name) {
 							console.log("Usuário já tem perfil completo");
 							setHasProfile(true);
+							setUserData(userData);
 						} else {
 							console.log("Usuário logado, mas sem perfil");
 							setHasProfile(false);
+							setUserData(null);
 						}
 					}
 				} else {
 					setHasProfile(false);
 				}
 			} catch (error) {
+				setUserData(null);
 				console.error("Erro ao verificar login:", error);
 			} finally {
 				setIsLoading(false);
@@ -78,6 +82,14 @@ const Index = () => {
 
 	const handleAccessMatrix = () => {
 		console.log("Acessando matriz...");
+		const mapChoosen = userData?.map_choosen || "";
+
+		console.log("Mapa escolhido:", userData);
+		if (mapChoosen === "professional") {
+			navigate("/matrix-profissional");
+			return;
+		}
+
 		navigate("/matrix");
 	};
 

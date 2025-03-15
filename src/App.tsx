@@ -11,6 +11,7 @@ import NotFound from "./pages/NotFound";
 import { isLoggedIn } from "./lib/auth";
 import { useEffect } from "react";
 import { AuthProvider } from "@/hooks/use-auth";
+import ProfessionalMatrixResult from "@/pages/ProfessionalMatrixResult";
 
 const queryClient = new QueryClient();
 
@@ -60,6 +61,11 @@ const App = () => {
           <BrowserRouter>
             <Routes>
               <Route path="/" element={<Index />} />
+              <Route path="/matrix-profissional" element={
+                <ProtectedUserRoute>
+                  <ProfessionalMatrixResult />
+                </ProtectedUserRoute>
+              } />
               <Route 
                 path="/matrix" 
                 element={
