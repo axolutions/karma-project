@@ -12,6 +12,7 @@ import { isLoggedIn } from "./lib/auth";
 import { useEffect } from "react";
 import { AuthProvider } from "@/hooks/use-auth";
 import ProfessionalMatrixResult from "@/pages/ProfessionalMatrixResult";
+import LoveMatrixResult from "@/pages/LoveMatrixResult";
 
 const queryClient = new QueryClient();
 
@@ -61,6 +62,11 @@ const App = () => {
           <BrowserRouter>
             <Routes>
               <Route path="/" element={<Index />} />
+              <Route path="/matrix-love" element={
+                <ProtectedUserRoute>
+                  <LoveMatrixResult />
+                </ProtectedUserRoute>
+              } />
               <Route path="/matrix-profissional" element={
                 <ProtectedUserRoute>
                   <ProfessionalMatrixResult />

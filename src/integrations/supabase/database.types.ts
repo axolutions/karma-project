@@ -60,6 +60,24 @@ export type Database = {
         }
         Relationships: []
       }
+      karmic_love: {
+        Row: {
+          content: string
+          id: string
+          title: string
+        }
+        Insert: {
+          content: string
+          id: string
+          title: string
+        }
+        Update: {
+          content?: string
+          id?: string
+          title?: string
+        }
+        Relationships: []
+      }
       karmic_professional: {
         Row: {
           content: string
