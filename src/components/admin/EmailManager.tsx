@@ -223,7 +223,7 @@ const EmailManager: React.FC = () => {
                           <span>Mapa</span>
                           {map_choosen && (
                             <span className="ml-1 font-medium">
-                              ({map_choosen})
+                              ({map_choosen === "professional" ? "Profissional" : "Amor"})
                             </span>
                           )}
                         </div>
@@ -247,6 +247,11 @@ const EmailManager: React.FC = () => {
                         <DropdownMenuItem onClick={() => handleChangeMapChoosen(email, "professional")}>
                           {map_choosen === "professional" && <Check className="mr-2 h-4 w-4" />}
                           Profissional
+                        </DropdownMenuItem>
+
+                        <DropdownMenuItem onClick={() => handleChangeMapChoosen(email, "love")}>
+                          {map_choosen === "love" && <Check className="mr-2 h-4 w-4" />}
+                          Amor
                         </DropdownMenuItem>
 
                         <DropdownMenuSeparator />
