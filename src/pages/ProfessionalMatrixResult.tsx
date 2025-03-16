@@ -268,7 +268,7 @@ export default function ProfessionalMatrixResult() {
                     initial={{ opacity: 0, y: 20 }}
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ delay: index * 0.1, duration: 0.4 }}
-                    className="bg-[#f5f5dc] rounded-lg shadow-sm overflow-hidden"
+                    className="bg-[#ecf4ff] rounded-lg shadow-sm overflow-hidden"
                   >
                     <div
                       className="flex justify-between items-center p-4 cursor-pointer"
