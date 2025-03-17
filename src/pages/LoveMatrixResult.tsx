@@ -2,13 +2,14 @@
 
 import { useState, useEffect, useMemo } from "react"
 import { Button } from "@/components/ui/button"
-import { getUserData, isLoggedIn, getCurrentUser } from "@/lib/auth"
+import { getUserData, isLoggedIn, getCurrentUser, logout } from "@/lib/auth"
 import { supabase } from "@/integrations/supabase/client"
 import { motion, AnimatePresence } from "framer-motion"
-import { ChevronDown, ChevronUp, AlertTriangle, Heart } from "lucide-react"
+import { ChevronDown, ChevronUp, AlertTriangle, Heart, FileDown, LogOut } from "lucide-react"
 import { generateInterpretationId } from "@/lib/interpretations"
 import { useNavigate } from "react-router-dom"
 import KarmicMatrix from "@/components/KarmicMatrix"
+import { dispatch, toast } from "@/hooks/use-toast"
 
 // Helper function to process content and wrap text in paragraph tags
 const formatContentWithParagraphs = (content: string): string => {
@@ -35,6 +36,8 @@ export default function LoveMatrixResult() {
   const [interpretations, setInterpretations] = useState<
     { id: string; title: string; content: string; key?: string; currentNumber?: number }[]
   >([])
+
+  const [pdfMode, setPdfMode] = useState(false)
 
   const navigate = useNavigate()
 
@@ -83,6 +86,38 @@ export default function LoveMatrixResult() {
       return newSet
     })
   }
+
+  const handleLogout = () => {
+    logout();
+    toast({
+      title: "Logout realizado",
+      description: "Você saiu do sistema com sucesso."
+    });
+    navigate('/');
+  };
+
+  const handleDownloadPDF = () => {
+    if (!userData?.karmic_numbers) {
+      toast({
+        title: "Erro ao gerar PDF",
+        description: "Dados kármicos não disponíveis para download.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    setPdfMode(true)
+  }
+
+  useEffect(() => {
+    if (pdfMode) {
+      dispatch({ type: "REMOVE_TOAST" });
+      setTimeout(() => {
+        window.print();
+        setPdfMode(false);
+      }, 1000);
+    }
+  }, [pdfMode])
 
   // Load interpretations on component mount
   useEffect(() => {
@@ -279,7 +314,31 @@ export default function LoveMatrixResult() {
             MAPA DA MATRIZ NUMEROLÓGICA DO AMOR
           </h1>
           <p className="mt-2">A Herança Kármica dos Relacionamentos</p>
-          {userData && <p className="mt-2">Para: {userData.name || userData.email}</p>}
+          {userData && (
+            <>
+              <p className="mt-2">Para: {userData.name || userData.email}</p>
+              <p className="mt-2">Nascimento: {new Date(userData.birth).toLocaleDateString()}</p>
+            </>
+          )}
+          
+          <div className="flex space-x-3 w-full justify-center mt-4">
+            <Button 
+              onClick={handleDownloadPDF}
+              className="karmic-button flex items-center"
+            >
+              <FileDown className="mr-2 h-4 w-4" />
+              Baixar Interpretações
+            </Button>
+            
+            <Button 
+              onClick={handleLogout}
+              variant="outline"
+              className="karmic-button-outline flex items-center"
+            >
+              <LogOut className="mr-2 h-4 w-4" />
+              Sair
+            </Button>
+          </div>
         </div>
 
         <KarmicMatrix 
@@ -301,7 +360,7 @@ export default function LoveMatrixResult() {
 
         <div className="p-6">
           {interpretations.map((interpretation, index) => {
-            const isExpanded = expandedSections.has(interpretation.key || `section-${index}`)
+            const isExpanded = expandedSections.has(interpretation.key || `section-${index}`) || pdfMode
 
             return (
               <div key={interpretation.key || `section-${index}`} className="mb-6">
@@ -331,7 +390,7 @@ export default function LoveMatrixResult() {
 
                 {/* Section content */}
                 <AnimatePresence>
-                  {isExpanded && (
+                  {(isExpanded) && (
                     <motion.div
                       initial={{ opacity: 0, height: 0 }}
                       animate={{ opacity: 1, height: "auto" }}

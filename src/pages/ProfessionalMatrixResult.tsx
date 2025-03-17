@@ -1,12 +1,13 @@
 import { useState, useEffect, useMemo } from "react"
 import { Button } from "@/components/ui/button"
-import { getUserData, isLoggedIn, getCurrentUser } from "@/lib/auth"
+import { getUserData, isLoggedIn, getCurrentUser, logout } from "@/lib/auth"
 import { supabase } from "@/integrations/supabase/client"
 import { useNavigate } from "react-router-dom"
 import { motion, AnimatePresence } from "framer-motion"
-import { ChevronDown, ChevronUp, AlertTriangle } from "lucide-react"
+import { ChevronDown, ChevronUp, AlertTriangle, FileDown, LogOut } from "lucide-react"
 import { generateInterpretationId } from "@/lib/interpretations"
 import KarmicMatrix from "@/components/KarmicMatrix"
+import { dispatch, toast } from "@/hooks/use-toast"
 
 // Helper function to process content and wrap text in paragraph tags
 const formatContentWithParagraphs = (content: string): string => {
@@ -31,6 +32,8 @@ export default function ProfessionalMatrixResult() {
   const [interpretationsLoaded, setInterpretationsLoaded] = useState(false)
   const [loadError, setLoadError] = useState<string | null>(null)
   const [interpretations, setInterpretations] = useState<{id: string, title: string, content: string}[]>([])
+
+  const [pdfMode, setPdfMode] = useState(false)
 
   const karmicData = useMemo(() => {
     if (!userData) return;
@@ -81,6 +84,38 @@ export default function ProfessionalMatrixResult() {
       return newSet
     })
   }
+
+  const handleLogout = () => {
+    logout();
+    toast({
+      title: "Logout realizado",
+      description: "Você saiu do sistema com sucesso."
+    });
+    navigate('/');
+  };
+
+  const handleDownloadPDF = () => {
+    if (!userData?.karmic_numbers) {
+      toast({
+        title: "Erro ao gerar PDF",
+        description: "Dados kármicos não disponíveis para download.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    setPdfMode(true)
+  }
+
+  useEffect(() => {
+    if (pdfMode) {
+      dispatch({ type: "REMOVE_TOAST" });
+      setTimeout(() => {
+        window.print();
+        setPdfMode(false);
+      }, 1000);
+    }
+  }, [pdfMode])
 
   useEffect(() => {
     const loadUserData = async () => {
@@ -234,8 +269,29 @@ export default function ProfessionalMatrixResult() {
             Código do Propósito Profissional
           </h1>
           {userData && (
-            <p className="mt-2">Para: {userData.name || userData.email}</p>
+            <>
+              <p className="mt-2">Para: {userData.name || userData.email}</p>
+              <p className="mt-2">Nascimento: {new Date(userData.birth).toLocaleDateString()}</p>
+            </>
           )}
+          <div className="flex space-x-3 w-full justify-center mt-4">
+            <Button 
+              onClick={handleDownloadPDF}
+              className="karmic-button flex items-center"
+            >
+              <FileDown className="mr-2 h-4 w-4" />
+              Baixar Interpretações
+            </Button>
+            
+            <Button 
+              onClick={handleLogout}
+              variant="outline"
+              className="karmic-button-outline flex items-center"
+            >
+              <LogOut className="mr-2 h-4 w-4" />
+              Sair
+            </Button>
+          </div>
         </div>
 
         <KarmicMatrix 
@@ -260,7 +316,7 @@ export default function ProfessionalMatrixResult() {
             <div className="space-y-4">
               {interpretations.map((interpretation, index) => {
                 const item = { key: interpretation.id, title: interpretation.title };
-                const isExpanded = expandedSections.has(item.key);
+                const isExpanded = expandedSections.has(item.key) || pdfMode;
                 
                 return (
                   <motion.div
