@@ -10,16 +10,8 @@ import { MoveRight } from "lucide-react";
 const LoginForm: React.FC = () => {
   const [email, setEmail] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [authorizedEmails, setAuthorizedEmails] = useState<string[]>([]);
   const navigate = useNavigate();
   const { toast } = useToast();
-
-  // Load authorized emails for authentication but don't display them
-  useEffect(() => {
-    const emails = getAllAuthorizedEmails();
-    setAuthorizedEmails(emails);
-    console.log("Emails autorizados carregados:", emails.length);
-  }, []);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
