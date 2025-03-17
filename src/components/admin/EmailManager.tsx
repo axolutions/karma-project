@@ -19,19 +19,16 @@ import {
   DialogDescription,
   DialogFooter,
 } from "@/components/ui/dialog";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuLabel,
-  DropdownMenuSeparator,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
 
 const EmailManager: React.FC = () => {
-  const [emails, setEmails] = useState<{ email: string, essential: boolean, karmic_numbers: Json[], map_choosen: string | null }[]>([]);
+  const [emails, setEmails] = useState<{ 
+    email: string, 
+    essential: boolean, 
+    karmic_numbers: Json[], 
+    map_choosen: string | null,
+    maps_available: string[] | null 
+  }[]>([]);
   const [newEmail, setNewEmail] = useState('');
-  const [emailStats, setEmailStats] = useState<Record<string, number>>({});
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [emailToDelete, setEmailToDelete] = useState<string | null>(null);
   
@@ -140,6 +137,46 @@ const EmailManager: React.FC = () => {
       toast.error("Erro ao atualizar o tipo de mapa");
     }
   };
+
+  const handleToggleMap = async (email: string, mapType: string, currentMapsAvailable: string[] | null, currentMapChoosen: string | null) => {
+    try {
+      // Initialize maps array if null
+      let mapsAvailable = currentMapsAvailable ? [...currentMapsAvailable] : [];
+      
+      // Check if map is already selected
+      const mapIndex = mapsAvailable.indexOf(mapType);
+      
+      // Toggle map selection
+      if (mapIndex >= 0) {
+        // Remove map if already selected
+        mapsAvailable.splice(mapIndex, 1);
+      } else {
+        // Add map if not selected
+        mapsAvailable.push(mapType);
+      }
+      
+      // Set the current map as the chosen one if adding a new map
+      const newMapChoosen = mapIndex >= 0 ? 
+        (mapsAvailable.length > 0 ? mapsAvailable[mapsAvailable.length - 1] : null) : 
+        mapType;
+      
+      const success = await updateMapChoosen(email, newMapChoosen, mapsAvailable);
+      
+      if (success) {
+        toast.success("Mapas atualizados", {
+          description: `Os mapas para ${email} foram atualizados com sucesso.`
+        });
+        refreshEmails();
+      } else {
+        toast.error("Erro na atualização", {
+          description: "Não foi possível atualizar os mapas."
+        });
+      }
+    } catch (error) {
+      console.error("Erro ao atualizar mapas:", error);
+      toast.error("Erro ao atualizar os mapas");
+    }
+  };
   
   return (
     <div className="space-y-6">
@@ -203,7 +240,7 @@ const EmailManager: React.FC = () => {
           <p className="text-karmic-500 italic">Nenhum email autorizado cadastrado.</p>
         ) : (
           <ul className="space-y-2">
-            {emails.map(({email, essential, karmic_numbers, map_choosen}) => {
+            {emails.map(({email, essential, karmic_numbers, map_choosen, maps_available}) => {
               return (
                 <li 
                   key={email} 
@@ -220,48 +257,88 @@ const EmailManager: React.FC = () => {
                       <div className="ml-3 flex items-center">
                         <div className="flex items-center text-xs bg-karmic-200 text-karmic-700 px-2 py-1 rounded-full">
                           <Map className="h-3 w-3 mr-1" />
-                          <span>Mapa {" "}</span>
-                          <span className='ml-1 font-medium' />
-                          (
-                            {
+                          <span>Mapas disponíveis: {" "}</span>
+                          <span className='ml-1 font-medium'>
+                            {maps_available && maps_available.length > 0 ? 
+                              maps_available.map(map => 
+                                map === "professional" ? "Profissional" : 
+                                map === "love" ? "Amor" : "Pessoal"
+                              ).join(", ") : 
+                              "Nenhum"
+                            }
+                            {map_choosen && <span className="ml-1">(Atual: {
                               map_choosen === "professional" ? "Profissional" :
                               map_choosen === "love" ? "Amor" : "Pessoal"
-                            }
-                          )
+                            })</span>}
+                          </span>
                         </div>
                       </div>
                     )}
 
-                    <DropdownMenu>
-                      <DropdownMenuTrigger asChild>
-                        <Button 
-                          size="sm" 
-                          variant="ghost" 
-                          className="ml-1 p-0 h-auto"
-                        >
-                          <Edit className="h-3 w-3 text-karmic-600" />
-                        </Button>
-                      </DropdownMenuTrigger>
-                      <DropdownMenuContent align="start">
-                        <DropdownMenuLabel>Tipo de Mapa</DropdownMenuLabel>
-                        <DropdownMenuSeparator />
-                        
-                        <DropdownMenuItem onClick={() => handleChangeMapChoosen(email, "professional")}>
-                          {map_choosen === "professional" && <Check className="mr-2 h-4 w-4" />}
-                          Profissional
-                        </DropdownMenuItem>
-
-                        <DropdownMenuItem onClick={() => handleChangeMapChoosen(email, "love")}>
-                          {map_choosen === "love" && <Check className="mr-2 h-4 w-4" />}
-                          Amor
-                        </DropdownMenuItem>
-
-                        <DropdownMenuItem onClick={() => handleChangeMapChoosen(email, null)}>
-                          {!map_choosen && <Check className="mr-2 h-4 w-4" />}
-                          Pessoal
-                        </DropdownMenuItem>
-                      </DropdownMenuContent>
-                    </DropdownMenu>
+                    <div className="ml-2">
+                      <Button 
+                        size="sm" 
+                        variant="ghost" 
+                        className="p-1"
+                        onClick={() => {
+                          const dialog = document.getElementById(`map-dialog-${email}`);
+                          if (dialog instanceof HTMLDialogElement) {
+                            dialog.showModal();
+                          }
+                        }}
+                      >
+                        <Edit className="h-3 w-3 text-karmic-600" />
+                      </Button>
+                      
+                      <dialog 
+                        id={`map-dialog-${email}`} 
+                        className="p-4 rounded-lg shadow-lg border border-karmic-200 backdrop:bg-gray-900/50"
+                      >
+                        <div className="w-64">
+                          <h4 className="text-lg font-medium mb-3">Mapas disponíveis</h4>
+                          <div className="space-y-2 mb-4">
+                            {['professional', 'love', null].map((mapType) => {
+                              const mapName = mapType === 'professional' ? 'Profissional' : 
+                                             mapType === 'love' ? 'Amor' : 'Pessoal';
+                              const isSelected = maps_available?.includes(mapType as string) || 
+                                                (mapType === null && maps_available?.includes('personal'));
+                              
+                              return (
+                                <label key={mapType || 'personal'} className="flex items-center space-x-2 cursor-pointer">
+                                  <input 
+                                    type="checkbox" 
+                                    className="rounded border-karmic-300 text-karmic-600 focus:ring-karmic-500"
+                                    checked={isSelected}
+                                    onChange={() => handleToggleMap(
+                                      email, 
+                                      mapType || 'personal', 
+                                      maps_available, 
+                                      map_choosen
+                                    )}
+                                  />
+                                  <span>{mapName}</span>
+                                  {map_choosen === mapType && <span className="text-xs text-karmic-500">(Atual)</span>}
+                                </label>
+                              );
+                            })}
+                          </div>
+                          <div className="flex justify-end">
+                            <Button
+                              size="sm"
+                              variant="outline"
+                              onClick={() => {
+                                const dialog = document.getElementById(`map-dialog-${email}`);
+                                if (dialog instanceof HTMLDialogElement) {
+                                  dialog.close();
+                                }
+                              }}
+                            >
+                              Fechar
+                            </Button>
+                          </div>
+                        </div>
+                      </dialog>
+                    </div>
                   </div>
                   <Button 
                     size="sm" 
