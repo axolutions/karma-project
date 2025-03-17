@@ -9,7 +9,8 @@
     "build:dev": "vite build --mode development",
     "lint": "eslint .",
     "preview": "vite preview",
-    "update-db-types": "supabase gen types typescript --project-id giremtxurrwgzcbhbiao --schema public > src/integrations/supabase/database.types.ts"
+    "update-db-types": "supabase gen types typescript --schema public > src/integrations/supabase/database.types.ts",
+    "deploy-yampi-function": "supabase functions deploy yampi-webhook"
   },
   "dependencies": {
     "@hookform/resolvers": "^3.9.0",
