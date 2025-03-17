@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -9,36 +8,59 @@ import {
   setInterpretation, 
   deleteInterpretation,
   getCategoryDisplayName,
-  getAllCategories
+  getAllCategories,
+  InterpretationType,
+  getInterpretationTypeDisplayName
 } from '@/lib/interpretations';
 import { Save, Trash, Bold, Italic, List, Type, Quote } from 'lucide-react';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Badge } from "@/components/ui/badge";
 
 const InterpretationEditor: React.FC = () => {
-  const [selectedCategory, setSelectedCategory] = useState("karmicSeal");
+  const [selectedCategory, setSelectedCategory] = useState<string>("");
   const [selectedNumber, setSelectedNumber] = useState("0");
   const [title, setTitle] = useState("");
   const [content, setContent] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [previewMode, setPreviewMode] = useState(false);
+  const [interpretationType, setInterpretationType] = useState<InterpretationType>("karmic");
   
   const possibleNumbers = ["0", "1", "2", "3", "4", "5", "6", "7", "8", "9", "11", "22", "33", "44"];
-  const categories = getAllCategories();
+  const categories = getAllCategories(interpretationType);
+  
+  // Update selected category when interpretation type changes
+  useEffect(() => {
+    if (categories.length > 0 && (!selectedCategory || !categories.includes(selectedCategory))) {
+      setSelectedCategory(categories[0]);
+    }
+  }, [interpretationType, categories]);
   
   useEffect(() => {
-    loadInterpretation();
-  }, [selectedCategory, selectedNumber]);
+    if (selectedCategory) {
+      loadInterpretation();
+    }
+  }, [selectedCategory, selectedNumber, interpretationType]);
   
   const loadInterpretation = async () => {
-    const interpretation = await getInterpretation(selectedCategory, parseInt(selectedNumber));
+    if (!selectedCategory) return;
+    
+    setIsLoading(true);
+    const interpretation = await getInterpretation(
+      selectedCategory, 
+      parseInt(selectedNumber),
+      interpretationType
+    );
 
     if (!interpretation) {
       setTitle("");
       setContent("");
+      setIsLoading(false);
       return;
     }
 
     setTitle(interpretation.title);
     setContent(interpretation.content);
+    setIsLoading(false);
   };
   
   const handleSave = async () => {
@@ -71,7 +93,8 @@ const InterpretationEditor: React.FC = () => {
       selectedCategory, 
       parseInt(selectedNumber), 
       title, 
-      formattedContent
+      formattedContent,
+      interpretationType
     );
     
     setTimeout(() => {
@@ -97,7 +120,7 @@ const InterpretationEditor: React.FC = () => {
   
   const handleDelete = () => {
     if (window.confirm(`Tem certeza que deseja excluir esta interpretação?`)) {
-      deleteInterpretation(selectedCategory, parseInt(selectedNumber));
+      deleteInterpretation(selectedCategory, parseInt(selectedNumber), interpretationType);
       setTitle("");
       setContent("");
     }
@@ -128,7 +151,6 @@ const InterpretationEditor: React.FC = () => {
   
   // Helper para processar o HTML para visualização
   const processContentForPreview = (rawHTML: string) => {
-    // Estiliza os parágrafos com <strong> para dar destaque a certas partes
     let processedHTML = rawHTML;
     
     // Se não tiver formatação HTML, adiciona
@@ -156,6 +178,25 @@ const InterpretationEditor: React.FC = () => {
   
   return (
     <div className="space-y-6">
+      <Tabs 
+        value={interpretationType} 
+        onValueChange={(value) => setInterpretationType(value as InterpretationType)} 
+        className="mb-6"
+      >
+        <div className="flex items-center justify-between mb-4">
+          <h2 className="text-xl font-semibold">Editor de Interpretações</h2>
+          <Badge variant="outline" className="ml-2">
+            {getInterpretationTypeDisplayName(interpretationType)}
+          </Badge>
+        </div>
+        
+        <TabsList className="grid w-full grid-cols-3">
+          <TabsTrigger value="karmic">Kármica Pessoal</TabsTrigger>
+          <TabsTrigger value="love">Amorosa</TabsTrigger>
+          <TabsTrigger value="professional">Profissional</TabsTrigger>
+        </TabsList>
+      </Tabs>
+      
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         <div>
           <label htmlFor="category" className="text-sm font-medium text-karmic-700 block mb-2">
@@ -169,7 +210,7 @@ const InterpretationEditor: React.FC = () => {
           >
             {categories.map(category => (
               <option key={category} value={category}>
-                {getCategoryDisplayName(category)}
+                {getCategoryDisplayName(category, interpretationType)}
               </option>
             ))}
           </select>
@@ -198,7 +239,7 @@ const InterpretationEditor: React.FC = () => {
         </label>
         <Input
           id="title"
-          placeholder="Ex: Selo Kármico 1: O Pioneiro"
+          placeholder={`Ex: ${getCategoryDisplayName(selectedCategory || categories[0], interpretationType)} 1: Título`}
           value={title}
           onChange={(e) => setTitle(e.target.value)}
         />
@@ -236,7 +277,15 @@ const InterpretationEditor: React.FC = () => {
           type="button"
           size="sm"
           variant="outline"
-          onClick={() => insertTemplate("<h3>Afirmação Kármica</h3>\n<p>Insira a afirmação aqui.</p>")}
+          onClick={() => {
+            const affirmationType = interpretationType === "karmic" 
+              ? "Afirmação Kármica" 
+              : interpretationType === "love" 
+                ? "Afirmação Amorosa" 
+                : "Afirmação Profissional";
+                
+            insertTemplate(`<h3>${affirmationType}</h3>\n<p>Insira a afirmação aqui.</p>`)
+          }}
           title="Inserir afirmação"
         >
           <Quote className="h-4 w-4 mr-1" /> Afirmação
@@ -261,7 +310,11 @@ const InterpretationEditor: React.FC = () => {
         </Button>
       </div>
       
-      {previewMode ? (
+      {isLoading ? (
+        <div className="flex justify-center py-10">
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-karmic-700"></div>
+        </div>
+      ) : previewMode ? (
         <div className="border border-karmic-300 rounded-md min-h-[300px] p-4 karmic-content overflow-auto">
           <div dangerouslySetInnerHTML={{ __html: processContentForPreview(content) }} />
         </div>
