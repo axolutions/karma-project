@@ -82,25 +82,6 @@ export default function ProfessionalMatrixResult() {
     })
   }
 
-  // Load interpretations on component mount
-  useEffect(() => {
-    console.log("MatrixResult2: Loading interpretations...")
-    try {
-      setInterpretationsLoaded(true)
-      console.log("MatrixResult2: Interpretations loaded successfully")
-    } catch (err) {
-      console.error("Error loading interpretations:", err)
-      setLoadError("Carregando interpretações alternativas...")
-      try {
-        setInterpretationsLoaded(true)
-        setLoadError(null)
-        console.log("MatrixResult2: Fallback interpretations loaded successfully")
-      } catch (e) {
-        console.error("Could not load sample interpretations:", e)
-      }
-    }
-  }, [])
-
   useEffect(() => {
     const loadUserData = async () => {
       try {
@@ -145,7 +126,7 @@ export default function ProfessionalMatrixResult() {
   
   // Fetch karmic professional data
   useEffect(() => {
-    if (!interpretationsLoaded || loadError || !interpretationItems) return
+    if (loadError || !interpretationItems) return
 
     const fetchInterpretations = async () => {
       try {
@@ -173,6 +154,7 @@ export default function ProfessionalMatrixResult() {
         }
         
         setInterpretations(results)
+        setInterpretationsLoaded(true)
       } catch (err) {
         console.error("Error fetching interpretations:", err)
         setLoadError("Alguns dados de interpretação não puderam ser carregados.")
@@ -180,7 +162,7 @@ export default function ProfessionalMatrixResult() {
     }
 
     fetchInterpretations()
-  }, [interpretationsLoaded, loadError, interpretationItems])
+  }, [loadError, interpretationItems])
 
   if (loading) {
     return (
@@ -225,7 +207,7 @@ export default function ProfessionalMatrixResult() {
     )
   }
 
-  if (interpretations.length === 0) {
+  if (interpretationsLoaded && interpretations.length === 0) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-[#FDF5E6] to-[#FAEBD7]">
         <div className="text-center p-6 bg-white shadow-sm rounded-xl border border-[#1E3A5F] border-dashed">
