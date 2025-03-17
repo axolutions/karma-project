@@ -58,7 +58,7 @@ Deno.serve(async (req) => {
             }
           }
 
-          const map_choosen = maps[0];
+          const map_choosen = maps[0] ?? null;
           const maps_available_json = JSON.stringify(maps).replace("[", "{").replace("]", "}");
 
           const sql = `
