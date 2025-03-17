@@ -55,6 +55,8 @@ Deno.serve(async (req) => {
               maps.push("love");
             } else if (sku === "JTNWEMXLP") { // professional
               maps.push("professional");
+            } else if (sku === "C3HWK68SD") { // matrix
+              maps.push("personal");
             }
           }
 
