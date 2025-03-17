@@ -45,9 +45,34 @@ Deno.serve(async (req) => {
           const customer = resource.customer.data;
           const email = customer.email;
           console.log("Order paid", email);
-          
-          const result = await connection.queryObject`INSERT INTO clients (email) VALUES (${email})`;
+
+          const maps = new Array<string>();
+
+          for (const item of resource.items.data) {
+            const sku = item.item_sku as string;
+
+            if (sku === "BAC7NHXNJ") { // love
+              maps.push("love");
+            } else if (sku === "JTNWEMXLP") { // professional
+              maps.push("professional");
+            }
+          }
+
+          const map_choosen = maps[0];
+          const maps_available_json = JSON.stringify(maps).replace("[", "{").replace("]", "}");
+
+          const sql = `
+            INSERT INTO clients (email, map_choosen, maps_available) 
+            VALUES ('${email}', '${map_choosen}', '${maps_available_json}')
+            ON CONFLICT (email)
+            DO UPDATE SET
+              map_choosen = '${map_choosen}',
+              maps_available = '${maps_available_json}'
+          `
+
+          const result = await connection.queryObject(sql)
           console.log(result);
+          console.log("Data", data);
 
           return new Response(
             null,
