@@ -30,6 +30,7 @@ const mapConfigurations = {
 export default function UserMaps() {
   const [mapsAvailable, setMapsAvailable] = useState<string[]>([]);
   const [loading, setLoading] = useState(true);
+  const [hasData, setHasData] = useState(false);
   const navigate = useNavigate();
   const { toast } = useToast();
 
@@ -39,6 +40,8 @@ export default function UserMaps() {
         const data = await getUserData(email);
 
         data.maps_available && setMapsAvailable(data.maps_available);
+        console.log("DATA", !!data)
+        setHasData(!!data);
         setLoading(false);
     }
 
@@ -59,26 +62,25 @@ export default function UserMaps() {
     return <div className="container flex items-center justify-center min-h-screen">Carregando...</div>;
   }
 
-  if (!loading && !mapsAvailable) {
-    // Redirect to login if not authenticated
-    navigate("/login");
-    return null;
-  }
-
-  if (!loading && mapsAvailable && mapsAvailable.length === 0) {
+  if (!loading && !hasData) {
     return (
-        <div className="container py-8">
-            <h1 className="text-2xl font-bold mb-6">Seus Mapas Disponíveis</h1>
-            
-            <div className="text-center py-8">
-                <p className="text-lg mb-4">Você ainda não tem mapas disponíveis.</p>
-                <Button onClick={() => navigate("/")}>Retornar à Página Inicial</Button>
-            </div>
-        </div>
+      <div className="container py-8">
+          <h1 className="text-2xl font-bold mb-6">Seus Mapas Disponíveis</h1>
+          
+          <div className="text-center py-8">
+              <p className="text-lg mb-4">Você ainda não tem mapas disponíveis.</p>
+              <Button onClick={() => navigate("/")}>Retornar à Página Inicial</Button>
+          </div>
+      </div>
     );
   }
 
-  if (!loading && mapsAvailable.length === 1) {
+  if (!loading && hasData && mapsAvailable.length === 0) {
+    navigate("/matrix");
+    return null;
+  }
+
+  if (!loading && (mapsAvailable.length === 1)) {
     const mapType = mapsAvailable[0];
     const mapConfig = mapConfigurations[mapType as keyof typeof mapConfigurations];
 
@@ -102,42 +104,35 @@ export default function UserMaps() {
         </Button>
       </div>
       
-      {(!mapsAvailable || mapsAvailable.length === 0) ? (
-        <div className="text-center py-8">
-          <p className="text-lg mb-4">Você ainda não tem mapas disponíveis.</p>
-          <Button onClick={() => navigate("/")}>Retornar à Página Inicial</Button>
-        </div>
-      ) : (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {mapsAvailable.map((mapType) => {
-            const mapConfig = mapConfigurations[mapType as keyof typeof mapConfigurations];
-            
-            if (!mapConfig) return null;
-            
-            return (
-              <Card key={mapType} className="overflow-hidden">
-                <CardHeader>
-                  <CardTitle>{mapConfig.displayName}</CardTitle>
-                  <CardDescription>{mapConfig.description}</CardDescription>
-                </CardHeader>
-                <CardContent>
-                  <div className="aspect-video bg-muted/20 flex items-center justify-center rounded-md">
-                    <img src={mapConfig.iconUrl} alt={mapConfig.displayName} />
-                  </div>
-                </CardContent>
-                <CardFooter>
-                  <Button 
-                    className="w-full" 
-                    onClick={() => navigate(mapConfig.route)}
-                  >
-                    Ver Matrix
-                  </Button>
-                </CardFooter>
-              </Card>
-            );
-          })}
-        </div>
-      )}
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        {mapsAvailable.map((mapType) => {
+          const mapConfig = mapConfigurations[mapType as keyof typeof mapConfigurations];
+          
+          if (!mapConfig) return null;
+          
+          return (
+            <Card key={mapType} className="overflow-hidden">
+              <CardHeader>
+                <CardTitle>{mapConfig.displayName}</CardTitle>
+                <CardDescription>{mapConfig.description}</CardDescription>
+              </CardHeader>
+              <CardContent>
+                <div className="aspect-video bg-muted/20 flex items-center justify-center rounded-md">
+                  <img src={mapConfig.iconUrl} alt={mapConfig.displayName} />
+                </div>
+              </CardContent>
+              <CardFooter>
+                <Button 
+                  className="w-full" 
+                  onClick={() => navigate(mapConfig.route)}
+                >
+                  Ver Matrix
+                </Button>
+              </CardFooter>
+            </Card>
+          );
+        })}
+      </div>
     </div>
   );
 }
