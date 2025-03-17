@@ -42,6 +42,7 @@ const UserHeader: React.FC<UserHeaderProps> = ({
         <p className="text-karmic-600">
           Olá, <span className="font-medium">{userData.name}</span>
         </p>
+        <p className="mt-2">Nascimento: {new Date(userData.birth).toLocaleDateString("pt-BR", {timeZone: "UTC"})}</p>
       </div>
       
       <div className="flex space-x-3">
