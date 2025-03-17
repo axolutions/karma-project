@@ -143,7 +143,7 @@ const KarmicProfessionalEnding: React.FC<KarmicProfessionalEndingProps> = ({ use
       transition={{ duration: 0.6 }}
       className="max-w-4xl mx-auto my-8"
     >
-      <div className="bg-[#f5f5dc] rounded-lg shadow-sm overflow-hidden">
+      <div className="bg-[#ecf4ff] rounded-lg shadow-sm overflow-hidden">
         <div className="flex justify-between items-center p-4 border-b border-[#e2d1c3]">
           <h3 className="text-xl text-[#333333] font-semibold flex items-center">
             <Sparkles className="h-5 w-5 mr-2 text-[#8B4513]" />
