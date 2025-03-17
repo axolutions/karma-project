@@ -8,6 +8,8 @@ import { ChevronDown, ChevronUp, AlertTriangle, FileDown, LogOut } from "lucide-
 import { generateInterpretationId } from "@/lib/interpretations"
 import KarmicMatrix from "@/components/KarmicMatrix"
 import { dispatch, toast } from "@/hooks/use-toast"
+import KarmicProfessionalEnding from "@/components/KarmicProfessionalEnding"
+import KarmicProfessionalIntroduction from "@/components/KarmicProfessionalIntroduction"
 
 // Helper function to process content and wrap text in paragraph tags
 const formatContentWithParagraphs = (content: string): string => {
@@ -311,6 +313,8 @@ export default function ProfessionalMatrixResult() {
           }}
         />
 
+        <KarmicProfessionalIntroduction />
+
         <div className="p-10">
           <div className="max-w-4xl mx-auto">
             <div className="space-y-4">
@@ -368,6 +372,8 @@ export default function ProfessionalMatrixResult() {
             </div>
           </div>
         </div>
+
+        <KarmicProfessionalEnding />
 
         <div className="text-center p-5 text-gray-600 text-sm border-t-2 border-dashed border-[#1E3A5F] bg-[#FDF5E6] relative before:content-[''] before:absolute before:top-[-10px] before:left-1/2 before:transform before:translate-x-[-50%] before:w-[30px] before:h-[1px] before:bg-[#D4A017]">
           <p>Código do Propósito Profissional 2025</p>
