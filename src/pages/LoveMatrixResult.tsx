@@ -168,6 +168,7 @@ export default function LoveMatrixResult() {
           return
         }
 
+        console.log("DATA", data)
         setUserData(data)
         setLoading(false)
       } catch (err) {
@@ -317,7 +318,7 @@ export default function LoveMatrixResult() {
           {userData && (
             <>
               <p className="mt-2">Para: {userData.name || userData.email}</p>
-              <p className="mt-2">Nascimento: {new Date(userData.birth).toLocaleDateString()}</p>
+              <p className="mt-2">Nascimento: {new Date(userData.birth).toLocaleDateString("pt-BR", {timeZone: "UTC"})}</p>
             </>
           )}
           

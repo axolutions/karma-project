@@ -273,7 +273,7 @@ export default function ProfessionalMatrixResult() {
           {userData && (
             <>
               <p className="mt-2">Para: {userData.name || userData.email}</p>
-              <p className="mt-2">Nascimento: {new Date(userData.birth).toLocaleDateString()}</p>
+              <p className="mt-2">Nascimento: {new Date(userData.birth).toLocaleDateString("pt-BR", {timeZone: "UTC"})}</p>
             </>
           )}
           <div className="flex space-x-3 w-full justify-center mt-4">
