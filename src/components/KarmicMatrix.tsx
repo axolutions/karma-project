@@ -5,11 +5,13 @@ import { motion } from 'framer-motion';
 interface KarmicMatrixProps {
   karmicData: any;
   backgroundImage?: string;
+  positions?: { [key: string]: { top: string, left: string } };
 }
 
 const KarmicMatrix: React.FC<KarmicMatrixProps> = ({ 
   karmicData,
-  backgroundImage = "https://darkorange-goldfinch-896244.hostingersite.com/wp-content/uploads/2025/02/Design-sem-nome-1.png"
+  backgroundImage = "/default_banner.png",
+  positions = {}
 }) => {
   const [imgSrc, setImgSrc] = useState(backgroundImage);
   
@@ -52,6 +54,7 @@ const KarmicMatrix: React.FC<KarmicMatrixProps> = ({
     spiritualMark: { top: "73%", left: "27%" },     // marca_espiritual
     karmicReprogramming: { top: "75%", left: "50%" }, // codex_reprogramacao
     cycleProphecy: { top: "73%", left: "73%" },     // profecia_ciclos - Número 9 movido para o quadrado em branco da direita
+    ...positions,
   };
 
   // Mapeamento entre nossos nomes de chaves e os do HTML
@@ -78,7 +81,7 @@ const KarmicMatrix: React.FC<KarmicMatrixProps> = ({
           backgroundPosition: 'center',
           border: '1px solid #EAE6E1',
           borderRadius: '8px',
-          minHeight: '300px' // Altura mínima para evitar colapso enquanto carrega
+          minHeight: '300px', // Altura mínima para evitar colapso enquanto carrega
         }}
       >
         {/* Renderizar os números */}

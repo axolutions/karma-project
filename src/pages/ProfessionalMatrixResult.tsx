@@ -6,6 +6,7 @@ import { useNavigate } from "react-router-dom"
 import { motion, AnimatePresence } from "framer-motion"
 import { ChevronDown, ChevronUp, AlertTriangle } from "lucide-react"
 import { generateInterpretationId } from "@/lib/interpretations"
+import KarmicMatrix from "@/components/KarmicMatrix"
 
 // Helper function to process content and wrap text in paragraph tags
 const formatContentWithParagraphs = (content: string): string => {
@@ -254,6 +255,23 @@ export default function ProfessionalMatrixResult() {
             <p className="mt-2">Para: {userData.name || userData.email}</p>
           )}
         </div>
+
+        <KarmicMatrix 
+          karmicData={karmicData} 
+          backgroundImage="/professional_banner.png" 
+          positions={{
+            destinyCall: { top: "25%", left: "24.7%" },
+            karmicSeal: { top: "19%", left: "50.5%" },        // selo_karmico - Número 6 movido para o centro alto
+            karmaPortal: { top: "25%", left: "76.5%" },       // portal_karma
+
+            karmicInheritance: { top: "50.5%", left: "19%" }, // heranca_karmica
+            manifestationEnigma: { top: "50.5%", left: "82.5%" }, // enigma_manifestacao - Número 11 subido para o quadrado da direita
+
+            spiritualMark: { top: "76.5%", left: "24.7%" },
+            karmicReprogramming: { top: "82%", left: "50.5%" }, // codex_reprogramacao
+            cycleProphecy: { top: "76.5%", left: "76.5%" },
+          }}
+        />
 
         <div className="p-10">
           <div className="max-w-4xl mx-auto">

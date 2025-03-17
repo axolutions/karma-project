@@ -8,6 +8,7 @@ import { motion, AnimatePresence } from "framer-motion"
 import { ChevronDown, ChevronUp, AlertTriangle, Heart } from "lucide-react"
 import { generateInterpretationId } from "@/lib/interpretations"
 import { useNavigate } from "react-router-dom"
+import KarmicMatrix from "@/components/KarmicMatrix"
 
 // Helper function to process content and wrap text in paragraph tags
 const formatContentWithParagraphs = (content: string): string => {
@@ -280,6 +281,23 @@ export default function LoveMatrixResult() {
           <p className="mt-2">A Herança Kármica dos Relacionamentos</p>
           {userData && <p className="mt-2">Para: {userData.name || userData.email}</p>}
         </div>
+
+        <KarmicMatrix 
+          karmicData={karmicData} 
+          backgroundImage="/love_banner.png" 
+          positions={{
+            destinyCall: { top: "28%", left: "28%" },
+            karmicSeal: { top: "21%", left: "50%" },        // selo_karmico - Número 6 movido para o centro alto
+            karmaPortal: { top: "28%", left: "72.5%" },       // portal_karma
+
+            karmicInheritance: { top: "50%", left: "20.5%" }, // heranca_karmica
+            manifestationEnigma: { top: "50%", left: "79.5%" }, // enigma_manifestacao - Número 11 subido para o quadrado da direita
+
+            spiritualMark: { top: "73%", left: "28%" },
+            karmicReprogramming: { top: "79.5%", left: "50%" }, // codex_reprogramacao
+            cycleProphecy: { top: "73%", left: "72.5%" },
+          }}
+        />
 
         <div className="p-6">
           {interpretations.map((interpretation, index) => {
