@@ -85,12 +85,7 @@ const Index = () => {
 		const mapChoosen = userData?.map_choosen || "";
 
 		console.log("Mapa escolhido:", userData);
-		if (mapChoosen === "professional") {
-			navigate("/matrix-profissional");
-			return;
-		}
-
-		navigate("/matrix");
+		navigate("/escolher-mapa");
 	};
 
 	if (isLoading) {

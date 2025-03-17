@@ -86,7 +86,7 @@ const LoginForm: React.FC = () => {
           // Verifica se o usuário tem nome completo preenchido
           if (userData && userData.name) {
             console.log("Usuário tem perfil completo, redirecionando para matriz");
-            navigate('/matrix');
+            navigate('/escolher-mapa');
           } else {
             console.log("Usuário sem perfil completo, permanecendo na página inicial");
             // Apenas recarregar a página para mostrar o form de perfil

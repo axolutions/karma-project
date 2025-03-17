@@ -178,7 +178,7 @@ const ProfileForm: React.FC = () => {
       console.log("ProfileForm: Redirecionando no React agora!");
       setTimeout(() => {
         setIsSubmitting(false);
-        navigate('/matrix');
+        navigate('/escolher-mapa');
       }, 1000);
     } catch (error) {
       console.error("ProfileForm: Erro ao gerar mapa:", error);

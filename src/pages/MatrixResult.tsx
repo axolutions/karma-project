@@ -121,7 +121,7 @@ const MatrixResult: React.FC = () => {
 				}
 
 				if (data.map_choosen === "professional") {
-					navigate("/matrix-profissional");
+					navigate("/matrix-professional");
 					return;
 				} else if (data.map_choosen === "love") {
 					navigate("/matrix-love");

@@ -13,6 +13,7 @@ import { useEffect } from "react";
 import { AuthProvider } from "@/hooks/use-auth";
 import ProfessionalMatrixResult from "@/pages/ProfessionalMatrixResult";
 import LoveMatrixResult from "@/pages/LoveMatrixResult";
+import UserMaps from "@/pages/UserMaps";
 
 const queryClient = new QueryClient();
 
@@ -62,12 +63,17 @@ const App = () => {
           <BrowserRouter>
             <Routes>
               <Route path="/" element={<Index />} />
+              <Route path="/escolher-mapa" element={
+                <ProtectedUserRoute>
+                  <UserMaps />
+                </ProtectedUserRoute>
+              } />
               <Route path="/matrix-love" element={
                 <ProtectedUserRoute>
                   <LoveMatrixResult />
                 </ProtectedUserRoute>
               } />
-              <Route path="/matrix-profissional" element={
+              <Route path="/matrix-professional" element={
                 <ProtectedUserRoute>
                   <ProfessionalMatrixResult />
                 </ProtectedUserRoute>
