@@ -220,14 +220,13 @@ const EmailManager: React.FC = () => {
                       <div className="ml-3 flex items-center">
                         <div className="flex items-center text-xs bg-karmic-200 text-karmic-700 px-2 py-1 rounded-full">
                           <Map className="h-3 w-3 mr-1" />
-                          <span>Mapa</span>
+                          <span>Mapa {" "}</span>
+                          <span className='ml-1 font-medium' />
                           (
-                            <span className="ml-1 font-medium">
-                              {
-                                map_choosen === "professional" ? "Profissional" :
-                                map_choosen === "love" ? "Amor" : "Pessoal"
-                              }
-                            </span>
+                            {
+                              map_choosen === "professional" ? "Profissional" :
+                              map_choosen === "love" ? "Amor" : "Pessoal"
+                            }
                           )
                         </div>
                       </div>
