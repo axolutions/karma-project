@@ -39,9 +39,12 @@ export default function UserMaps() {
         const email = getCurrentUser();
         const data = await getUserData(email);
 
-        data.maps_available && setMapsAvailable(data.maps_available);
-        console.log("DATA", !!data)
-        setHasData(!!data);
+        if (data && data.maps_available) {
+            setMapsAvailable(data.maps_available);
+            setHasData(true);
+        } else {
+            setHasData(!!data);
+        }
         setLoading(false);
     }
 
@@ -126,7 +129,7 @@ export default function UserMaps() {
                   className="w-full" 
                   onClick={() => navigate(mapConfig.route)}
                 >
-                  Ver Matrix
+                  Ver Matriz
                 </Button>
               </CardFooter>
             </Card>

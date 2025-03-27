@@ -11,15 +11,31 @@ import { useNavigate } from "react-router-dom";
 import KarmicIntroduction from "@/components/KarmicIntroduction";
 import KarmicEnding from "@/components/KarmicEnding";
 import { dispatch } from "@/hooks/use-toast";
+import { Button } from "@/components/ui/button";
+import { ArrowLeft, ChevronDown, ChevronUp } from "lucide-react";
+import { motion, AnimatePresence } from "framer-motion";
 
 const MatrixResult: React.FC = () => {
 	const [userData, setUserData] = useState<any>(null);
 	const [loading, setLoading] = useState(true);
 	const [error, setError] = useState<string | null>(null);
 	const [interpretationsLoaded, setInterpretationsLoaded] = useState(false);
+	const [expandedSections, setExpandedSections] = useState<Set<string>>(new Set(["personalIntro", "personalEnding"]));
 	const { toast } = useToast();
 	const [pdfMode, setPdfMode] = useState(false);
 	const navigate = useNavigate();
+
+	const toggleSection = (section: string) => {
+		setExpandedSections((prev) => {
+			const newSet = new Set(prev);
+			if (newSet.has(section)) {
+				newSet.delete(section);
+			} else {
+				newSet.add(section);
+			}
+			return newSet;
+		});
+	};
 
 	// Load interpretations immediately when component mounts
 	useEffect(() => {
@@ -177,14 +193,103 @@ const MatrixResult: React.FC = () => {
 
 	return (
 		<div className="container mx-auto px-4 py-8 max-w-6xl">
+			<div className="mb-4">
+				<Button 
+					variant="outline" 
+					onClick={() => navigate("/escolher-mapa")}
+					className="flex items-center text-base"
+				>
+					<ArrowLeft className="mr-2 h-4 w-4" />
+					Voltar para Seleção
+				</Button>
+			</div>
 			<UserHeader
 				userData={userData}
 				handleDownloadPDF={handleDownloadPDF}
 			/>
 			<KarmicMatrix karmicData={karmicData} />
-			<KarmicIntroduction />
+
+			{/* Introdução com toggle */}
+			<div className="max-w-4xl mx-auto my-8">
+				<motion.div
+					initial={{ opacity: 0, y: 20 }}
+					animate={{ opacity: 1, y: 0 }}
+					transition={{ duration: 0.4 }}
+					className="bg-[#f5f5dc] rounded-lg shadow-sm overflow-hidden"
+				>
+					<div 
+						className="flex justify-between items-center p-4 border-b border-[#e2d1c3] cursor-pointer"
+						onClick={() => toggleSection("personalIntro")}
+					>
+						<h3 className="text-xl text-[#333333] font-semibold">
+							Bem-vindo à sua Matriz Kármica Pessoal
+						</h3>
+						{expandedSections.has("personalIntro") ? (
+							<ChevronUp className="h-5 w-5 text-[#8B4513]" />
+						) : (
+							<ChevronDown className="h-5 w-5 text-[#8B4513]" />
+						)}
+					</div>
+
+					<AnimatePresence>
+						{expandedSections.has("personalIntro") && (
+							<motion.div
+								initial={{ opacity: 0, height: 0 }}
+								animate={{ opacity: 1, height: "auto" }}
+								exit={{ opacity: 0, height: 0 }}
+								transition={{ duration: 0.3 }}
+								className="overflow-hidden"
+							>
+								<div className="p-6">
+									<KarmicIntroduction userName={userData?.name} />
+								</div>
+							</motion.div>
+						)}
+					</AnimatePresence>
+				</motion.div>
+			</div>
+
 			<MatrixInterpretations karmicData={karmicData} pdfMode={pdfMode} />
-			<KarmicEnding/>
+
+			{/* Conclusão com toggle */}
+			<div className="max-w-4xl mx-auto my-8">
+				<motion.div
+					initial={{ opacity: 0, y: 20 }}
+					animate={{ opacity: 1, y: 0 }}
+					transition={{ duration: 0.4 }}
+					className="bg-[#f5f5dc] rounded-lg shadow-sm overflow-hidden"
+				>
+					<div 
+						className="flex justify-between items-center p-4 border-b border-[#e2d1c3] cursor-pointer"
+						onClick={() => toggleSection("personalEnding")}
+					>
+						<h3 className="text-xl text-[#333333] font-semibold">
+							Próximos Passos na Sua Jornada Kármica
+						</h3>
+						{expandedSections.has("personalEnding") ? (
+							<ChevronUp className="h-5 w-5 text-[#8B4513]" />
+						) : (
+							<ChevronDown className="h-5 w-5 text-[#8B4513]" />
+						)}
+					</div>
+
+					<AnimatePresence>
+						{expandedSections.has("personalEnding") && (
+							<motion.div
+								initial={{ opacity: 0, height: 0 }}
+								animate={{ opacity: 1, height: "auto" }}
+								exit={{ opacity: 0, height: 0 }}
+								transition={{ duration: 0.3 }}
+								className="overflow-hidden"
+							>
+								<div className="p-6">
+									<KarmicEnding userName={userData?.name} />
+								</div>
+							</motion.div>
+						)}
+					</AnimatePresence>
+				</motion.div>
+			</div>
 		</div>
 	);
 };

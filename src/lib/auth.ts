@@ -194,6 +194,19 @@ export async function updateMapChoosen(email: string, mapChoosen: string | null,
   try {
     const normalizedEmail = email.toLowerCase().trim();
     
+    // Se não fornecemos mapsAvailable, precisamos obter os mapas atuais do usuário
+    if (mapsAvailable === undefined) {
+      const userData = await getUserData(normalizedEmail);
+      if (userData && userData.maps_available) {
+        mapsAvailable = userData.maps_available;
+        
+        // Garantir que o mapa escolhido esteja na lista de mapas disponíveis
+        if (mapChoosen && !mapsAvailable.includes(mapChoosen)) {
+          mapsAvailable.push(mapChoosen);
+        }
+      }
+    }
+    
     // Create update object
     const updateData: { map_choosen: string | null, maps_available?: string[] } = {
       map_choosen: mapChoosen

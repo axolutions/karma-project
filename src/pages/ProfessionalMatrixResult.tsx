@@ -4,7 +4,7 @@ import { getUserData, isLoggedIn, getCurrentUser, logout } from "@/lib/auth"
 import { supabase } from "@/integrations/supabase/client"
 import { useNavigate } from "react-router-dom"
 import { motion, AnimatePresence } from "framer-motion"
-import { ChevronDown, ChevronUp, AlertTriangle, FileDown, LogOut } from "lucide-react"
+import { ChevronDown, ChevronUp, AlertTriangle, FileDown, LogOut, ArrowLeft } from "lucide-react"
 import { generateInterpretationId } from "@/lib/interpretations"
 import KarmicMatrix from "@/components/KarmicMatrix"
 import { dispatch, toast } from "@/hooks/use-toast"
@@ -30,7 +30,7 @@ export default function ProfessionalMatrixResult() {
   const [userData, setUserData] = useState<Awaited<ReturnType<typeof getUserData>>>(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
-  const [expandedSections, setExpandedSections] = useState<Set<string>>(new Set(["professionalPurpose"]))
+  const [expandedSections, setExpandedSections] = useState<Set<string>>(new Set(["professionalPurpose", "professionalIntro", "professionalEnding"]))
   const [interpretationsLoaded, setInterpretationsLoaded] = useState(false)
   const [loadError, setLoadError] = useState<string | null>(null)
   const [interpretations, setInterpretations] = useState<{id: string, title: string, content: string}[]>([])
@@ -257,25 +257,96 @@ export default function ProfessionalMatrixResult() {
     )
   }
 
-  return (
-    <div
-      className="min-h-screen py-6 px-4 bg-gradient-to-br from-[#FDF5E6] to-[#FAEBD7] font-['Lora',serif] text-[#2A2A2A] leading-7 text-base"
-      style={{
-        backgroundImage: `url('data:image/svg+xml,%3Csvg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1440 320"%3E%3Cpath fill="%231E3A5F" fillOpacity="0.03" d="M0,64L48,80C96,96,192,128,288,128C384,128,480,96,576,85.3C672,75,768,85,864,90.7C960,96,1056,96,1152,85.3C1248,75,1344,64,1392,58.7L1440,53.3V320H1392H1344H1248H1152H1056H960H864H768H672H576H480H384H288H192H96H48H0V64Z"%3E%3C/path%3E%3Ctext x="50" y="100" fontSize="20" fill="%231E3A5F" opacity="0.03"%3E1%3C/text%3E%3Ctext x="150" y="150" fontSize="20" fill="%231E3A5F" opacity="0.03"%3E2%3C/text%3E%3Ctext x="250" y="200" fontSize="20" fill="%231E3A5F" opacity="0.03"%3E3%3C/text%3E%3Ctext x="350" y="250" fontSize="20" fill="%231E3A5F" opacity="0.03"%3E4%3C/text%3E%3Ctext x="450" y="200" fontSize="20" fill="%231E3A5F" opacity="0.03"%3E5%3C/text%3E%3Ctext x="550" y="150" fontSize="20" fill="%231E3A5F" opacity="0.03"%3E6%3C/text%3E%3Ctext x="650" y="100" fontSize="20" fill="%231E3A5F" opacity="0.03"%3E7%3C/text%3E%3Ctext x="750" y="150" fontSize="20" fill="%231E3A5F" opacity="0.03"%3E8%3C/text%3E%3Ctext x="850" y="200" fontSize="20" fill="%231E3A5F" opacity="0.03"%3E9%3C/text%3E%3C/svg%3E')`,
-        backgroundSize: "cover",
-      }}
-    >
-      <div className="max-w-[900px] mx-auto bg-white rounded-[20px] shadow-lg overflow-hidden border-2 border-dashed border-[#1E3A5F] relative">
-        <div className="bg-gradient-to-br from-[#1E3A5F] via-[#2B5A8A] to-[#ECF4FF] text-white p-10 text-center relative">
-          <h1 className="font-['Playfair_Display',serif] m-0 text-2xl font-bold uppercase text-shadow">
-            Código do Propósito Profissional
+  return pdfMode ? (
+    <div className="min-h-screen py-6 px-4 bg-blue-50 font-['Lora',serif] text-[#2A2A2A] leading-7 text-base print-friendly">
+      <div className="max-w-[900px] mx-auto bg-white rounded-lg shadow-lg overflow-hidden border-2 border-dashed border-blue-300">
+        {/* Header com gradiente para PDF */}
+        <div style={{background: "linear-gradient(to right, #1e40af, #3b82f6)"}} className="text-white p-6 text-center">
+          <h1 className="font-['Playfair_Display',serif] m-0 text-2xl font-bold uppercase">
+            MATRIZ KÁRMICA PROFISSIONAL
           </h1>
+          <p className="mt-2">Revelando seu Caminho Profissional Kármico</p>
           {userData && (
             <>
               <p className="mt-2">Para: {userData.name || userData.email}</p>
               <p className="mt-2">Nascimento: {new Date(userData.birth).toLocaleDateString("pt-BR", {timeZone: "UTC"})}</p>
             </>
           )}
+        </div>
+
+        {/* Matriz visual */}
+        <div className="p-4 bg-blue-50">
+          <KarmicMatrix 
+            karmicData={karmicData} 
+            backgroundImage="/professional_banner.png" 
+            positions={{
+              destinyCall: { top: "25%", left: "24.7%" },
+              karmicSeal: { top: "19%", left: "50.5%" },
+              karmaPortal: { top: "25%", left: "76.5%" },
+              karmicInheritance: { top: "50.5%", left: "19%" },
+              manifestationEnigma: { top: "50.5%", left: "82.5%" },
+              spiritualMark: { top: "76.5%", left: "24.7%" },
+              karmicReprogramming: { top: "82%", left: "50.5%" },
+              cycleProphecy: { top: "76.5%", left: "76.5%" },
+            }}
+          />
+        </div>
+
+        {/* Introdução profissional */}
+        <div className="p-4 bg-blue-50">
+          <KarmicProfessionalIntroduction />
+        </div>
+
+        {/* Interpretações */}
+        <div className="p-6">
+          {interpretations.map((interpretation, index) => (
+            <div key={interpretation.id} className="mb-6 page-break-inside-avoid">
+              <div className="bg-[#ecf4ff] rounded-lg p-3 flex items-center mb-2 shadow-sm">
+                <div className="flex-1">
+                  <h3 className="text-xl text-[#333333] font-semibold">
+                    {interpretation.title}
+                  </h3>
+                </div>
+              </div>
+              <div className="p-4 border border-dashed border-blue-200 rounded-lg bg-white">
+                <div
+                  className="prose max-w-none text-[#333333] text-lg"
+                  dangerouslySetInnerHTML={{ 
+                    __html: formatContentWithParagraphs(interpretation.content) 
+                  }}
+                />
+              </div>
+            </div>
+          ))}
+        </div>
+
+        {/* Conclusão profissional */}
+        <div className="p-4 bg-blue-50">
+          <KarmicProfessionalEnding />
+        </div>
+
+        {/* Footer */}
+        <div className="text-center p-4 text-gray-600 text-sm border-t-2 border-dashed border-blue-300 bg-blue-50">
+          <p>Matriz Kármica Profissional - {new Date().getFullYear()}</p>
+        </div>
+      </div>
+    </div>
+  ) : (
+    <div className="min-h-screen py-6 px-4 bg-blue-50 font-['Lora',serif] text-[#2A2A2A] leading-7 text-base">
+      <div className="max-w-[900px] mx-auto bg-white rounded-[20px] shadow-lg overflow-hidden border-2 border-dashed border-blue-300 relative">
+        {/* Header with gradient background */}
+        <div className="bg-gradient-to-r from-blue-800 to-blue-600 text-white p-10 text-center relative">
+          <h1 className="font-['Playfair_Display',serif] m-0 text-2xl font-bold uppercase text-shadow">
+            MATRIZ KÁRMICA PROFISSIONAL
+          </h1>
+          <p className="mt-2">Revelando seu Caminho Profissional Kármico</p>
+          {userData && (
+            <>
+              <p className="mt-2">Para: {userData.name || userData.email}</p>
+              <p className="mt-2">Nascimento: {new Date(userData.birth).toLocaleDateString("pt-BR", {timeZone: "UTC"})}</p>
+            </>
+          )}
+          
           <div className="flex space-x-3 w-full justify-center mt-4">
             <Button 
               onClick={handleDownloadPDF}
@@ -283,6 +354,15 @@ export default function ProfessionalMatrixResult() {
             >
               <FileDown className="mr-2 h-4 w-4" />
               Baixar Interpretações
+            </Button>
+            
+            <Button 
+              onClick={() => navigate("/escolher-mapa")}
+              variant="outline"
+              className="karmic-button-outline flex items-center"
+            >
+              <ArrowLeft className="mr-2 h-4 w-4" />
+              Voltar para Seleção
             </Button>
             
             <Button 
@@ -313,7 +393,45 @@ export default function ProfessionalMatrixResult() {
           }}
         />
 
-        <KarmicProfessionalIntroduction />
+        {/* Introdução profissional com toggle */}
+        <div className="p-6">
+          <div className="mb-6">
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.4 }}
+              className="bg-[#ecf4ff] rounded-lg p-3 cursor-pointer flex items-center"
+              onClick={() => toggleSection("professionalIntro")}
+            >
+              <div className="flex-1">
+                <h2 className="text-xl text-[#333333] font-semibold">
+                  Introdução à Matriz Kármica Profissional
+                </h2>
+              </div>
+              {expandedSections.has("professionalIntro") ? (
+                <ChevronUp className="h-5 w-5 text-[#1E3A5F]" />
+              ) : (
+                <ChevronDown className="h-5 w-5 text-[#1E3A5F]" />
+              )}
+            </motion.div>
+
+            <AnimatePresence>
+              {expandedSections.has("professionalIntro") && (
+                <motion.div
+                  initial={{ opacity: 0, height: 0 }}
+                  animate={{ opacity: 1, height: "auto" }}
+                  exit={{ opacity: 0, height: 0 }}
+                  transition={{ duration: 0.3 }}
+                  className="overflow-hidden"
+                >
+                  <div className="p-4 border border-dashed border-blue-200 rounded-lg mt-2 bg-white">
+                    <KarmicProfessionalIntroduction />
+                  </div>
+                </motion.div>
+              )}
+            </AnimatePresence>
+          </div>
+        </div>
 
         <div className="p-10">
           <div className="max-w-4xl mx-auto">
@@ -373,7 +491,45 @@ export default function ProfessionalMatrixResult() {
           </div>
         </div>
 
-        <KarmicProfessionalEnding />
+        {/* Conclusão profissional com toggle */}
+        <div className="p-6">
+          <div className="mb-6">
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.4 }}
+              className="bg-[#ecf4ff] rounded-lg p-3 cursor-pointer flex items-center"
+              onClick={() => toggleSection("professionalEnding")}
+            >
+              <div className="flex-1">
+                <h2 className="text-xl text-[#333333] font-semibold">
+                  Conclusão e Próximos Passos Profissionais
+                </h2>
+              </div>
+              {expandedSections.has("professionalEnding") ? (
+                <ChevronUp className="h-5 w-5 text-[#1E3A5F]" />
+              ) : (
+                <ChevronDown className="h-5 w-5 text-[#1E3A5F]" />
+              )}
+            </motion.div>
+
+            <AnimatePresence>
+              {expandedSections.has("professionalEnding") && (
+                <motion.div
+                  initial={{ opacity: 0, height: 0 }}
+                  animate={{ opacity: 1, height: "auto" }}
+                  exit={{ opacity: 0, height: 0 }}
+                  transition={{ duration: 0.3 }}
+                  className="overflow-hidden"
+                >
+                  <div className="p-4 border border-dashed border-blue-200 rounded-lg mt-2 bg-white">
+                    <KarmicProfessionalEnding />
+                  </div>
+                </motion.div>
+              )}
+            </AnimatePresence>
+          </div>
+        </div>
 
         <div className="text-center p-5 text-gray-600 text-sm border-t-2 border-dashed border-[#1E3A5F] bg-[#FDF5E6] relative before:content-[''] before:absolute before:top-[-10px] before:left-1/2 before:transform before:translate-x-[-50%] before:w-[30px] before:h-[1px] before:bg-[#D4A017]">
           <p>Código do Propósito Profissional 2025</p>

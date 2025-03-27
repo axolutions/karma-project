@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button"
 import { getUserData, isLoggedIn, getCurrentUser, logout } from "@/lib/auth"
 import { supabase } from "@/integrations/supabase/client"
 import { motion, AnimatePresence } from "framer-motion"
-import { ChevronDown, ChevronUp, AlertTriangle, Heart, FileDown, LogOut } from "lucide-react"
+import { ChevronDown, ChevronUp, AlertTriangle, Heart, FileDown, LogOut, ArrowLeft } from "lucide-react"
 import { generateInterpretationId } from "@/lib/interpretations"
 import { useNavigate } from "react-router-dom"
 import KarmicMatrix from "@/components/KarmicMatrix"
@@ -30,7 +30,7 @@ export default function LoveMatrixResult() {
   const [userData, setUserData] = useState<any>(null)
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
-  const [expandedSections, setExpandedSections] = useState<Set<string>>(new Set(["introduction"]))
+  const [expandedSections, setExpandedSections] = useState<Set<string>>(new Set(["introduction", "loveIntro", "loveEnding"]))
   const [interpretationsLoaded, setInterpretationsLoaded] = useState(false)
   const [loadError, setLoadError] = useState<string | null>(null)
   const [interpretations, setInterpretations] = useState<
@@ -306,13 +306,93 @@ export default function LoveMatrixResult() {
     )
   }
 
-  return (
+  return pdfMode ? (
+    // Versão para PDF mais bonita, com cores e elementos visuais
+    <div className="min-h-screen py-6 px-4 bg-pink-50 font-['Lora',serif] text-[#2A2A2A] leading-7 text-base print-friendly">
+      <div className="max-w-[900px] mx-auto bg-white rounded-lg shadow-lg overflow-hidden border-2 border-dashed border-pink-300">
+        {/* Header com gradiente para PDF */}
+        <div style={{background: "linear-gradient(to right, #ec4899, #f472b6)"}} className="text-white p-6 text-center">
+          <h1 className="font-['Playfair_Display',serif] m-0 text-2xl font-bold uppercase">
+            MATRIZ KÁRMICA DO AMOR
+          </h1>
+          <p className="mt-2">A Herança Kármica dos Relacionamentos</p>
+          {userData && (
+            <>
+              <p className="mt-2">Para: {userData.name || userData.email}</p>
+              <p className="mt-2">Nascimento: {new Date(userData.birth).toLocaleDateString("pt-BR", {timeZone: "UTC"})}</p>
+            </>
+          )}
+        </div>
+
+        {/* Matriz visual */}
+        <div className="p-4 bg-pink-50">
+          <KarmicMatrix 
+            karmicData={karmicData} 
+            backgroundImage="/love_banner.png" 
+            positions={{
+              destinyCall: { top: "28%", left: "28%" },
+              karmicSeal: { top: "21%", left: "50%" },
+              karmaPortal: { top: "28%", left: "72.5%" },
+              karmicInheritance: { top: "50%", left: "20.5%" },
+              manifestationEnigma: { top: "50%", left: "79.5%" },
+              spiritualMark: { top: "73%", left: "28%" },
+              karmicReprogramming: { top: "79.5%", left: "50%" },
+              cycleProphecy: { top: "73%", left: "72.5%" },
+            }}
+          />
+        </div>
+
+        {/* Interpretações */}
+        <div className="p-6">
+          {interpretations.map((interpretation, index) => (
+            <div key={interpretation.id} className="mb-6 page-break-inside-avoid">
+              <div className="bg-pink-200 rounded-lg p-3 flex items-center mb-2">
+                <div className="text-pink-600 mr-2">◆</div>
+                <div className="flex-1">
+                  <h2 className="text-xl font-medium text-pink-800">
+                    {interpretation.title}
+                  </h2>
+                  <p className="text-sm text-pink-600">
+                    Número Atual: {interpretation.currentNumber}
+                  </p>
+                </div>
+              </div>
+              <div className="p-4 border border-dashed border-pink-200 rounded-lg bg-white">
+                <div
+                  className="prose max-w-none text-gray-700"
+                  dangerouslySetInnerHTML={{ 
+                    __html: formatContentWithParagraphs(interpretation.content) 
+                  }}
+                />
+              </div>
+            </div>
+          ))}
+
+          {/* Afirmação do Amor */}
+          <div className="mt-8 p-5 bg-gradient-to-r from-pink-100 to-pink-50 rounded-lg border border-pink-200 shadow-sm">
+            <h3 className="text-center text-pink-700 font-medium mb-3 flex items-center justify-center">
+              <span className="mr-2">♥</span> Afirmação para Atrair o Amor
+            </h3>
+            <p className="text-center italic text-pink-800">
+              "Eu estou aberto(a) para receber o amor que me faz florescer. Libero padrões do passado e abraço novas
+              possibilidades."
+            </p>
+          </div>
+        </div>
+
+        {/* Footer */}
+        <div className="text-center p-4 text-gray-600 text-sm border-t-2 border-dashed border-pink-300 bg-pink-50">
+          <p>Matriz Kármica do Amor - {new Date().getFullYear()}</p>
+        </div>
+      </div>
+    </div>
+  ) : (
     <div className="min-h-screen py-6 px-4 bg-pink-100 font-['Lora',serif] text-[#2A2A2A] leading-7 text-base">
       <div className="max-w-[900px] mx-auto bg-white rounded-[20px] shadow-lg overflow-hidden border-2 border-dashed border-pink-300 relative">
         {/* Header with gradient background */}
         <div className="bg-gradient-to-r from-pink-500 to-pink-400 text-white p-10 text-center relative">
           <h1 className="font-['Playfair_Display',serif] m-0 text-2xl font-bold uppercase text-shadow">
-            MAPA DA MATRIZ NUMEROLÓGICA DO AMOR
+            MATRIZ KÁRMICA DO AMOR
           </h1>
           <p className="mt-2">A Herança Kármica dos Relacionamentos</p>
           {userData && (
@@ -329,6 +409,15 @@ export default function LoveMatrixResult() {
             >
               <FileDown className="mr-2 h-4 w-4" />
               Baixar Interpretações
+            </Button>
+            
+            <Button 
+              onClick={() => navigate("/escolher-mapa")}
+              variant="outline"
+              className="karmic-button-outline flex items-center"
+            >
+              <ArrowLeft className="mr-2 h-4 w-4" />
+              Voltar para Seleção
             </Button>
             
             <Button 
@@ -360,6 +449,50 @@ export default function LoveMatrixResult() {
         />
 
         <div className="p-6">
+          {/* Introdução ao Mapa do Amor */}
+          <div className="mb-6">
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.4 }}
+              className="bg-pink-200 rounded-lg p-3 cursor-pointer flex items-center"
+              onClick={() => toggleSection("loveIntro")}
+            >
+              <div className="text-pink-600 mr-2">◆</div>
+              <div className="flex-1">
+                <h2 className="text-xl font-medium text-pink-800">
+                  Introdução à Matriz Kármica do Amor
+                </h2>
+              </div>
+              {expandedSections.has("loveIntro") ? (
+                <ChevronUp className="h-5 w-5 text-pink-600" />
+              ) : (
+                <ChevronDown className="h-5 w-5 text-pink-600" />
+              )}
+            </motion.div>
+
+            <AnimatePresence>
+              {expandedSections.has("loveIntro") && (
+                <motion.div
+                  initial={{ opacity: 0, height: 0 }}
+                  animate={{ opacity: 1, height: "auto" }}
+                  exit={{ opacity: 0, height: 0 }}
+                  transition={{ duration: 0.3 }}
+                  className="overflow-hidden"
+                >
+                  <div className="p-4 border border-dashed border-pink-200 rounded-lg mt-2 bg-white">
+                    <div className="prose max-w-none text-gray-700">
+                      <p>Bem-vindo(a) à sua Matriz Kármica do Amor - um mapa cósmico especialmente desenvolvido para revelar os padrões energéticos que influenciam sua vida amorosa e relacionamentos.</p>
+                      <p>Esta matriz combina a sabedoria ancestral da numerologia com a compreensão moderna das dinâmicas relacionais, revelando insights profundos sobre sua jornada emocional e afetiva.</p>
+                      <p>Cada número em sua matriz representa uma energia única que influencia diferentes aspectos de como você ama, se conecta e desenvolve relacionamentos.</p>
+                    </div>
+                  </div>
+                </motion.div>
+              )}
+            </AnimatePresence>
+          </div>
+
+          {/* Interpretações existentes */}
           {interpretations.map((interpretation, index) => {
             const isExpanded = expandedSections.has(interpretation.key || `section-${index}`) || pdfMode
 
@@ -413,6 +546,49 @@ export default function LoveMatrixResult() {
               </div>
             )
           })}
+
+          {/* Conclusão do Mapa do Amor */}
+          <div className="mb-6">
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.4 }}
+              className="bg-pink-200 rounded-lg p-3 cursor-pointer flex items-center"
+              onClick={() => toggleSection("loveEnding")}
+            >
+              <div className="text-pink-600 mr-2">◆</div>
+              <div className="flex-1">
+                <h2 className="text-xl font-medium text-pink-800">
+                  Conclusão e Próximos Passos
+                </h2>
+              </div>
+              {expandedSections.has("loveEnding") ? (
+                <ChevronUp className="h-5 w-5 text-pink-600" />
+              ) : (
+                <ChevronDown className="h-5 w-5 text-pink-600" />
+              )}
+            </motion.div>
+
+            <AnimatePresence>
+              {expandedSections.has("loveEnding") && (
+                <motion.div
+                  initial={{ opacity: 0, height: 0 }}
+                  animate={{ opacity: 1, height: "auto" }}
+                  exit={{ opacity: 0, height: 0 }}
+                  transition={{ duration: 0.3 }}
+                  className="overflow-hidden"
+                >
+                  <div className="p-4 border border-dashed border-pink-200 rounded-lg mt-2 bg-white">
+                    <div className="prose max-w-none text-gray-700">
+                      <p>Sua Matriz Kármica do Amor é um convite para compreender os padrões energéticos que modelam sua experiência afetiva. Ao reconhecer esses padrões, você se torna capaz de transformar seus relacionamentos e criar conexões mais profundas e autênticas.</p>
+                      <p>Lembre-se que o amor é uma jornada de autoconhecimento - quanto mais você compreender a si mesmo(a), melhor poderá se relacionar com os outros.</p>
+                      <p>Utilize as revelações desta matriz como pontos de reflexão em sua jornada emocional e permita-se explorar novas possibilidades de amar e ser amado(a).</p>
+                    </div>
+                  </div>
+                </motion.div>
+              )}
+            </AnimatePresence>
+          </div>
 
           {/* Love affirmation card */}
           <div className="mt-8 p-5 bg-gradient-to-r from-pink-100 to-pink-50 rounded-lg border border-pink-200 shadow-sm">

@@ -46,29 +46,66 @@ Deno.serve(async (req) => {
           const email = customer.email;
           console.log("Order paid", email);
 
-          const maps = new Array<string>();
+          // Primeiro, verificar se o cliente já existe e quais mapas ele já possui
+          const checkClientSql = `
+            SELECT maps_available, map_choosen FROM clients WHERE email = '${email}'
+          `;
+          
+          const clientResult = await connection.queryObject(checkClientSql);
+          const existingClient = clientResult.rows[0];
+          
+          // Array para armazenar todos os mapas que o cliente terá
+          let allMaps = new Array<string>();
+          
+          // Se o cliente já existir, usar seus mapas existentes como base
+          if (existingClient) {
+            try {
+              const existingMaps = existingClient.maps_available;
+              if (existingMaps && Array.isArray(existingMaps)) {
+                allMaps = [...existingMaps];
+              }
+            } catch (e) {
+              console.error("Erro ao recuperar mapas existentes:", e);
+            }
+          }
+          
+          // Mapas da nova compra
+          const newPurchasedMaps = new Array<string>();
 
           for (const item of resource.items.data) {
             const sku = item.item_sku as string;
 
             if (sku === "BAC7NHXNJ") { // love
-              maps.push("love");
+              newPurchasedMaps.push("love");
             } else if (sku === "JTNWEMXLP") { // professional
-              maps.push("professional");
+              newPurchasedMaps.push("professional");
             } else if (sku === "C3HWK68SD") { // matrix
-              maps.push("personal");
+              newPurchasedMaps.push("personal");
             }
           }
-
-          const map_choosen = maps[0] ?? null;
-          const maps_available_json = JSON.stringify(maps).replace("[", "{").replace("]", "}");
+          
+          // Adicionar novos mapas sem duplicar
+          for (const map of newPurchasedMaps) {
+            if (!allMaps.includes(map)) {
+              allMaps.push(map);
+            }
+          }
+          
+          // Definir o mapa escolhido como o primeiro da nova compra,
+          // apenas se não existir um mapa já escolhido
+          let map_choosen = existingClient?.map_choosen;
+          if (!map_choosen && newPurchasedMaps.length > 0) {
+            map_choosen = newPurchasedMaps[0];
+          }
+          
+          const maps_available_json = JSON.stringify(allMaps).replace("[", "{").replace("]", "}");
 
           const sql = `
             INSERT INTO clients (email, map_choosen, maps_available) 
             VALUES ('${email}', '${map_choosen}', '${maps_available_json}')
             ON CONFLICT (email)
             DO UPDATE SET
-              map_choosen = '${map_choosen}',
+              map_choosen = COALESCE(clients.map_choosen, '${map_choosen}'),
               maps_available = '${maps_available_json}'
           `
 
@@ -102,4 +139,5 @@ Deno.serve(async (req) => {
       JSON.stringify({ message: "Internal server error" }),
       { status: 500, headers: { "Content-Type": "application/json" } },
     );
+  });
   });
