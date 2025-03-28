@@ -168,11 +168,20 @@ export async function isAuthorizedEmail(email: string): Promise<boolean> {
   }
 };
 
-export async function addAuthorizedEmail(email: string) {
+export async function addAuthorizedEmail(email: string, mapType?: string) {
   try {
     const normalizedEmail = email.toLowerCase().trim();
 
-    const result = await supabase.from("clients").upsert([{ email: normalizedEmail }]);
+    // Se um tipo de mapa foi fornecido, adiciona ele aos mapas disponíveis
+    const mapsAvailable = mapType ? [mapType] : null;
+    const mapChoosen = mapType || null;
+
+    const result = await supabase.from("clients").upsert([{ 
+      email: normalizedEmail,
+      maps_available: mapsAvailable,
+      map_choosen: mapChoosen
+    }]);
+
     result.error ? console.error(result.error) : console.log("Email adicionado à lista de autorizados:", normalizedEmail);
   } catch (error) {
     console.error('Erro ao adicionar email autorizado:', error);

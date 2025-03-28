@@ -91,22 +91,16 @@ Deno.serve(async (req) => {
             }
           }
           
-          // Definir o mapa escolhido como o primeiro da nova compra,
-          // apenas se não existir um mapa já escolhido
-          let map_choosen = existingClient?.map_choosen;
-          if (!map_choosen && newPurchasedMaps.length > 0) {
-            map_choosen = newPurchasedMaps[0];
-          }
+          // Sempre definir o mapa atual como o primeiro da nova compra
+          let map_choosen = newPurchasedMaps[0];
           
-          const maps_available_json = JSON.stringify(allMaps).replace("[", "{").replace("]", "}");
-
           const sql = `
             INSERT INTO clients (email, map_choosen, maps_available) 
-            VALUES ('${email}', '${map_choosen}', '${maps_available_json}')
+            VALUES ('${email}', '${map_choosen}', ARRAY[${allMaps.map(m => `'${m}'`).join(',')}]::text[])
             ON CONFLICT (email)
             DO UPDATE SET
-              map_choosen = COALESCE(clients.map_choosen, '${map_choosen}'),
-              maps_available = '${maps_available_json}'
+              map_choosen = '${map_choosen}',
+              maps_available = ARRAY[${allMaps.map(m => `'${m}'`).join(',')}]::text[]
           `
 
           const result = await connection.queryObject(sql)

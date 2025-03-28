@@ -45,6 +45,7 @@ const EmailManager: React.FC = () => {
     maps_available: string[] | null 
   }[]>([]);
   const [newEmail, setNewEmail] = useState('');
+  const [newEmailMapType, setNewEmailMapType] = useState<string>('personal');
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [emailToDelete, setEmailToDelete] = useState<string | null>(null);
   
@@ -128,12 +129,13 @@ const EmailManager: React.FC = () => {
     const normalizedEmail = newEmail.toLowerCase().trim();
     
     try {
-      await addAuthorizedEmail(normalizedEmail);
+      await addAuthorizedEmail(normalizedEmail, newEmailMapType);
       
       toast.success("Email adicionado", {
         description: `O email ${normalizedEmail} foi adicionado com sucesso.`
       });
       setNewEmail('');
+      setNewEmailMapType('personal'); // Reset para o valor padrão
       refreshEmails();
     } catch (error) {
       console.error("Erro ao adicionar email:", error);
@@ -169,7 +171,7 @@ const EmailManager: React.FC = () => {
   // Função para adicionar o email de exemplo
   const handleAddSampleEmail = () => {
     const sampleEmail = "projetovmtd@gmail.com";
-    addAuthorizedEmail(sampleEmail);
+    addAuthorizedEmail(sampleEmail, 'personal');
     toast.success("Email de teste adicionado", {
       description: `O email ${sampleEmail} foi adicionado com sucesso.`
     });
@@ -354,15 +356,30 @@ const EmailManager: React.FC = () => {
           <label htmlFor="email" className="text-base font-medium text-karmic-700 block mb-2">
             Adicionar Email Autorizado
           </label>
-          <Input
-            id="email"
-            type="email"
-            placeholder="novocliente@email.com"
-            value={newEmail}
-            onChange={(e) => setNewEmail(e.target.value)}
-            onKeyDown={handleKeyPress}
-            className="text-base py-5"
-          />
+          <div className="flex gap-3">
+            <Input
+              id="email"
+              type="email"
+              placeholder="novocliente@email.com"
+              value={newEmail}
+              onChange={(e) => setNewEmail(e.target.value)}
+              onKeyDown={handleKeyPress}
+              className="text-base py-5"
+            />
+            <Select
+              value={newEmailMapType}
+              onValueChange={setNewEmailMapType}
+            >
+              <SelectTrigger className="w-[180px] text-base py-5">
+                <SelectValue placeholder="Tipo de mapa" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="personal" className="text-base">Pessoal</SelectItem>
+                <SelectItem value="professional" className="text-base">Profissional</SelectItem>
+                <SelectItem value="love" className="text-base">Amor</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
         </div>
         <Button 
           type="button" 
