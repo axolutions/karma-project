@@ -258,23 +258,23 @@ export default function ProfessionalMatrixResult() {
   }
 
   return pdfMode ? (
-    <div className="min-h-screen py-6 px-4 bg-blue-50 font-['Lora',serif] text-[#2A2A2A] leading-7 text-base print-friendly">
+    <div className="min-h-screen py-4 px-4 bg-blue-50 font-['Lora',serif] text-[#2A2A2A] leading-7 text-base print-friendly">
       <div className="max-w-[900px] mx-auto bg-white rounded-lg shadow-lg overflow-hidden border-2 border-dashed border-blue-300">
-        {/* Header com gradiente para PDF */}
-        <div style={{background: "linear-gradient(to right, #1e40af, #3b82f6)"}} className="text-white p-6 text-center">
+        {/* Header com gradiente para PDF - Reduzido em altura */}
+        <div style={{background: "linear-gradient(to right, #1e40af, #3b82f6)"}} className="text-white py-3 px-6 text-center">
           <h1 className="font-['Playfair_Display',serif] m-0 text-2xl font-bold uppercase">
             MATRIZ KÁRMICA PROFISSIONAL
           </h1>
-          <p className="mt-2">Revelando seu Caminho Profissional Kármico</p>
+          <p className="mt-1 mb-0">Revelando seu Caminho Profissional Kármico</p>
           {userData && (
-            <>
-              <p className="mt-2">Para: {userData.name || userData.email}</p>
-              <p className="mt-2">Nascimento: {new Date(userData.birth).toLocaleDateString("pt-BR", {timeZone: "UTC"})}</p>
-            </>
+            <div className="text-sm mt-1">
+              <span>Para: {userData.name || userData.email} | </span>
+              <span>Nascimento: {new Date(userData.birth).toLocaleDateString("pt-BR", {timeZone: "UTC"})}</span>
+            </div>
           )}
         </div>
 
-        {/* Matriz visual */}
+        {/* Matriz visual - Integrada na mesma página */}
         <div className="p-4 bg-blue-50">
           <KarmicMatrix 
             karmicData={karmicData} 
@@ -292,8 +292,8 @@ export default function ProfessionalMatrixResult() {
           />
         </div>
 
-        {/* Introdução profissional */}
-        <div className="p-4 bg-blue-50">
+        {/* Introdução profissional - Mais compacta */}
+        <div className="px-4 pt-2 pb-4 bg-blue-50">
           <KarmicProfessionalIntroduction />
         </div>
 
