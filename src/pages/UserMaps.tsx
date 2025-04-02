@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { Button } from "../components/ui/button";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "../components/ui/card";
-import { getCurrentUser, getUserData, logout } from "@/lib/auth";
+import { getCurrentUser, getUserData, logout, updateMapChoosen } from "@/lib/auth";
 import { LogOut } from "lucide-react";
 import { useToast } from "@/components/ui/use-toast";
 
@@ -29,6 +29,7 @@ const mapConfigurations = {
 
 export default function UserMaps() {
   const [mapsAvailable, setMapsAvailable] = useState<string[]>([]);
+  const [mapChoosen, setMapChoosen] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
   const [hasData, setHasData] = useState(false);
   const navigate = useNavigate();
@@ -39,11 +40,18 @@ export default function UserMaps() {
         const email = getCurrentUser();
         const data = await getUserData(email);
 
-        if (data && data.maps_available) {
-            setMapsAvailable(data.maps_available);
-            setHasData(true);
+        if (data) {
+            if (data.maps_available && Array.isArray(data.maps_available)) {
+                setMapsAvailable(data.maps_available);
+                setMapChoosen(data.map_choosen);
+                setHasData(true);
+            } else {
+                setMapsAvailable([]);
+                setMapChoosen(null);
+                setHasData(true);
+            }
         } else {
-            setHasData(!!data);
+            setHasData(false);
         }
         setLoading(false);
     }
@@ -59,6 +67,28 @@ export default function UserMaps() {
       description: "Você saiu do sistema com sucesso.",
     });
     navigate("/");
+  };
+
+  const handleSelectMap = async (mapType: string) => {
+    // Atualizar o mapa escolhido no banco de dados antes de navegar
+    const email = getCurrentUser();
+    if (email) {
+      try {
+        await updateMapChoosen(email, mapType);
+        // Navegar para a rota correspondente
+        const mapConfig = mapConfigurations[mapType as keyof typeof mapConfigurations];
+        if (mapConfig) {
+          navigate(mapConfig.route);
+        }
+      } catch (error) {
+        console.error("Erro ao atualizar mapa escolhido:", error);
+        toast({
+          title: "Erro",
+          description: "Não foi possível selecionar o mapa. Tente novamente.",
+          variant: "destructive"
+        });
+      }
+    }
   };
 
   if (loading) {
@@ -78,19 +108,25 @@ export default function UserMaps() {
     );
   }
 
-  if (!loading && hasData && mapsAvailable.length === 0) {
-    navigate("/matrix");
-    return null;
-  }
-
-  if (!loading && (mapsAvailable.length === 1)) {
+  // Se só tiver um mapa disponível, vá direto para ele
+  if (!loading && hasData && mapsAvailable.length === 1) {
     const mapType = mapsAvailable[0];
     const mapConfig = mapConfigurations[mapType as keyof typeof mapConfigurations];
 
-    if (!mapConfig) return null;
-
-    navigate(mapConfig.route);
-    return null;
+    if (mapConfig) {
+      // Atualizar o mapa escolhido antes de navegar
+      const email = getCurrentUser();
+      if (email) {
+        updateMapChoosen(email, mapType)
+          .then(() => {
+            navigate(mapConfig.route);
+          })
+          .catch((error) => {
+            console.error("Erro ao atualizar mapa escolhido:", error);
+          });
+      }
+      return <div className="container flex items-center justify-center min-h-screen">Carregando seu mapa...</div>;
+    }
   }
 
   return (
@@ -114,7 +150,10 @@ export default function UserMaps() {
           if (!mapConfig) return null;
           
           return (
-            <Card key={mapType} className="overflow-hidden">
+            <Card 
+              key={mapType} 
+              className={`overflow-hidden ${mapChoosen === mapType ? 'border-2 border-[#8B4513]' : ''}`}
+            >
               <CardHeader>
                 <CardTitle>{mapConfig.displayName}</CardTitle>
                 <CardDescription>{mapConfig.description}</CardDescription>
@@ -127,7 +166,7 @@ export default function UserMaps() {
               <CardFooter>
                 <Button 
                   className="w-full" 
-                  onClick={() => navigate(mapConfig.route)}
+                  onClick={() => handleSelectMap(mapType)}
                 >
                   Ver Matriz
                 </Button>
