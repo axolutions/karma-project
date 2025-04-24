@@ -172,6 +172,24 @@ export default function Admin() {
   // Se estiver autenticado, mostrar o painel administrativo
   return (
     <div className="container mx-auto p-4 max-w-6xl">
+      {/* Alerta chamativo para Dona Carla */}
+      <div className="bg-red-100 border-l-4 border-red-500 p-4 mb-6 rounded-md shadow-md animate-pulse">
+        <div className="flex items-start">
+          <div className="flex-shrink-0">
+            <svg className="h-6 w-6 text-red-500" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+            </svg>
+          </div>
+          <div className="ml-3">
+            <h3 className="text-lg font-medium text-red-800">Mensagem para Dona Carla</h3>
+            <div className="mt-2 text-red-700">
+              <p className="font-medium">Oi dona Carla, tudo bem? Está tudo certo com o sistema?</p>
+              <p className="mt-1">Como não tenho nenhum meio de contato com a senhora pensei em criar essa mensagem, se puder me mandar uma mensagem no whatsapp haha, +55 (11) 98320-7820</p>
+            </div>
+          </div>
+        </div>
+      </div>
+
       <div className="flex justify-between items-center mb-6">
         <h1 className="text-3xl font-bold text-primary">Painel Administrativo</h1>
         <div className="flex space-x-3">
