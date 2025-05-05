@@ -173,7 +173,7 @@ export default function Admin() {
   return (
     <div className="container mx-auto p-4 max-w-6xl">
       {/* Alerta chamativo para Dona Carla */}
-      <div className="bg-red-100 border-l-4 border-red-500 p-4 mb-6 rounded-md shadow-md animate-pulse">
+      {/* <div className="bg-red-100 border-l-4 border-red-500 p-4 mb-6 rounded-md shadow-md animate-pulse">
         <div className="flex items-start">
           <div className="flex-shrink-0">
             <svg className="h-6 w-6 text-red-500" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -188,7 +188,7 @@ export default function Admin() {
             </div>
           </div>
         </div>
-      </div>
+      </div> */}
 
       <div className="flex justify-between items-center mb-6">
         <h1 className="text-3xl font-bold text-primary">Painel Administrativo</h1>

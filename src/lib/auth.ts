@@ -208,23 +208,21 @@ export async function updateMapChoosen(email: string, mapChoosen: string | null,
       const userData = await getUserData(normalizedEmail);
       if (userData && userData.maps_available) {
         mapsAvailable = userData.maps_available;
-        
-        // Garantir que o mapa escolhido esteja na lista de mapas disponíveis
-        if (mapChoosen && !mapsAvailable.includes(mapChoosen)) {
-          mapsAvailable.push(mapChoosen);
-        }
+      } else {
+        mapsAvailable = [];
       }
+    }
+    
+    // Garantir que o mapa escolhido esteja na lista de mapas disponíveis
+    if (mapChoosen && !mapsAvailable.includes(mapChoosen)) {
+      mapsAvailable.push(mapChoosen);
     }
     
     // Create update object
     const updateData: { map_choosen: string | null, maps_available?: string[] } = {
-      map_choosen: mapChoosen
+      map_choosen: mapChoosen,
+      maps_available: mapsAvailable
     };
-
-    // Add maps_available_json if provided
-    if (mapsAvailable !== undefined) {
-      updateData.maps_available = mapsAvailable;
-    }
     
     const result = await supabase.from("clients").update(updateData).eq('email', normalizedEmail);
     

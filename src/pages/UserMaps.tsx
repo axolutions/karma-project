@@ -37,23 +37,33 @@ export default function UserMaps() {
 
   useEffect(() => {
     const fetchUserMaps = async () => {
+      try {
         const email = getCurrentUser();
         const data = await getUserData(email);
 
         if (data) {
-            if (data.maps_available && Array.isArray(data.maps_available)) {
-                setMapsAvailable(data.maps_available);
-                setMapChoosen(data.map_choosen);
-                setHasData(true);
-            } else {
-                setMapsAvailable([]);
-                setMapChoosen(null);
-                setHasData(true);
-            }
+          if (data.maps_available && Array.isArray(data.maps_available)) {
+            setMapsAvailable(data.maps_available);
+            setMapChoosen(data.map_choosen);
+            setHasData(true);
+          } else {
+            setMapsAvailable([]);
+            setMapChoosen(null);
+            setHasData(true);
+          }
         } else {
-            setHasData(false);
+          setHasData(false);
         }
+      } catch (error) {
+        console.error("Erro ao carregar mapas:", error);
+        toast({
+          title: "Erro",
+          description: "Não foi possível carregar seus mapas. Tente novamente.",
+          variant: "destructive"
+        });
+      } finally {
         setLoading(false);
+      }
     }
 
     setLoading(true);
@@ -70,24 +80,26 @@ export default function UserMaps() {
   };
 
   const handleSelectMap = async (mapType: string) => {
-    // Atualizar o mapa escolhido no banco de dados antes de navegar
-    const email = getCurrentUser();
-    if (email) {
-      try {
+    try {
+      // Atualizar o mapa escolhido no banco de dados antes de navegar
+      const email = getCurrentUser();
+      if (email) {
         await updateMapChoosen(email, mapType);
+        setMapChoosen(mapType);
+        
         // Navegar para a rota correspondente
         const mapConfig = mapConfigurations[mapType as keyof typeof mapConfigurations];
         if (mapConfig) {
           navigate(mapConfig.route);
         }
-      } catch (error) {
-        console.error("Erro ao atualizar mapa escolhido:", error);
-        toast({
-          title: "Erro",
-          description: "Não foi possível selecionar o mapa. Tente novamente.",
-          variant: "destructive"
-        });
       }
+    } catch (error) {
+      console.error("Erro ao atualizar mapa escolhido:", error);
+      toast({
+        title: "Erro",
+        description: "Não foi possível selecionar o mapa. Tente novamente.",
+        variant: "destructive"
+      });
     }
   };
 

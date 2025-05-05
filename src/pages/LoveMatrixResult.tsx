@@ -10,6 +10,8 @@ import { generateInterpretationId } from "@/lib/interpretations"
 import { useNavigate } from "react-router-dom"
 import KarmicMatrix from "@/components/KarmicMatrix"
 import { dispatch, toast } from "@/hooks/use-toast"
+import { useToast } from "@/components/ui/use-toast"
+import { updateMapChoosen } from "@/lib/auth"
 
 // Helper function to process content and wrap text in paragraph tags
 const formatContentWithParagraphs = (content: string): string => {
@@ -28,7 +30,7 @@ const formatContentWithParagraphs = (content: string): string => {
 
 export default function LoveMatrixResult() {
   const [userData, setUserData] = useState<any>(null)
-  const [loading, setLoading] = useState(false)
+  const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
   const [expandedSections, setExpandedSections] = useState<Set<string>>(new Set(["introduction", "loveIntro", "loveEnding"]))
   const [interpretationsLoaded, setInterpretationsLoaded] = useState(false)
@@ -40,6 +42,7 @@ export default function LoveMatrixResult() {
   const [pdfMode, setPdfMode] = useState(false)
 
   const navigate = useNavigate()
+  const { toast: useToastToast } = useToast()
 
   const karmicData = useMemo(() => {
     if (!userData) return
@@ -139,47 +142,61 @@ export default function LoveMatrixResult() {
   }, [])
 
   useEffect(() => {
-    // Either remove the function or uncomment its usage
     const loadUserData = async () => {
       try {
-        // Check if user is logged in
-        if (!isLoggedIn()) {
-          console.error("User is not logged in")
-          setError("Sessão expirada. Por favor, faça login novamente.")
-          setLoading(false)
-          return
-        }
-
-        // Get current user email
-        const email = getCurrentUser()
+        const email = getCurrentUser();
         if (!email) {
-          console.error("User email not found in localStorage")
-          setError("Dados do usuário não encontrados.")
-          setLoading(false)
-          return
+          setError("Usuário não encontrado");
+          setLoading(false);
+          return;
         }
 
-        // Get user data by email
-        const data = await getUserData(email)
+        const data = await getUserData(email);
         if (!data) {
-          console.error("User data not found for email:", email)
-          setError("Dados do usuário não encontrados. Por favor, faça login novamente.")
-          setLoading(false)
-          return
+          setError("Dados do usuário não encontrados");
+          setLoading(false);
+          return;
         }
 
-        console.log("DATA", data)
-        setUserData(data)
-        setLoading(false)
-      } catch (err) {
-        console.error("Error loading user data:", err)
-        setError("Erro ao carregar dados. Por favor, recarregue a página.")
-        setLoading(false)
-      }
-    }
+        // Verificar se o usuário tem acesso ao mapa de amor
+        if (!data.maps_available || !data.maps_available.includes("love")) {
+          setError("Você não tem acesso ao mapa de amor");
+          setLoading(false);
+          return;
+        }
 
-    loadUserData()
-  }, [])
+        setUserData(data);
+        setLoading(false);
+      } catch (error) {
+        console.error("Erro ao carregar dados:", error);
+        setError("Erro ao carregar dados do usuário");
+        setLoading(false);
+      }
+    };
+
+    loadUserData();
+  }, []);
+
+  const handleBackToSelection = () => {
+    // Atualizar o mapa escolhido antes de voltar
+    const email = getCurrentUser();
+    if (email) {
+      updateMapChoosen(email, "love")
+        .then(() => {
+          navigate("/escolher-mapa");
+        })
+        .catch((error) => {
+          console.error("Erro ao atualizar mapa escolhido:", error);
+          useToastToast({
+            title: "Erro",
+            description: "Não foi possível atualizar o mapa escolhido.",
+            variant: "destructive"
+          });
+        });
+    } else {
+      navigate("/escolher-mapa");
+    }
+  };
 
   // Fetch karmic love data
   useEffect(() => {
@@ -412,7 +429,7 @@ export default function LoveMatrixResult() {
             </Button>
             
             <Button 
-              onClick={() => navigate("/escolher-mapa")}
+              onClick={handleBackToSelection}
               variant="outline"
               className="karmic-button-outline flex items-center"
             >
