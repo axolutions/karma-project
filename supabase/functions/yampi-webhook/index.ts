@@ -15,6 +15,32 @@ const pool = new postgres.Pool(DATABASE_URL, 10, true);
 // const YAMPI_SECRET_KEY = "sk_jMtaOiD4jTMeiAXb6OzRBvK4K866GR0ToZblN"
 // const YAMPI_WEBHOOK_SECRET = "wh_O5KNlzi9rWxwEUoHRWeXYcFHPOI4k7ZngkwND"
 
+const SKU_LISTS = {
+  ["love"]: [
+    "BAC7NHXNJ",
+    "UKPGMHZ9K",
+    "GUNCXMRMJ",
+    "V2BJNTFXD",
+    "MN6KJXVQ6",
+    "SAESJQ6WG",
+    "LMEGGJQXL",
+    "46UQFXLE5"
+  ],
+  ["professional"]: [
+    "JTNWEMXLP",
+    "6L8RKNC9F",
+    "ZC9HKPGA5",
+    "G4KWNV8X6"
+  ],
+  ["personal"]: [
+    "C3HWK68SD",
+    "GMRPQ24K2",
+    "P5G5AJFK3",
+    "C7TQPZ2P7",
+    "Q6NZNLZUU",
+    "QPAJSXWKG"
+  ]
+} as { [key: string]: string[] };
 
 console.log("Starting yampi-webhook");
 
@@ -22,23 +48,23 @@ Deno.serve(async (req) => {
   try {
     const connection = await pool.connect();
 
-     try {
+    try {
       const data = await req.json();
-    
+
       const signature = req.headers.get("X-Yampi-Hmac-SHA256");
-      
+
       if (!signature) {
         return new Response(
-          JSON.stringify({ message: "Missing signature" }),
-          { status: 400, headers: { "Content-Type": "application/json" } },
+            JSON.stringify({ message: "Missing signature" }),
+            { status: 400, headers: { "Content-Type": "application/json" } },
         );
       }
-      
+
       // todo: verify signature
-      
+
       console.log("RECEIVED YAMPI WEBHOOK");
       console.log(data.event)
-      
+
       switch (data.event) {
         case "order.paid": {
           const resource = data.resource;
@@ -46,61 +72,34 @@ Deno.serve(async (req) => {
           const email = customer.email;
           console.log("Order paid", email);
 
-          // Primeiro, verificar se o cliente já existe e quais mapas ele já possui
-          const checkClientSql = `
-            SELECT maps_available, map_choosen FROM clients WHERE email = '${email}'
-          `;
-          
-          const clientResult = await connection.queryObject(checkClientSql);
-          const existingClient = clientResult.rows[0];
-          
-          // Array para armazenar todos os mapas que o cliente terá
-          let allMaps = new Array<string>();
-          
-          // Se o cliente já existir, usar seus mapas existentes como base
-          if (existingClient) {
-            try {
-              const existingMaps = existingClient.maps_available;
-              if (existingMaps && Array.isArray(existingMaps)) {
-                allMaps = [...existingMaps];
-              }
-            } catch (e) {
-              console.error("Erro ao recuperar mapas existentes:", e);
-            }
-          }
-          
-          // Mapas da nova compra
-          const newPurchasedMaps = new Array<string>();
+          const maps = new Array<string>();
+
+          console.log(`Searching products... ${resource.items.data.length}`)
 
           for (const item of resource.items.data) {
             const sku = item.item_sku as string;
 
-            if (sku === "BAC7NHXNJ") { // love
-              newPurchasedMaps.push("love");
-            } else if (sku === "JTNWEMXLP") { // professional
-              newPurchasedMaps.push("professional");
-            } else if (sku === "C3HWK68SD") { // matrix
-              newPurchasedMaps.push("personal");
+            for (const map in SKU_LISTS) {
+              const list = SKU_LISTS[map];
+
+              if (list.includes(sku)) {
+                console.log(`SKU FOUND: ${sku} on ${map}`);
+                maps.push(map);
+                break;
+              }
             }
           }
-          
-          // Adicionar novos mapas sem duplicar
-          for (const map of newPurchasedMaps) {
-            if (!allMaps.includes(map)) {
-              allMaps.push(map);
-            }
-          }
-          
-          // Sempre definir o mapa atual como o primeiro da nova compra
-          let map_choosen = newPurchasedMaps[0];
-          
+
+          const map_choosen = maps[0] ?? null;
+          const maps_available_json = JSON.stringify(maps).replace("[", "{").replace("]", "}");
+
           const sql = `
-            INSERT INTO clients (email, map_choosen, maps_available) 
-            VALUES ('${email}', '${map_choosen}', ARRAY[${allMaps.map(m => `'${m}'`).join(',')}]::text[])
+            INSERT INTO clients (email, map_choosen, maps_available)
+            VALUES ('${email}', '${map_choosen}', '${maps_available_json}')
             ON CONFLICT (email)
             DO UPDATE SET
               map_choosen = '${map_choosen}',
-              maps_available = ARRAY[${allMaps.map(m => `'${m}'`).join(',')}]::text[]
+              maps_available = '${maps_available_json}'
           `
 
           const result = await connection.queryObject(sql)
@@ -108,30 +107,29 @@ Deno.serve(async (req) => {
           console.log("Data", data);
 
           return new Response(
-            null,
-            { status: 200, headers: { "Content-Type": "application/json" } },
+              null,
+              { status: 200, headers: { "Content-Type": "application/json" } },
           );
         }
         default:
           console.error("Unknown event", data.event);
           break;
       }
-      
+
       return new Response(
-        null,
-        { status: 404, headers: { "Content-Type": "application/json" } },
+          null,
+          { status: 404, headers: { "Content-Type": "application/json" } },
       );
-     } finally {
-        connection.release();
-     }
-    
-    } catch (error) {
-      console.log(error);
+    } finally {
+      connection.release();
     }
 
-    return new Response(
+  } catch (error) {
+    console.log(error);
+  }
+
+  return new Response(
       JSON.stringify({ message: "Internal server error" }),
       { status: 500, headers: { "Content-Type": "application/json" } },
-    );
-  });
-  });
+  );
+});
