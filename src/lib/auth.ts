@@ -237,3 +237,47 @@ export async function updateMapChoosen(email: string, mapChoosen: string | null,
     return false;
   }
 }
+
+// Functions for managing Karmic Maps in the karmic_maps table
+export async function addKarmicMap(mapData: { selected_map: string; skus: string[] }) {
+  try {
+    const { data, error } = await supabase
+      .from("karmic_maps")
+      .insert([mapData])
+      .select();
+    if (error) throw error;
+    return data;
+  } catch (error) {
+    console.error("Error adding karmic map:", error);
+    throw error;
+  }
+}
+
+export async function updateKarmicMapData(mapId: number, mapData: { selected_map: string; skus: string[] }) {
+  try {
+    const { data, error } = await supabase
+      .from("karmic_maps")
+      .update(mapData)
+      .eq("id", mapId)
+      .select();
+    if (error) throw error;
+    return data;
+  } catch (error) {
+    console.error("Error updating karmic map:", error);
+    throw error;
+  }
+}
+
+export async function deleteKarmicMapById(mapId: number) {
+  try {
+    const { error } = await supabase
+      .from("karmic_maps")
+      .delete()
+      .eq("id", mapId);
+    if (error) throw error;
+    return true;
+  } catch (error) {
+    console.error("Error deleting karmic map:", error);
+    throw error;
+  }
+}

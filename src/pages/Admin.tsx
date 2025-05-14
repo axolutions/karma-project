@@ -16,6 +16,7 @@ import {  ThemeSupa } from '@supabase/auth-ui-shared';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/use-auth';
 import { i18n_ptbr } from '../i18n/pt-br';
+import { KarmicMapSelection } from '@/components/KarmicMapSelection';
 
 export default function Admin() {
   const [isLoading, setIsLoading] = useState(false);
@@ -24,25 +25,6 @@ export default function Admin() {
   const navigate = useNavigate();
 
   const session = useAuth();
-
-  const handleLogin = () => {
-    setIsLoading(true);
-    setError(null);
-    
-    // Senha correta para o acesso administrativo
-    const correctPassword = "admin123";
-    
-    if (adminPassword === correctPassword) {
-      localStorage.setItem('adminAuthenticated', 'true');
-      // setIsAuthenticated(true);
-      toast.success("Login administrativo realizado com sucesso");
-    } else {
-      setError("Senha incorreta! Tente novamente.");
-      toast.error("Senha incorreta! Tente novamente.");
-    }
-    
-    setIsLoading(false);
-  };
 
   const handleLogout = async () => {
     localStorage.removeItem('adminAuthenticated');
@@ -203,10 +185,11 @@ export default function Admin() {
       </div>
       
       <Tabs defaultValue="emails" className="space-y-6">
-        <TabsList className="grid w-full grid-cols-4">
+        <TabsList className="grid w-full grid-cols-5">
           <TabsTrigger value="emails">Gerenciar Emails</TabsTrigger>
           <TabsTrigger value="interpretations">Interpretações</TabsTrigger>
           <TabsTrigger value="yampi">Integração Yampi</TabsTrigger>
+          <TabsTrigger value="karmic_maps">Seleção de mapas</TabsTrigger>
           <TabsTrigger value="elementor">Sistema Elementor</TabsTrigger>
         </TabsList>
         
@@ -220,6 +203,10 @@ export default function Admin() {
         
         <TabsContent value="yampi" className="space-y-4">
           <YampiIntegration />
+        </TabsContent>
+
+        <TabsContent value="karmic_maps" className="space-y-4">
+          <KarmicMapSelection/>
         </TabsContent>
         
         <TabsContent value="elementor" className="space-y-4">
