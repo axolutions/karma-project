@@ -74,13 +74,34 @@ Deno.serve(async (req) => {
 
           const maps = new Array<string>();
 
-          console.log(`Searching products... ${resource.items.data.length}`)
+          console.log(`Searching products... ${resource.items.data.length}`);
+          console.log(resource.items.data);
+
+          const querySkuLists = `
+            SELECT * FROM karmic_maps
+          `
+          const { rows: skuLists } = await connection.queryObject<{
+              created_at: string;
+              id: number;
+              selected_map: string;
+              skus: string[];
+          }>(querySkuLists);
+
+          let lists = {} as typeof SKU_LISTS;
+
+          if (skuLists.length !== 0) {
+            for (const map of skuLists) {
+              lists[map.selected_map] = map.skus;
+            }
+          } else {
+            lists = SKU_LISTS;
+          }
 
           for (const item of resource.items.data) {
             const sku = item.item_sku as string;
 
-            for (const map in SKU_LISTS) {
-              const list = SKU_LISTS[map];
+            for (const map in lists) {
+              const list = lists[map];
 
               if (list.includes(sku)) {
                 console.log(`SKU FOUND: ${sku} on ${map}`);
